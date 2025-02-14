@@ -70,6 +70,18 @@ class User {
         throw error;
     }
   }
+  static async createVerifiedUser(username, email, password, role = 'user') {
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [result] = await db.execute(
+            'INSERT INTO users (username, email, password, role, email_verified) VALUES (?, ?, ?, ?, true)',
+            [username, email, hashedPassword, role]
+        );
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
 }
 
 module.exports = User;

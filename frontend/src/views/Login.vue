@@ -49,44 +49,49 @@
     },
     // Update the handleLogin method in the script section
     methods: {
-        async handleLogin() {
-            try {
-                const response = await fetch('http://localhost:7904/api/users/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify(this.formData)
-                });
+      async handleLogin() {
+          try {
+              const response = await fetch('http://localhost:7904/api/users/login', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  credentials: 'include',
+                  body: JSON.stringify(this.formData)
+              });
 
-                const data = await response.json();
+              const data = await response.json();
 
-                if (!response.ok) {
-                    if (data.needsVerification) {
-                        this.$router.push({
-                            path: '/verify-otp',
-                            query: { email: data.email }
-                        });
-                        return;
-                    }
-                    throw new Error(data.message || 'Login failed');
-                }
+              if (!response.ok) {
+                  if (data.needsVerification) {
+                      this.$router.push({
+                          path: '/verify-otp',
+                          query: { email: data.email }
+                      });
+                      return;
+                  }
+                  throw new Error(data.message || 'Login failed');
+              }
 
-                localStorage.setItem('token', data.token);
-                
-                // Check user role and redirect accordingly
-                const decodedToken = JSON.parse(atob(data.token.split('.')[1]));
-                if (decodedToken.role === 'admin') {
-                    this.$router.push('/admin');
-                } else {
-                    this.$router.push('/home');
-                }
-            } catch (err) {
-                this.error = err.message;
-            }
-        }
-    }
+              localStorage.setItem('token', data.token);
+              
+              // Check user role and redirect accordingly
+              const decodedToken = JSON.parse(atob(data.token.split('.')[1]));
+              switch(decodedToken.role) {
+                  case 'admin':
+                      this.$router.push('/admin');
+                      break;
+                  case 'staff':
+                      this.$router.push('/staff');
+                      break;
+                  default:
+                      this.$router.push('/home');
+              }
+          } catch (err) {
+              this.error = err.message;
+          }
+      }
+  }
   }
   </script>
   
