@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Register from '../views/Register.vue'
 import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
+import VerifyOTP from '../views/VerifyOTP.vue'
 
 const routes = [
   {
@@ -25,7 +26,13 @@ const routes = [
     name: 'Home',
     component: Home,
     meta: { requiresAuth: true }
-  }
+  },
+  {
+    path: '/verify-otp',
+    name: 'VerifyOTP',
+    component: VerifyOTP,
+    meta: { requiresGuest: true }
+}
 ]
 
 const router = createRouter({
