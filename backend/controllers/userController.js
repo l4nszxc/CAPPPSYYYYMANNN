@@ -67,56 +67,54 @@ exports.verifyOTP = async (req, res) => {
 };
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+      const { email, password } = req.body;
 
-    // Find user by email
-    const user = await User.findByEmail(email);
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Check if email is verified
-    const isVerified = await User.isEmailVerified(email);
-    if (!isVerified) {
-      return res.status(403).json({ 
-        message: 'Please verify your email before logging in',
-        needsVerification: true,
-        email: email
-      });
-    }
-
-    // Check password
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // Set user session
-    req.session.user = {
-      id: user.id,
-      username: user.username,
-      email: user.email
-    };
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      'your-secret-key',
-      { expiresIn: '1h' }
-    );
-
-    res.status(200).json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email
+      // Find user by email
+      const user = await User.findByEmail(email);
+      if (!user) {
+          return res.status(401).json({ message: 'Invalid email or password' });
       }
-    });
+
+      // Check if email is verified
+      const isVerified = await User.isEmailVerified(email);
+      if (!isVerified) {
+          return res.status(403).json({ 
+              message: 'Please verify your email before logging in',
+              needsVerification: true,
+              email: email
+          });
+      }
+
+      // Check password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+          return res.status(401).json({ message: 'Invalid email or password' });
+      }
+
+      // Generate JWT token with role
+      const token = jwt.sign(
+          { 
+              userId: user.id,
+              email: user.email,
+              role: user.role || 'user' // Include role in token
+          },
+          'your-secret-key',
+          { expiresIn: '1h' }
+      );
+
+      res.status(200).json({
+          message: 'Login successful',
+          token,
+          user: {
+              id: user.id,
+              username: user.username,
+              email: user.email,
+              role: user.role || 'user'
+          }
+      });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
   }
 };
 

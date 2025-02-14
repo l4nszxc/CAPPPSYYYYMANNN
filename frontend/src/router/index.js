@@ -3,6 +3,7 @@ import Register from '../views/Register.vue'
 import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import VerifyOTP from '../views/VerifyOTP.vue'
+import AdminHome from '../views/AdminHome.vue'
 
 const routes = [
   {
@@ -32,7 +33,22 @@ const routes = [
     name: 'VerifyOTP',
     component: VerifyOTP,
     meta: { requiresGuest: true }
-}
+  },
+
+
+
+
+
+    //Admin Routes
+    {
+      path: '/admin',
+      name: 'AdminHome',
+      component: AdminHome,
+      meta: { requiresAuth: true, requiresAdmin: true }
+  }
+
+    
+
 ]
 
 const router = createRouter({
@@ -41,15 +57,19 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token')
+  const token = localStorage.getItem('token');
+  const isAuthenticated = !!token;
+  const isAdmin = token ? JSON.parse(atob(token.split('.')[1])).role === 'admin' : false;
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login')
+      next('/login');
+  } else if (to.meta.requiresAdmin && !isAdmin) {
+      next('/home');
   } else if (to.meta.requiresGuest && isAuthenticated) {
-    next('/home')
+      next(isAdmin ? '/admin' : '/home');
   } else {
-    next()
+      next();
   }
-})
+});
 
 export default router
