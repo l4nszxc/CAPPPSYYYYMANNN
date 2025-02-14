@@ -2,13 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
-
+const adminRoutes = require('./routes/adminRoutes'); // Add this line
 
 const app = express();
 
+// Update CORS configuration
 app.use(cors({
-  origin: 'http://localhost:8080',
-  credentials: true
+  origin: ['http://localhost:8080', 'http://localhost:8081'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
@@ -27,6 +30,7 @@ app.use(session({
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes); 
 
 const PORT = 7904;
 app.listen(PORT, () => {

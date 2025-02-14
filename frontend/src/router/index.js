@@ -4,6 +4,7 @@ import Login from '../views/Login.vue'
 import Home from '../views/Home.vue'
 import VerifyOTP from '../views/VerifyOTP.vue'
 import AdminHome from '../views/AdminHome.vue'
+import RecruitStaff from '../views/RecruitStaff.vue'
 
 const routes = [
   {
@@ -45,7 +46,19 @@ const routes = [
       name: 'AdminHome',
       component: AdminHome,
       meta: { requiresAuth: true, requiresAdmin: true }
-  }
+  },
+  {
+    path: '/admin/recruit-staff',
+    name: 'RecruitStaff',
+    component: RecruitStaff,
+    meta: { requiresAuth: true, requiresAdmin: true }
+}
+
+
+
+    //Staff Routes
+
+    
 
     
 

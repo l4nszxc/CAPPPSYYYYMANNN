@@ -4,13 +4,16 @@
         <h1>Admin Dashboard</h1>
       </div>
       <div class="nav-menu">
+        <router-link to="/admin/recruit-staff" class="recruit-btn">
+          Recruit Staff
+        </router-link>
         <span class="admin-name">Welcome, {{ username }}</span>
         <button @click="$emit('logout')" class="logout-btn">
           Logout
         </button>
       </div>
     </nav>
-  </template>
+</template>
   
   <script>
   export default {
@@ -64,4 +67,17 @@
   .logout-btn:hover {
     background-color: #c0392b;
   }
+  .recruit-btn {
+    background-color: #27ae60;
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.recruit-btn:hover {
+    background-color: #219a52;
+}
   </style>

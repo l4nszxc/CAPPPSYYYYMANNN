@@ -5,5 +5,6 @@ const { isAdmin } = require('../middleware/auth');
 
 router.get('/stats', isAdmin, adminController.getStats);
 router.get('/users', isAdmin, adminController.getAllUsers);
+router.post('/recruit-staff', isAdmin, adminController.recruitStaff);
 
 module.exports = router;
