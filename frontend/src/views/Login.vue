@@ -48,31 +48,29 @@
       }
     },
     methods: {
-      async handleLogin() {
+        async handleLogin() {
         try {
-          const response = await fetch('http://localhost:7904/api/users/login', {
+            const response = await fetch('http://localhost:7904/api/users/login', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify(this.formData)
-          });
-  
-          const data = await response.json();
-  
-          if (!response.ok) {
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
             throw new Error(data.message || 'Login failed');
-          }
-  
-          // Store the token in localStorage
-          localStorage.setItem('token', data.token);
-          
-          // Redirect to home page
-          this.$router.push('/home');
+            }
+
+            localStorage.setItem('token', data.token);
+            this.$router.push('/home');
         } catch (err) {
-          this.error = err.message;
+            this.error = err.message;
         }
-      }
+        }
     }
   }
   </script>

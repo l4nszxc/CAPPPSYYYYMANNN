@@ -20,7 +20,6 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-// Add this to the existing exports object
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -37,10 +36,17 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // Set user session
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email
+    };
+
     // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email },
-      'your-secret-key', // Replace with a secure secret key in production
+      'your-secret-key',
       { expiresIn: '1h' }
     );
 
@@ -56,5 +62,39 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Add logout controller
+exports.logout = async (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Error logging out' });
+    }
+    res.clearCookie('connect.sid');
+    res.status(200).json({ message: 'Logged out successfully' });
+  });
+};
+exports.getUsername = async (req, res) => {
+  try {
+      const token = req.headers.authorization?.split(' ')[1];
+      
+      if (!token) {
+          return res.status(401).json({ message: 'No token provided' });
+      }
+
+      const decoded = jwt.verify(token, 'your-secret-key');
+      const user = await User.findByEmail(decoded.email);
+
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      res.json({
+          username: user.username
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
   }
 };

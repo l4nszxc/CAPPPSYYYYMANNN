@@ -1,41 +1,94 @@
 <template>
     <div class="home-container">
-      <nav class="navbar">
-        <h1>Welcome {{ username }}</h1>
-        <button @click="handleLogout" class="logout-btn">Logout</button>
-      </nav>
+      <Navbar 
+        :username="username"
+        @logout="showLogoutModal = true"
+      />
+      
       <div class="content">
         <h2>Dashboard</h2>
         <p>Welcome to your dashboard! This is your protected home page.</p>
       </div>
-    </div>
-  </template>
   
-  <script>
-  export default {
+      <LogoutModal 
+        :show="showLogoutModal"
+        @confirm="handleLogout"
+        @cancel="showLogoutModal = false"
+      />
+    </div>
+</template>
+  
+<script>
+import Navbar from '../components/Navbar.vue'
+import LogoutModal from '../components/LogoutModal.vue'
+  
+export default {
     name: 'Home',
+    components: {
+        Navbar,
+        LogoutModal
+    },
     data() {
-      return {
-        username: 'User' // This should be updated with actual user data
-      }
+        return {
+            username: '',
+            showLogoutModal: false
+        }
     },
     methods: {
-      handleLogout() {
-        // Clear the token from localStorage
-        localStorage.removeItem('token');
-        // Redirect to login page
-        this.$router.push('/login');
-      }
+        async handleLogout() {
+            try {
+                const response = await fetch('http://localhost:7904/api/users/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    localStorage.removeItem('token');
+                    this.$router.push('/login');
+                } else {
+                    console.error('Logout failed');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+            } finally {
+                this.showLogoutModal = false;
+            }
+        },
+            async getUserData() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    this.$router.push('/login');
+                    return;
+                }
+
+                const response = await fetch('http://localhost:7904/api/users/getUsername', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.username = data.username;
+                }
+            } catch (error) {
+                console.error('Error fetching username:', error);
+            }
+        }
     },
-    // Add navigation guard to check if user is authenticated
+    async mounted() {
+        await this.getUserData();
+    },
     beforeMount() {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        this.$router.push('/login');
-      }
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.$router.push('/login');
+        }
     }
-  }
-  </script>
+}
+</script>
   
   <style scoped>
   .home-container {
@@ -43,32 +96,9 @@
     background-color: #f5f5f5;
   }
   
-  .navbar {
-    background-color: #4CAF50;
-    color: white;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
   .content {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
-  }
-  
-  .logout-btn {
-    background-color: white;
-    color: #4CAF50;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-  
-  .logout-btn:hover {
-    background-color: #f0f0f0;
   }
   </style>
