@@ -48,29 +48,37 @@
       }
     },
     methods: {
-        async handleLogin() {
+      async handleLogin() {
         try {
-            const response = await fetch('http://localhost:7904/api/users/login', {
+          const response = await fetch('http://localhost:7904/api/users/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+              'Content-Type': 'application/json'
             },
             credentials: 'include',
             body: JSON.stringify(this.formData)
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-            throw new Error(data.message || 'Login failed');
+          });
+  
+          const data = await response.json();
+  
+          if (!response.ok) {
+            if (data.needsVerification) {
+              // Redirect to OTP verification if email isn't verified
+              this.$router.push({
+                path: '/verify-otp',
+                query: { email: data.email }
+              });
+              return;
             }
-
-            localStorage.setItem('token', data.token);
-            this.$router.push('/home');
+            throw new Error(data.message || 'Login failed');
+          }
+  
+          localStorage.setItem('token', data.token);
+          this.$router.push('/home');
         } catch (err) {
-            this.error = err.message;
+          this.error = err.message;
         }
-        }
+      }
     }
   }
   </script>

@@ -69,15 +69,18 @@
             },
             body: JSON.stringify(this.formData)
           });
-  
+
           const data = await response.json();
-  
+
           if (!response.ok) {
             throw new Error(data.message || 'Registration failed');
           }
-  
-          // Registration successful
-          this.$router.push('/login');
+
+          // Redirect to OTP verification with email
+          this.$router.push({
+            path: '/verify-otp',
+            query: { email: this.formData.email }
+          });
         } catch (err) {
           this.error = err.message;
         }

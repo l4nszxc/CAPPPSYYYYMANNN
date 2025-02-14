@@ -16,6 +16,7 @@
                 <button type="submit" class="verify-btn">Verify OTP</button>
             </form>
             <p v-if="error" class="error-message">{{ error }}</p>
+            <p v-if="success" class="success-message">{{ success }}</p>
         </div>
     </div>
 </template>
@@ -27,7 +28,8 @@ export default {
         return {
             email: '',
             otp: '',
-            error: ''
+            error: '',
+            success: ''
         }
     },
     created() {
@@ -53,10 +55,14 @@ export default {
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.message);
+                    throw new Error(data.message || 'Verification failed');
                 }
 
-                this.$router.push('/login');
+                this.success = 'Email verified successfully! Redirecting to login...';
+                setTimeout(() => {
+                    this.$router.push('/login');
+                }, 2000);
+
             } catch (err) {
                 this.error = err.message;
             }
@@ -110,6 +116,10 @@ export default {
 
 .error-message {
     color: red;
+    margin-top: 1rem;
+}
+.success-message {
+    color: #4CAF50;
     margin-top: 1rem;
 }
 </style>
