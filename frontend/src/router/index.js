@@ -61,6 +61,12 @@ const routes = [
     component: RecruitStaff,
     meta: { requiresAuth: true, requiresAdmin: true }
   },
+  {
+    path: '/admin/users',
+    name: 'AllUsers',
+    component: () => import('../views/admin/UsersList.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+},
 
 
 

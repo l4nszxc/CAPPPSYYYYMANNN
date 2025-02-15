@@ -1,47 +1,34 @@
 <template>
-    <div class="admin-container">
-      <AdminNavbar 
-        :username="username"
-        @logout="showLogoutModal = true"
-      />
-      
-      <div class="admin-content">
-        <div class="dashboard-cards">
-          <div class="card">
-            <h3>Total Users</h3>
-            <p class="number">{{ stats.totalUsers || 0 }}</p>
-          </div>
-          <div class="card">
-            <h3>Verified Users</h3>
-            <p class="number">{{ stats.verifiedUsers || 0 }}</p>
-          </div>
-          <div class="card">
-            <h3>Active Users</h3>
-            <p class="number">{{ stats.activeUsers || 0 }}</p>
-          </div>
-        </div>
-  
-        <div class="recent-activity">
-          <h2>Recent Activity</h2>
-          <div class="activity-list">
-            <!-- Add your activity list here -->
-          </div>
-        </div>
+  <div class="admin-container">
+    <AdminNavbar 
+      :username="username"
+      @logout="showLogoutModal = true"
+    />
+    
+    <div class="admin-content">
+      <div class="dashboard-cards">
+        <!-- Total Users Card -->
+        <router-link to="/admin/users" class="card clickable">
+          <h3>Total Users</h3>
+          <p class="number">{{ stats.totalUsers || 0 }}</p>
+        </router-link>
       </div>
-  
-      <!-- Logout Confirmation Modal -->
-      <div v-if="showLogoutModal" class="modal-overlay">
-        <div class="modal-content">
-          <h2>Confirm Logout</h2>
-          <p>Are you sure you want to logout?</p>
-          <div class="modal-buttons">
-            <button @click="handleLogout" class="confirm-btn">Yes, Logout</button>
-            <button @click="showLogoutModal = false" class="cancel-btn">Cancel</button>
-          </div>
+    </div>
+    
+
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Confirm Logout</h2>
+        <p>Are you sure you want to logout?</p>
+        <div class="modal-buttons">
+          <button @click="handleLogout" class="confirm-btn">Yes, Logout</button>
+          <button @click="showLogoutModal = false" class="cancel-btn">Cancel</button>
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</template>
   
   <script>
 import AdminNavbar from '../../components/AdminNavbar.vue'  
@@ -57,7 +44,7 @@ import AdminNavbar from '../../components/AdminNavbar.vue'
         stats: {
           totalUsers: 0,
           verifiedUsers: 0,
-          activeUsers: 0
+          unverifiedUsers: 0
         }
       }
     },
@@ -78,22 +65,26 @@ import AdminNavbar from '../../components/AdminNavbar.vue'
         }
       },
       async fetchStats() {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch('http://localhost:7904/api/admin/stats', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.ok) {
-            this.stats = await response.json();
-          }
-        } catch (error) {
-          console.error('Error fetching stats:', error);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:7904/api/admin/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.stats = {
+          totalUsers: data.totalUsers || 0,
+          verifiedUsers: data.verifiedUsers || 0
+        };
       }
-    },
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  }
+},
     async mounted() {
       const token = localStorage.getItem('token');
       if (token) {
@@ -124,25 +115,41 @@ import AdminNavbar from '../../components/AdminNavbar.vue'
     margin-bottom: 2rem;
   }
   
-  .card {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  .card h3 {
-    margin: 0;
-    color: #666;
-    font-size: 1rem;
-  }
-  
-  .card .number {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #2c3e50;
-    margin: 0.5rem 0 0;
-  }
+  .clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.clickable:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card h3 {
+  margin: 0;
+  color: #666;
+  font-size: 1.2rem;
+}
+
+.card .number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 0.5rem 0 0;
+}
   
   .recent-activity {
     background: white;

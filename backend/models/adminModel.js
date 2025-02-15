@@ -4,9 +4,7 @@ class Admin {
     static async getUserStats() {
         try {
             const [result] = await db.execute(`
-                SELECT 
-                    COUNT(*) as totalUsers,
-                    SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END) as verifiedUsers
+                SELECT COUNT(*) as totalUsers
                 FROM users
                 WHERE role = 'user'
             `);
@@ -19,7 +17,7 @@ class Admin {
     static async getAllUsers() {
         try {
             const [rows] = await db.execute(`
-                SELECT id, username, email, email_verified, created_at 
+                SELECT id, username, email, created_at 
                 FROM users 
                 WHERE role = 'user'
             `);
