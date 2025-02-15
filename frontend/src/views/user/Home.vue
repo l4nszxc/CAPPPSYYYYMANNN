@@ -19,8 +19,8 @@
 </template>
   
 <script>
-import Navbar from '../components/Navbar.vue'
-import LogoutModal from '../components/LogoutModal.vue'
+import Navbar from '../../components/Navbar.vue'
+import LogoutModal from '../../components/LogoutModal.vue'
   
 export default {
     name: 'Home',

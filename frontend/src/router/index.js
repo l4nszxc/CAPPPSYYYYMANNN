@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Register from '../views/Register.vue'
 import Login from '../views/Login.vue'
-import Home from '../views/Home.vue'
+import Home from '../views/user/Home.vue'
 import VerifyOTP from '../views/VerifyOTP.vue'
-import AdminHome from '../views/AdminHome.vue'
-import RecruitStaff from '../views/RecruitStaff.vue'
-import StaffHome from '../views/StaffHome.vue'
+import AdminHome from '../views/admin/AdminHome.vue'
+import RecruitStaff from '../views/admin/RecruitStaff.vue'
+import StaffHome from '../views/staff/StaffHome.vue'
 
 const routes = [
   {
