@@ -29,11 +29,13 @@ export default {
             email: '',
             otp: '',
             error: '',
-            success: ''
+            success: '',
+            fromLogin: false // Add this to track where user came from
         }
     },
     created() {
         this.email = this.$route.query.email;
+        this.fromLogin = this.$route.query.fromLogin === 'true'; // Get the source
         if (!this.email) {
             this.$router.push('/register');
         }
@@ -58,10 +60,49 @@ export default {
                     throw new Error(data.message || 'Verification failed');
                 }
 
-                this.success = 'Email verified successfully! Redirecting to login...';
-                setTimeout(() => {
-                    this.$router.push('/login');
-                }, 2000);
+                this.success = 'Email verified successfully!';
+
+                if (this.fromLogin) {
+                    // If came from login, attempt to log in automatically
+                    const loginResponse = await fetch('http://localhost:7904/api/users/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            email: this.email,
+                            password: localStorage.getItem('tempPassword') // Get stored password
+                        })
+                    });
+
+                    const loginData = await loginResponse.json();
+
+                    if (loginResponse.ok) {
+                        localStorage.removeItem('tempPassword'); // Clear stored password
+                        localStorage.setItem('token', loginData.token);
+                        
+                        // Redirect based on role
+                        const decodedToken = JSON.parse(atob(loginData.token.split('.')[1]));
+                        switch(decodedToken.role) {
+                            case 'admin':
+                                this.$router.push('/admin');
+                                break;
+                            case 'staff':
+                                this.$router.push('/staff');
+                                break;
+                            default:
+                                this.$router.push('/home');
+                        }
+                    } else {
+                        this.$router.push('/login');
+                    }
+                } else {
+                    // If came from register, redirect to login after 2 seconds
+                    setTimeout(() => {
+                        this.$router.push('/login');
+                    }, 2000);
+                }
 
             } catch (err) {
                 this.error = err.message;

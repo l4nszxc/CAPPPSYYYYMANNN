@@ -62,7 +62,7 @@ export default {
         }
     },
     methods: {
-      async handleLogin() {
+    async handleLogin() {
         try {
             const response = await fetch('http://localhost:7904/api/users/login', {
                 method: 'POST',
@@ -84,6 +84,8 @@ export default {
                 // If credentials are correct but user is not verified
                 if (data.needsVerification && data.validCredentials) {
                     this.unverifiedEmail = data.email;
+                    // Store password temporarily
+                    localStorage.setItem('tempPassword', this.formData.password);
                     this.showVerificationDialog = true;
                     return;
                 }
@@ -110,37 +112,35 @@ export default {
         }
     },
 
-        async resendVerification() {
-            try {
-                const response = await fetch('http://localhost:7904/api/users/resend-otp', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email: this.unverifiedEmail })
-                });
+    async resendVerification() {
+        try {
+            const response = await fetch('http://localhost:7904/api/users/resend-otp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: this.unverifiedEmail })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(data.message);
-                }
-
-                this.showVerificationDialog = false;
-                this.$router.push({
-                    path: '/verify-otp',
-                    query: { email: this.unverifiedEmail }
-                });
-            } catch (err) {
-                this.error = err.message;
+            if (!response.ok) {
+                throw new Error(data.message);
             }
-        },
 
-        cancelVerification() {
             this.showVerificationDialog = false;
-            this.formData.password = '';
+            this.$router.push({
+                path: '/verify-otp',
+                query: { 
+                    email: this.unverifiedEmail,
+                    fromLogin: 'true' // Add this parameter
+                }
+            });
+        } catch (err) {
+            this.error = err.message;
         }
     }
+}
 }
 </script>
   
