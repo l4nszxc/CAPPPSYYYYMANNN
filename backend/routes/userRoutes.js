@@ -7,5 +7,6 @@ router.post('/login', userController.login);
 router.post('/logout', userController.logout);
 router.post('/verify-otp', userController.verifyOTP); 
 router.get('/getUsername', userController.getUsername);
+router.post('/resend-otp', userController.resendOTP);
 
 module.exports = router;
