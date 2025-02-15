@@ -14,6 +14,7 @@
             />
           </div>
           
+          
           <div class="form-group">
             <label for="password">Password</label>
             <input
@@ -31,7 +32,11 @@
             <p class="register-link">
                 Don't have an account? <router-link to="/register">Register here</router-link>
             </p>
+            <p class="forgot-password-link">
+                Forgot your password? <router-link to="/forgot-password">Reset it here</router-link>
+            </p>
         </div>
+        
 
         <!-- Verification Dialog -->
         <div v-if="showVerificationDialog" class="modal-overlay">

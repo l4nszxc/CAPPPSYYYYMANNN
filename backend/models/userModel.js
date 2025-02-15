@@ -82,6 +82,43 @@ class User {
         throw error;
     }
 }
+static async updatePasswordResetOTP(email, otp) {
+    try {
+        const [result] = await db.execute(
+            'UPDATE users SET password_reset_otp = ?, password_reset_otp_expires = DATE_ADD(NOW(), INTERVAL 10 MINUTE) WHERE email = ?',
+            [otp, email]
+        );
+        return result;
+    } catch (error) {
+        throw error;
+    }
 }
+
+static async verifyPasswordResetOTP(email, otp) {
+    try {
+        const [rows] = await db.execute(
+            'SELECT * FROM users WHERE email = ? AND password_reset_otp = ? AND password_reset_otp_expires > NOW()',
+            [email, otp]
+        );
+        return rows[0];
+    } catch (error) {
+        throw error;
+    }
+}
+
+static async resetPassword(email, password) {
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const [result] = await db.execute(
+            'UPDATE users SET password = ?, password_reset_otp = NULL, password_reset_otp_expires = NULL WHERE email = ?',
+            [hashedPassword, email]
+        );
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
+}
+
 
 module.exports = User;

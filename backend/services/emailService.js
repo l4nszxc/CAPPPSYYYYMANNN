@@ -27,3 +27,23 @@ exports.sendOTP = async (email, otp) => {
         throw error;
     }
 };
+exports.sendPasswordResetOTP = async (email, otp) => {
+    try {
+        await transporter.sendMail({
+            from: '"Your App" <your-email@gmail.com>',
+            to: email,
+            subject: "Password Reset OTP",
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
+                    <h2>Password Reset Request</h2>
+                    <p>Your OTP for password reset is:</p>
+                    <h1 style="color: #4CAF50; font-size: 32px;">${otp}</h1>
+                    <p>This OTP will expire in 10 minutes.</p>
+                    <p>If you didn't request this, please ignore this email.</p>
+                </div>
+            `
+        });
+    } catch (error) {
+        throw error;
+    }
+};

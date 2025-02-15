@@ -168,3 +168,72 @@ exports.getUsername = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 };
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // Check if user exists
+        const user = await User.findByEmail(email);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Generate OTP
+        const otp = otpGenerator.generate(6, { 
+            digits: true, 
+            alphabets: false, 
+            upperCase: false, 
+            specialChars: false 
+        });
+
+        // Save OTP
+        await User.updatePasswordResetOTP(email, otp);
+
+        // Send OTP email
+        await emailService.sendPasswordResetOTP(email, otp);
+
+        res.status(200).json({ 
+            message: 'Password reset OTP sent successfully',
+            email
+        });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'Error processing request' });
+    }
+};
+
+exports.verifyPasswordReset = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        // Check if the OTP is valid
+        const user = await User.verifyPasswordResetOTP(email, otp);
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+
+        res.status(200).json({ 
+            message: 'OTP verified successfully',
+            email
+        });
+    } catch (error) {
+        console.error('OTP verification error:', error);
+        res.status(500).json({ message: 'Error verifying OTP' });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Reset password
+        await User.resetPassword(email, password);
+
+        res.status(200).json({ 
+            message: 'Password reset successfully' 
+        });
+    } catch (error) {
+        console.error('Password reset error:', error);
+        res.status(500).json({ message: 'Error resetting password' });
+    }
+};
