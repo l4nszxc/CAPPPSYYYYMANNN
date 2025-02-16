@@ -185,6 +185,19 @@
             />
           </div>
         </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="input-group">
+            <i class="fas fa-lock input-icon"></i>
+            <input
+              type="password"
+              id="confirmPassword"
+              v-model="formData.confirmPassword"
+              required
+              placeholder="Confirm your password"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -225,7 +238,8 @@ export default {
         address: '',
         birthdate: '',
         email: '',
-        password: ''
+        password: '',
+        confirmPassword: ''
       },
       error: ''
     }
@@ -233,12 +247,22 @@ export default {
   methods: {
     async handleRegister() {
       try {
+        // Check if passwords match
+        if (this.formData.password !== this.formData.confirmPassword) {
+          this.error = 'Passwords do not match';
+          return;
+        }
+
+        // Create a copy of formData without confirmPassword
+        const registrationData = { ...this.formData };
+        delete registrationData.confirmPassword;
+
         const response = await fetch('http://localhost:7904/api/users/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(this.formData)
+          body: JSON.stringify(registrationData)
         });
 
         const data = await response.json();
@@ -365,6 +389,7 @@ input:focus {
   padding: 0.75rem;
   background-color: #fdecea;
   border-radius: 6px;
+  font-size: 0.9rem;
 }
 
 .form-footer {

@@ -8,7 +8,7 @@
         </div>
         
         <form @submit.prevent="handleLogin" class="login-form">
-          <div class="form-group">
+          <div class="form-group" style="padding-bottom: 15px;">
             <label for="email">Email</label>
             <div class="input-group">
               <i class="fas fa-envelope input-icon"></i>
