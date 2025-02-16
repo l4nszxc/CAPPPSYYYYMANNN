@@ -12,26 +12,34 @@ exports.register = async (req, res) => {
             middlename, 
             lastname, 
             gender, 
+            civilStatus, // Add this line
             phoneNumber, 
             address, 
             birthdate,
             email, 
             password 
         } = req.body;
-  
+
+        // Validation
+        if (!username || !firstname || !lastname || !gender || !civilStatus || 
+            !phoneNumber || !address || !birthdate || !email || !password) {
+            return res.status(400).json({ message: 'All required fields must be filled' });
+        }
+
         // Check if user exists
         const existingUser = await User.findByEmail(email);
         if (existingUser) {
             return res.status(400).json({ message: 'Email already registered' });
         }
-  
+
         // Create user
         await User.create(
             username, 
             firstname, 
             middlename, 
             lastname, 
-            gender, 
+            gender,
+            civilStatus, // Add this line
             phoneNumber, 
             address, 
             birthdate,
@@ -58,7 +66,7 @@ exports.register = async (req, res) => {
             email
         });
     } catch (error) {
-        console.error(error);
+        console.error('Registration error:', error);
         res.status(500).json({ message: 'Server error' });
     }
   };

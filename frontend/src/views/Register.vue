@@ -8,6 +8,9 @@
       </div>
 
       <form @submit.prevent="handleRegister" class="register-form">
+    <div class="form-grid">
+      <!-- Left Column -->
+      <div class="form-column">
         <!-- Username field -->
         <div class="form-group">
           <label for="username">Username</label>
@@ -86,21 +89,6 @@
           </div>
         </div>
 
-        <!-- Phone number field -->
-        <div class="form-group">
-          <label for="phoneNumber">Phone Number</label>
-          <div class="input-group">
-            <i class="fas fa-phone input-icon"></i>
-            <input
-              type="tel"
-              id="phoneNumber"
-              v-model="formData.phoneNumber"
-              required
-              placeholder="Enter phone number"
-            />
-          </div>
-        </div>
-
         <!-- Birthdate field -->
         <div class="form-group">
           <label for="birthdate">Birthdate</label>
@@ -114,22 +102,59 @@
             />
           </div>
         </div>
+        <div class="form-group">
+          <label for="phoneNumber">Phone Number</label>
+          <div class="input-group">
+            <i class="fas fa-phone input-icon"></i>
+            <input
+              type="tel"
+              id="phoneNumber"
+              v-model="formData.phoneNumber"
+              required
+              placeholder="Enter phone number"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="form-column">
 
         <!-- Address field -->
         <div class="form-group">
           <label for="address">Address</label>
           <div class="input-group">
             <i class="fas fa-home input-icon"></i>
-            <textarea
+            <input
+              type="text"
               id="address"
               v-model="formData.address"
               required
               placeholder="Enter your address"
-              rows="3"
-              class="textarea-input"
-            ></textarea>
+              class="input-field"
+            />
           </div>
         </div>
+        <div class="form-group">
+          <label for="civilStatus">Civil Status</label>
+          <div class="input-group">
+            <i class="fas fa-heart input-icon"></i>
+            <select
+              id="civilStatus"
+              v-model="formData.civilStatus"
+              required
+              class="select-input"
+            >
+              <option value="">Select civil status</option>
+              <option value="single">Single</option>
+              <option value="married">Married</option>
+              <option value="widowed">Widowed</option>
+              <option value="divorced">Divorced</option>
+              <option value="separated">Separated</option>
+            </select>
+          </div>
+        </div>
+        
         
         <!-- Email field -->
         <div class="form-group">
@@ -160,12 +185,14 @@
             />
           </div>
         </div>
+      </div>
+    </div>
 
-        <button type="submit" class="register-btn">
-          <i class="fas fa-user-plus"></i>
-          Create Account
-        </button>
-      </form>
+    <button type="submit" class="register-btn">
+      <i class="fas fa-user-plus"></i>
+      Create Account
+    </button>
+  </form>
 
       <p v-if="error" class="error-message">
         <i class="fas fa-exclamation-circle"></i>
@@ -193,6 +220,7 @@ export default {
         middlename: '',
         lastname: '',
         gender: '',
+        civilStatus: '',
         phoneNumber: '',
         address: '',
         birthdate: '',
@@ -246,8 +274,19 @@ export default {
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   width: 100%;
-  max-width: 400px;
-  transition: transform 0.3s ease;
+  max-width: 900px; /* Increased max-width for 2 columns */
+  margin: 2rem;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+.form-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .form-header {
@@ -358,7 +397,6 @@ a:hover {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .select-input {
@@ -383,9 +421,49 @@ a:hover {
 
 /* Add responsive styles for form-row */
 @media (max-width: 768px) {
+  .register-card {
+    margin: 1rem;
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
+
+  .input-group input,
+  .input-group select,
+  .input-group textarea {
+    width: 100%;
+  }
+
+  .register-btn {
+    width: 100%;
+  }
+}
+.input-group input,
+.select-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+.textarea-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 2.5rem;
+}
+
+.textarea-input {
+  min-height: 100px;
 }
 </style>
