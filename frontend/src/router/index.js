@@ -6,7 +6,8 @@ import VerifyOTP from '../views/VerifyOTP.vue'
 import AdminHome from '../views/admin/AdminHome.vue'
 import RecruitStaff from '../views/admin/RecruitStaff.vue'
 import StaffHome from '../views/staff/StaffHome.vue'
-import ForgotPassword from '../views/ForgotPassword.vue'
+import Profile from '../views/user/Profile.vue'
+import ForgotPassword from '../views/ForgotPassword.vue' 
 
 const routes = [
   {
@@ -43,6 +44,12 @@ const routes = [
     component: VerifyOTP,
     meta: { requiresGuest: true }
   },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
+    meta: { requiresAuth: true }
+},
 
 
 

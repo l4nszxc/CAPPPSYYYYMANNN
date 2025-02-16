@@ -8,7 +8,7 @@ router.post('/logout', userController.logout);
 router.post('/verify-otp', userController.verifyOTP); 
 router.get('/getUsername', userController.getUsername);
 router.post('/resend-otp', userController.resendOTP);
-
+router.get('/profile', userController.getProfile);
 
 router.post('/forgot-password', userController.forgotPassword);
 router.post('/verify-password-reset', userController.verifyPasswordReset);

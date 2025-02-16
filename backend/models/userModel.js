@@ -118,6 +118,17 @@ static async resetPassword(email, password) {
         throw error;
     }
 }
+static async findById(id) {
+    try {
+        const [rows] = await db.execute(
+            'SELECT * FROM users WHERE id = ?',
+            [id]
+        );
+        return rows[0];
+    } catch (error) {
+        throw error;
+    }
+}
 }
 
 
