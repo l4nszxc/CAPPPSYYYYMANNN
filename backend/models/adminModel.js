@@ -20,7 +20,20 @@ class Admin {
     static async getAllUsers() {
         try {
             const [rows] = await db.execute(`
-                SELECT id, username, email, created_at, email_verified, role
+                SELECT 
+                    id, 
+                    username, 
+                    firstname,
+                    middlename,
+                    lastname,
+                    gender,
+                    phone_number,
+                    address,
+                    birthdate,
+                    email, 
+                    created_at, 
+                    email_verified, 
+                    role
                 FROM users 
                 WHERE role = 'user'
                 ORDER BY created_at DESC

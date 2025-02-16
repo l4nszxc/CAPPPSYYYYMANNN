@@ -13,7 +13,7 @@
             <input 
               type="text" 
               v-model="searchQuery" 
-              placeholder="Search by username or email..."
+              placeholder="Search by name, username, email, gender, phone, address..."
             >
           </div>
           <select v-model="statusFilter" class="status-filter">
@@ -25,31 +25,46 @@
       </div>
 
       <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Registration Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in filteredUsers" :key="user.id">
-              <td>{{ user.username }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ formatDate(user.created_at) }}</td>
-              <td>
-                <span :class="['status-badge', getStatusClass(user)]">
-                  {{ user.email_verified ? 'Verified' : 'Unverified' }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-if="filteredUsers.length === 0" class="no-results">
-          No users found matching your search criteria
-        </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Full Name</th>
+          <th>Gender</th>
+          <th>Contact Info</th>
+          <th>Address</th>
+          <th>Birthdate</th>
+          <th>Registration Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="user in filteredUsers" :key="user.id">
+          <td>{{ user.username }}</td>
+          <td>
+            {{ formatFullName(user.firstname, user.middlename, user.lastname) }}
+          </td>
+          <td>{{ capitalizeFirst(user.gender) }}</td>
+          <td>
+            <div class="contact-info">
+              <div>{{ user.email }}</div>
+              <div>{{ formatPhoneNumber(user.phone_number) }}</div>
+            </div>
+          </td>
+          <td>{{ user.address }}</td>
+          <td>{{ formatDate(user.birthdate, 'short') }}</td>
+          <td>{{ formatDate(user.created_at) }}</td>
+          <td>
+            <span :class="['status-badge', getStatusClass(user)]">
+              {{ user.email_verified ? 'Verified' : 'Unverified' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div v-if="filteredUsers.length === 0" class="no-results">
+      No users found matching your search criteria
+    </div>
       </div>
     </div>
 
@@ -81,27 +96,58 @@ export default {
       }
   },
   computed: {
-      filteredUsers() {
-          return this.users.filter(user => {
-              const matchesSearch = !this.searchQuery || 
-                  user.username.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                  user.email.toLowerCase().includes(this.searchQuery.toLowerCase());
+  filteredUsers() {
+    return this.users.filter(user => {
+      const searchTerms = this.searchQuery.toLowerCase();
+      const matchesSearch = !this.searchQuery || 
+        // Basic info
+        user.username?.toLowerCase().includes(searchTerms) ||
+        user.email?.toLowerCase().includes(searchTerms) ||
+        
+        // Full name search
+        this.formatFullName(user.firstname, user.middlename, user.lastname).toLowerCase().includes(searchTerms) ||
+        user.firstname?.toLowerCase().includes(searchTerms) ||
+        user.middlename?.toLowerCase().includes(searchTerms) ||
+        user.lastname?.toLowerCase().includes(searchTerms) ||
+        
+        // Additional fields
+        user.gender?.toLowerCase().includes(searchTerms) ||
+        user.phone_number?.toLowerCase().includes(searchTerms) ||
+        user.address?.toLowerCase().includes(searchTerms) ||
+        user.birthdate?.includes(searchTerms);
 
-              const matchesStatus = this.statusFilter === 'all' || 
-                  (this.statusFilter === 'verified' && user.email_verified) ||
-                  (this.statusFilter === 'unverified' && !user.email_verified);
+      // Status filter
+      const matchesStatus = this.statusFilter === 'all' || 
+        (this.statusFilter === 'verified' && user.email_verified) ||
+        (this.statusFilter === 'unverified' && !user.email_verified);
 
-              return matchesSearch && matchesStatus;
-          });
-      }
-  },
+      return matchesSearch && matchesStatus;
+    });
+  }
+},
     methods: {
-      formatDate(date) {
-        return new Date(date).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        });
+      formatPhoneNumber(phone) {
+        if (!phone) return '';
+        // Add your phone formatting logic here
+        return phone;
+      },
+      formatFullName(firstname, middlename, lastname) {
+        const middle = middlename ? ` ${middlename} ` : ' ';
+        return firstname && lastname 
+            ? `${firstname}${middle}${lastname}`
+            : 'N/A';
+     },
+     capitalizeFirst(str) {
+        if (!str) return 'N/A';
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+     },
+    
+      formatDate(date, format = 'full') {
+        if (!date) return '';
+        const options = format === 'short' 
+          ? { year: 'numeric', month: 'short', day: 'numeric' }
+          : { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        return new Date(date).toLocaleDateString('en-US', options);
       },
       getStatusClass(user) {
         return user.email_verified ? 'verified' : 'unverified';
@@ -196,21 +242,38 @@ export default {
 }
 
 .table-container {
+    max-width: 100%;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     overflow: auto;
+    margin-top: 1rem;
+    padding: 1rem;
 }
 
 table {
     width: 100%;
+    min-width: 1200px;
     border-collapse: collapse;
 }
 
-th, td {
+th {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #ddd;
+}
+td {
+  vertical-align: top;
+  max-width: 200px; /* Prevent cells from getting too wide */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+td:hover {
+  white-space: normal;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 
 th {

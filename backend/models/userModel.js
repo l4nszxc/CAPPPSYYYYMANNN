@@ -2,12 +2,12 @@ const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 class User {
-    static async create(username, email, password) {
+    static async create(username, firstname, middlename, lastname, gender, phoneNumber, address, birthdate, email, password) {
         try {
             const hashedPassword = await bcrypt.hash(password, 10);
             const [result] = await db.execute(
-                'INSERT INTO users (username, email, password, email_verified) VALUES (?, ?, ?, false)',
-                [username, email, hashedPassword]
+                'INSERT INTO users (username, firstname, middlename, lastname, gender, phone_number, address, birthdate, email, password, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, false)',
+                [username, firstname, middlename, lastname, gender, phoneNumber, address, birthdate, email, hashedPassword]
             );
             return result;
         } catch (error) {

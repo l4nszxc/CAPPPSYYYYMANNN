@@ -8,6 +8,7 @@
       </div>
 
       <form @submit.prevent="handleRegister" class="register-form">
+        <!-- Username field -->
         <div class="form-group">
           <label for="username">Username</label>
           <div class="input-group">
@@ -21,7 +22,116 @@
             />
           </div>
         </div>
+
+        <!-- Name fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstname">First Name</label>
+            <div class="input-group">
+              <i class="fas fa-user input-icon"></i>
+              <input
+                type="text"
+                id="firstname"
+                v-model="formData.firstname"
+                required
+                placeholder="First name"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="middlename">Middle Name</label>
+            <div class="input-group">
+              <i class="fas fa-user input-icon"></i>
+              <input
+                type="text"
+                id="middlename"
+                v-model="formData.middlename"
+                placeholder="Middle name (optional)"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="lastname">Last Name</label>
+            <div class="input-group">
+              <i class="fas fa-user input-icon"></i>
+              <input
+                type="text"
+                id="lastname"
+                v-model="formData.lastname"
+                required
+                placeholder="Last name"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Gender field -->
+        <div class="form-group">
+          <label for="gender">Gender</label>
+          <div class="input-group">
+            <i class="fas fa-venus-mars input-icon"></i>
+            <select
+              id="gender"
+              v-model="formData.gender"
+              required
+              class="select-input"
+            >
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Phone number field -->
+        <div class="form-group">
+          <label for="phoneNumber">Phone Number</label>
+          <div class="input-group">
+            <i class="fas fa-phone input-icon"></i>
+            <input
+              type="tel"
+              id="phoneNumber"
+              v-model="formData.phoneNumber"
+              required
+              placeholder="Enter phone number"
+            />
+          </div>
+        </div>
+
+        <!-- Birthdate field -->
+        <div class="form-group">
+          <label for="birthdate">Birthdate</label>
+          <div class="input-group">
+            <i class="fas fa-calendar input-icon"></i>
+            <input
+              type="date"
+              id="birthdate"
+              v-model="formData.birthdate"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Address field -->
+        <div class="form-group">
+          <label for="address">Address</label>
+          <div class="input-group">
+            <i class="fas fa-home input-icon"></i>
+            <textarea
+              id="address"
+              v-model="formData.address"
+              required
+              placeholder="Enter your address"
+              rows="3"
+              class="textarea-input"
+            ></textarea>
+          </div>
+        </div>
         
+        <!-- Email field -->
         <div class="form-group">
           <label for="email">Email</label>
           <div class="input-group">
@@ -36,6 +146,7 @@
           </div>
         </div>
         
+        <!-- Password field -->
         <div class="form-group">
           <label for="password">Password</label>
           <div class="input-group">
@@ -70,49 +181,55 @@
     </div>
   </div>
 </template>
-  
-  <script>
-  export default {
-    name: 'Register',
-    data() {
-      return {
-        formData: {
-          username: '',
-          email: '',
-          password: ''
-        },
-        error: ''
-      }
-    },
-    methods: {
-      async handleRegister() {
-        try {
-          const response = await fetch('http://localhost:7904/api/users/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(this.formData)
-          });
 
-          const data = await response.json();
+<script>
+export default {
+  name: 'Register',
+  data() {
+    return {
+      formData: {
+        username: '',
+        firstname: '',
+        middlename: '',
+        lastname: '',
+        gender: '',
+        phoneNumber: '',
+        address: '',
+        birthdate: '',
+        email: '',
+        password: ''
+      },
+      error: ''
+    }
+  },
+  methods: {
+    async handleRegister() {
+      try {
+        const response = await fetch('http://localhost:7904/api/users/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.formData)
+        });
 
-          if (!response.ok) {
-            throw new Error(data.message || 'Registration failed');
-          }
+        const data = await response.json();
 
-          // Redirect to OTP verification with email
-          this.$router.push({
-            path: '/verify-otp',
-            query: { email: this.formData.email }
-          });
-        } catch (err) {
-          this.error = err.message;
+        if (!response.ok) {
+          throw new Error(data.message || 'Registration failed');
         }
+
+        this.$router.push({
+          path: '/verify-otp',
+          query: { email: this.formData.email }
+        });
+      } catch (err) {
+        this.error = err.message;
       }
     }
   }
-  </script>
+}
+</script>
   
   <style scoped>
 .register-container {
@@ -236,5 +353,39 @@ a {
 a:hover {
   color: #45a049;
   text-decoration: underline;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.select-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: white;
+  appearance: none;
+}
+
+.textarea-input {
+  width: 83%;
+  padding: 1rem 1rem 1rem 3rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Add responsive styles for form-row */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
 }
 </style>
