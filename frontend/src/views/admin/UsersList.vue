@@ -40,7 +40,7 @@
               <td>{{ user.email }}</td>
               <td>{{ formatDate(user.created_at) }}</td>
               <td>
-                <span :class="['status-badge', user.email_verified ? 'verified' : 'unverified']">
+                <span :class="['status-badge', getStatusClass(user)]">
                   {{ user.email_verified ? 'Verified' : 'Unverified' }}
                 </span>
               </td>
@@ -97,24 +97,35 @@ export default {
   },
     methods: {
       formatDate(date) {
-        return new Date(date).toLocaleDateString()
+        return new Date(date).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
       },
-      async fetchUsers() {
-        try {
-          const token = localStorage.getItem('token')
-          const response = await fetch('http://localhost:7904/api/admin/users', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          })
-          
-          if (response.ok) {
-            this.users = await response.json()
+      getStatusClass(user) {
+        return user.email_verified ? 'verified' : 'unverified';
+      },
+    async fetchUsers() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:7904/api/admin/users', {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        } catch (error) {
-          console.error('Error fetching users:', error)
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          this.users = data.map(user => ({
+            ...user,
+            email_verified: Boolean(user.email_verified)
+          }));
         }
-      },
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    },
       async handleLogout() {
         try {
           const response = await fetch('http://localhost:7904/api/users/logout', {
@@ -208,19 +219,23 @@ th {
 }
 
 .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-block;
 }
 
 .verified {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
 }
 
 .unverified {
-    background-color: #ffebee;
-    color: #c62828;
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .no-results {
