@@ -298,3 +298,43 @@ exports.getProfile = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+exports.updateProfile = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
+
+        const decoded = jwt.verify(token, 'your-secret-key');
+        const userId = decoded.userId;
+
+        const {
+            username,
+            firstname,
+            middlename,
+            lastname,
+            gender,
+            civil_status,
+            phone_number,
+            address,
+            birthdate
+        } = req.body;
+
+        await User.updateProfile(userId, {
+            username,
+            firstname,
+            middlename,
+            lastname,
+            gender,
+            civil_status,
+            phone_number,
+            address,
+            birthdate
+        });
+
+        res.status(200).json({ message: 'Profile updated successfully' });
+    } catch (error) {
+        console.error('Profile update error:', error);
+        res.status(500).json({ message: 'Error updating profile' });
+    }
+};
