@@ -332,7 +332,21 @@ exports.updateProfile = async (req, res) => {
             birthdate
         });
 
-        res.status(200).json({ message: 'Profile updated successfully' });
+        // Generate new token with updated username
+        const newToken = jwt.sign(
+            { 
+                userId: userId,
+                role: decoded.role,
+                username: username
+            },
+            'your-secret-key',
+            { expiresIn: '24h' }
+        );
+
+        res.status(200).json({ 
+            message: 'Profile updated successfully',
+            token: newToken
+        });
     } catch (error) {
         console.error('Profile update error:', error);
         res.status(500).json({ message: 'Error updating profile' });

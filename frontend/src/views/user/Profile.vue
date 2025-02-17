@@ -8,6 +8,12 @@
     <div class="profile-content">
       <div class="profile-card">
         <h2>My Profile</h2>
+        
+        <!-- Add notification component -->
+        <div v-if="notification.show" 
+             :class="['notification', notification.type]">
+          {{ notification.message }}
+        </div>
 
         <div class="profile-grid">
           <!-- Basic Information -->
@@ -46,40 +52,22 @@
             </div>
             <div class="info-group">
               <label>Gender</label>
-              <input
-                type="text"
+              <select
                 v-model="profileData.gender"
                 :disabled="!isEditing"
-              />
+                class="select-input"
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
             </div>
-            <div class="info-group">
-              <label>Civil Status</label>
-              <input
-                type="text"
-                v-model="profileData.civil_status"
-                :disabled="!isEditing"
-              />
-            </div>
-            <div class="info-group">
-              <label>Birthdate</label>
-              <input
-                type="date"
-                v-model="profileData.birthdate"
-                :disabled="!isEditing"
-              />
-            </div>
+            
           </div>
 
           <!-- Contact Information -->
           <div class="info-section">
-            <div class="info-group">
-              <label>Email</label>
-              <input
-                type="text"
-                v-model="profileData.email"
-                :disabled="!isEditing"
-              />
-            </div>
             <div class="info-group">
               <label>Phone Number</label>
               <input
@@ -93,6 +81,29 @@
               <input
                 type="text"
                 v-model="profileData.address"
+                :disabled="!isEditing"
+              />
+            </div>
+            <div class="info-group">
+              <label>Civil Status</label>
+              <select
+                v-model="profileData.civil_status"
+                :disabled="!isEditing"
+                class="select-input"
+              >
+                <option value="">Select civil status</option>
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="widowed">Widowed</option>
+                <option value="divorced">Divorced</option>
+                <option value="separated">Separated</option>
+              </select>
+            </div>
+            <div class="info-group">
+              <label>Birthdate</label>
+              <input
+                type="date"
+                v-model="profileData.birthdate"
                 :disabled="!isEditing"
               />
             </div>
@@ -124,9 +135,14 @@ export default {
   },
   data() {
     return {
-      username: '',
-      showLogoutModal: false,
-      isEditing: false,
+        username: '',
+        showLogoutModal: false,
+        isEditing: false,
+        notification: {
+            show: false,
+            message: '',
+            type: 'success' // or 'error'
+        },
       profileData: {
         username: '',
         firstname: '',
@@ -137,14 +153,20 @@ export default {
         phone_number: '',
         address: '',
         birthdate: '',
-        email: '',
-        email_verified: false,
         created_at: '',
         role: ''
       }
     }
   },
   methods: {
+    showNotification(message, type = 'success') {
+        this.notification = {
+            show: true,
+            message,
+            type
+        };
+        
+    },
     formatDateForDB(date) {
       if (!date) return null;
       return new Date(date).toISOString().split('T')[0];
@@ -209,39 +231,49 @@ export default {
       }
     },
     async saveProfile() {
-      try {
+    try {
         const token = localStorage.getItem('token');
         const response = await fetch('http://localhost:7904/api/users/profile', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            username: this.profileData.username,
-            firstname: this.profileData.firstname,
-            middlename: this.profileData.middlename,
-            lastname: this.profileData.lastname,
-            gender: this.profileData.gender,
-            civil_status: this.profileData.civil_status,
-            phone_number: this.profileData.phone_number,
-            address: this.profileData.address,
-            birthdate: this.profileData.birthdate 
-          })
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                username: this.profileData.username,
+                firstname: this.profileData.firstname,
+                middlename: this.profileData.middlename,
+                lastname: this.profileData.lastname,
+                gender: this.profileData.gender,
+                civil_status: this.profileData.civil_status,
+                phone_number: this.profileData.phone_number,
+                address: this.profileData.address,
+                birthdate: this.profileData.birthdate 
+            })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-          this.isEditing = false;
-          alert('Profile updated successfully');
-          await this.fetchProfile();
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+            }
+            
+            this.isEditing = false;
+            this.showNotification('Profile updated successfully', 'success');
+            await this.fetchProfile();
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000); 
         } else {
-          throw new Error('Failed to update profile');
+            throw new Error('Failed to update profile');
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Error updating profile:', error);
-        alert('Failed to update profile. Please try again.');
-      }
+        this.showNotification('Failed to update profile. Please try again.', 'error');
     }
+}
   },
   mounted() {
     this.fetchProfile()
@@ -326,5 +358,47 @@ export default {
 .info-group input[type="date"]:disabled {
   background-color: #eee;
   cursor: not-allowed;
+}
+.notification {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.notification.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.notification.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+.select-input {
+  width: 103.5%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  background-color: white;
+  cursor: pointer;
+}
+
+.select-input:disabled {
+  background-color: #eee;
+  cursor: not-allowed;
+}
+
+/* Add custom dropdown arrow */
+.select-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.2rem center;
+  background-size: 1em;
+  padding-right: 2rem;
 }
 </style>
