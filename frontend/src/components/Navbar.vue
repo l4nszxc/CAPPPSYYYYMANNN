@@ -50,7 +50,15 @@ export default {
   data() {
     return {
       showDropdown: false,
-      profileImage: 'https://ui-avatars.com/api/?name=' + this.username + '&background=random'
+      profilePicture: null
+    }
+  },
+  computed: {
+    profileImage() {
+      if (this.profilePicture) {
+        return `http://localhost:7904${this.profilePicture}`;
+      }
+      return `https://ui-avatars.com/api/?name=${this.username}&background=random`;
     }
   },
   methods: {
@@ -61,18 +69,31 @@ export default {
       if (!this.$refs.profileDropdown.contains(event.target)) {
         this.showDropdown = false;
       }
+    },
+    async fetchProfilePicture() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:7904/api/users/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          this.profilePicture = data.profile_picture;
+        }
+      } catch (error) {
+        console.error('Error fetching profile picture:', error);
+      }
     }
   },
   mounted() {
     document.addEventListener('click', this.closeDropdown);
+    this.fetchProfilePicture();
   },
   beforeUnmount() {
     document.removeEventListener('click', this.closeDropdown);
-  },
-  watch: {
-    username(newUsername) {
-      this.profileImage = 'https://ui-avatars.com/api/?name=' + newUsername + '&background=random';
-    }
   }
 }
 </script>

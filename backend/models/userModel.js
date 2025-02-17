@@ -161,6 +161,17 @@ static async findById(id) {
         throw error;
     }
 }
+static async updateProfilePicture(userId, imageUrl) {
+    try {
+        const [result] = await db.execute(
+            'UPDATE users SET profile_picture = ? WHERE id = ?',
+            [imageUrl, userId]
+        );
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
 }
 
 

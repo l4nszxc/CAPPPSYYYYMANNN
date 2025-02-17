@@ -3,6 +3,8 @@ const cors = require('cors');
 const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes'); // Add this line
+const path = require('path');
+
 
 const app = express();
 
@@ -31,6 +33,7 @@ app.use(session({
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes); 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = 7904;
 app.listen(PORT, () => {

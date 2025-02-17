@@ -352,3 +352,29 @@ exports.updateProfile = async (req, res) => {
         res.status(500).json({ message: 'Error updating profile' });
     }
 };
+exports.uploadProfilePicture = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
+
+        const decoded = jwt.verify(token, 'your-secret-key');
+        const userId = decoded.userId;
+
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const imageUrl = `/uploads/profile-pictures/${req.file.filename}`;
+        await User.updateProfilePicture(userId, imageUrl);
+
+        res.status(200).json({ 
+            message: 'Profile picture updated successfully',
+            imageUrl
+        });
+    } catch (error) {
+        console.error('Profile picture upload error:', error);
+        res.status(500).json({ message: 'Error uploading profile picture' });
+    }
+};

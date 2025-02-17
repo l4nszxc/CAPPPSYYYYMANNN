@@ -15,6 +15,29 @@
           {{ notification.message }}
         </div>
 
+        <div class="profile-picture-section">
+          <div class="profile-picture-container">
+            <img 
+              :src="profilePictureUrl" 
+              alt="Profile Picture"
+              class="profile-picture"
+            >
+        <div v-if="isEditing" class="upload-overlay">
+          <label for="profile-picture-input" class="upload-button">
+            <i class="fas fa-camera"></i>
+            Change Picture
+          </label>
+          <input
+            type="file"
+            id="profile-picture-input"
+            accept="image/*"
+            @change="handleProfilePictureChange"
+            style="display: none"
+          >
+        </div>
+      </div>
+    </div>
+
         <div class="profile-grid">
           <!-- Basic Information -->
           <div class="info-section">
@@ -136,12 +159,14 @@ export default {
   data() {
     return {
         username: '',
+        defaultProfilePicture: 'https://ui-avatars.com/api/?name=' + this.username + '&background=random',
         showLogoutModal: false,
         isEditing: false,
         notification: {
             show: false,
             message: '',
-            type: 'success' // or 'error'
+            type: 'success'
+            
         },
       profileData: {
         username: '',
@@ -156,6 +181,14 @@ export default {
         created_at: '',
         role: ''
       }
+    }
+  },
+  computed: {
+    profilePictureUrl() {
+      if (this.profileData.profile_picture) {
+        return `http://localhost:7904${this.profileData.profile_picture}`;
+      }
+      return this.defaultProfilePicture;
     }
   },
   methods: {
@@ -231,49 +264,81 @@ export default {
       }
     },
     async saveProfile() {
-    try {
+      try {
+          const token = localStorage.getItem('token');
+          const response = await fetch('http://localhost:7904/api/users/profile', {
+              method: 'PUT',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                  username: this.profileData.username,
+                  firstname: this.profileData.firstname,
+                  middlename: this.profileData.middlename,
+                  lastname: this.profileData.lastname,
+                  gender: this.profileData.gender,
+                  civil_status: this.profileData.civil_status,
+                  phone_number: this.profileData.phone_number,
+                  address: this.profileData.address,
+                  birthdate: this.profileData.birthdate 
+              })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+              if (data.token) {
+                  localStorage.setItem('token', data.token);
+              }
+              
+              this.isEditing = false;
+              this.showNotification('Profile updated successfully', 'success');
+              await this.fetchProfile();
+              
+              setTimeout(() => {
+                  window.location.reload();
+              }, 1000); 
+          } else {
+              throw new Error('Failed to update profile');
+          }
+      } catch (error) {
+          console.error('Error updating profile:', error);
+          this.showNotification('Failed to update profile. Please try again.', 'error');
+      }
+  },
+  async handleProfilePictureChange(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        const formData = new FormData();
+        formData.append('profilePicture', file);
+
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:7904/api/users/profile', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                username: this.profileData.username,
-                firstname: this.profileData.firstname,
-                middlename: this.profileData.middlename,
-                lastname: this.profileData.lastname,
-                gender: this.profileData.gender,
-                civil_status: this.profileData.civil_status,
-                phone_number: this.profileData.phone_number,
-                address: this.profileData.address,
-                birthdate: this.profileData.birthdate 
-            })
+        const response = await fetch('http://localhost:7904/api/users/upload-profile-picture', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-            }
-            
-            this.isEditing = false;
-            this.showNotification('Profile updated successfully', 'success');
-            await this.fetchProfile();
-            
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000); 
+          this.profileData.profile_picture = data.imageUrl;
+          this.$emit('profile-updated'); 
+          this.showNotification('Profile picture updated successfully', 'success');
         } else {
-            throw new Error('Failed to update profile');
+          throw new Error(data.message);
         }
-    } catch (error) {
-        console.error('Error updating profile:', error);
-        this.showNotification('Failed to update profile. Please try again.', 'error');
+      } catch (error) {
+        console.error('Error uploading profile picture:', error);
+        this.showNotification('Failed to upload profile picture', 'error');
+      }
     }
-}
+  
   },
   mounted() {
     this.fetchProfile()
@@ -400,5 +465,50 @@ export default {
   background-position: right 0.2rem center;
   background-size: 1em;
   padding-right: 2rem;
+}
+.profile-picture-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.profile-picture-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.profile-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.5rem;
+  text-align: center;
+  transition: opacity 0.3s ease;
+}
+
+.upload-button {
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.upload-button:hover {
+  text-decoration: underline;
 }
 </style>
