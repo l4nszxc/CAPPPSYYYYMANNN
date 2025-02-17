@@ -6,14 +6,17 @@
     />
 
     <div class="profile-content">
+    <div class="profile-layout">
+      <!-- Left Column - Profile Picture Card -->
       <div class="profile-card">
-        <h2>My Profile</h2>
-        
-        <!-- Add notification component -->
-        <div v-if="notification.show" 
-             :class="['notification', notification.type]">
-          {{ notification.message }}
-        </div>
+      <div class="card-header">
+        <h3><i class="fas fa-id-badge"></i> My Profile</h3>
+      </div>
+      
+      <div v-if="notification.show" 
+          :class="['notification', notification.type]">
+        {{ notification.message }}
+      </div>
 
         <div class="profile-picture-section">
           <div class="profile-picture-wrapper">
@@ -25,7 +28,7 @@
               >
             </div>
             
-            <div v-if="isEditing" class="picture-buttons">
+            <div class="picture-buttons">
               <label for="profile-picture-input" class="upload-button">
                 <i class="fas fa-camera"></i>
                 Change Picture
@@ -48,12 +51,29 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Right Column - Edit Profile Card -->
+      <div class="profile-card edit-profile-card">
+          <div class="card-header">
+          <h3><i class="fas fa-user-edit"></i> Personal Information</h3>
+          <div class="button-group">
+            <button v-if="isEditing" @click="discardChanges" class="discard-button">
+              <i class="fas fa-times"></i>
+              Discard Changes
+            </button>
+            <button @click="toggleEditing" class="edit-button">
+              <i :class="isEditing ? 'fas fa-save' : 'fas fa-pen'"></i>
+              {{ isEditing ? 'Save Changes' : 'Edit Profile' }}
+            </button>
+          </div>
+        </div>
 
         <div class="profile-grid">
           <!-- Basic Information -->
           <div class="info-section">
             <div class="info-group">
-              <label>Username</label>
+              <label><i class="fas fa-user"></i> Username</label>
               <input
                 type="text"
                 v-model="profileData.username"
@@ -61,7 +81,7 @@
               />
             </div>
             <div class="info-group">
-              <label>First Name</label>
+              <label><i class="fas fa-user-circle"></i> First Name</label>
               <input
                 type="text"
                 v-model="profileData.firstname"
@@ -69,7 +89,7 @@
               />
             </div>
             <div class="info-group">
-              <label>Middle Name</label>
+              <label><i class="fas fa-user-circle"></i> Middle Name</label>
               <input
                 type="text"
                 v-model="profileData.middlename"
@@ -77,7 +97,7 @@
               />
             </div>
             <div class="info-group">
-              <label>Last Name</label>
+              <label><i class="fas fa-user-circle"></i> Last Name</label>
               <input
                 type="text"
                 v-model="profileData.lastname"
@@ -85,7 +105,7 @@
               />
             </div>
             <div class="info-group">
-              <label>Gender</label>
+              <label><i class="fas fa-venus-mars"></i> Gender</label>
               <select
                 v-model="profileData.gender"
                 :disabled="!isEditing"
@@ -97,13 +117,12 @@
                 <option value="other">Other</option>
               </select>
             </div>
-            
           </div>
 
           <!-- Contact Information -->
           <div class="info-section">
             <div class="info-group">
-              <label>Phone Number</label>
+              <label><i class="fas fa-phone"></i> Phone Number</label>
               <input
                 type="text"
                 v-model="profileData.phone_number"
@@ -111,7 +130,7 @@
               />
             </div>
             <div class="info-group">
-              <label>Address</label>
+              <label><i class="fas fa-home"></i> Address</label>
               <input
                 type="text"
                 v-model="profileData.address"
@@ -119,7 +138,7 @@
               />
             </div>
             <div class="info-group">
-              <label>Civil Status</label>
+              <label><i class="fas fa-heart"></i> Civil Status</label>
               <select
                 v-model="profileData.civil_status"
                 :disabled="!isEditing"
@@ -134,7 +153,7 @@
               </select>
             </div>
             <div class="info-group">
-              <label>Birthdate</label>
+              <label><i class="fas fa-calendar"></i> Birthdate</label>
               <input
                 type="date"
                 v-model="profileData.birthdate"
@@ -142,18 +161,7 @@
               />
             </div>
           </div>
-        </div>
-        <div class="button-group">
-          <button @click="toggleEditing" class="edit-button">
-            {{ isEditing ? 'Save Profile' : 'Edit Profile' }}
-          </button>
-          <button 
-            v-if="isEditing" 
-            @click="discardChanges" 
-            class="discard-button"
-          >
-            Discard Changes
-          </button>
+          </div>
         </div>
       </div>
     </div>
@@ -163,7 +171,19 @@
       @confirm="handleLogout"
       @cancel="showLogoutModal = false"
     />
+
+    <div v-if="showRemovePhotoModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Remove Profile Picture</h3>
+        <p>Are you sure you want to remove your profile picture?</p>
+        <div class="modal-buttons">
+          <button @click="confirmRemovePhoto" class="confirm-btn">Yes, Remove</button>
+          <button @click="showRemovePhotoModal = false" class="cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
   </div>
+  
 </template>
 
 <script>
@@ -182,6 +202,7 @@ export default {
         defaultProfilePicture: 'https://ui-avatars.com/api/?name=' + this.username + '&background=random',
         showLogoutModal: false,
         isEditing: false,
+        showRemovePhotoModal: false,
         notification: {
             show: false,
             message: '',
@@ -219,6 +240,9 @@ export default {
             message,
             type
         };
+        setTimeout(() => {
+        this.notification.show = false;
+    }, 1000);
         
     },
     formatDateForDB(date) {
@@ -242,6 +266,11 @@ export default {
       })
     },
     async removeProfilePicture() {
+    // Show confirmation modal instead of immediate removal
+    this.showRemovePhotoModal = true;
+  },
+
+  async confirmRemovePhoto() {
       try {
         const token = localStorage.getItem('token');
         const response = await fetch('http://localhost:7904/api/users/remove-profile-picture', {
@@ -253,39 +282,44 @@ export default {
 
         if (response.ok) {
           this.profileData.profile_picture = null;
-          this.showNotification('Profile picture removed', 'success');
           this.$emit('profile-updated');
+          
+          // Close the modal
+          this.showRemovePhotoModal = false;
+          
+          // Refresh the page after a short delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
         } else {
           throw new Error('Failed to remove profile picture');
         }
       } catch (error) {
         console.error('Error removing profile picture:', error);
         this.showNotification('Failed to remove profile picture', 'error');
+        this.showRemovePhotoModal = false;
       }
     },
     async discardChanges() {
-    try {
-        this.isEditing = false;
-        // Store the current profile picture URL before fetching
-        const originalProfilePicture = this.profileData.profile_picture;
+      try {
+        // Store the current profile picture
+        const currentProfilePicture = this.profileData.profile_picture;
         
-        // Fetch the latest profile data
+        // Reset editing state
+        this.isEditing = false;
+        
+        // Fetch the original profile data
         await this.fetchProfile();
         
-        // Force the profile picture to revert
-        this.profileData.profile_picture = originalProfilePicture;
+        // Restore the current profile picture
+        this.profileData.profile_picture = currentProfilePicture;
         
         this.showNotification('Changes discarded', 'success');
-
-        // Reload the page to ensure all components update
-        setTimeout(() => {
-            window.location.reload();
-        }, 2000);
-    } catch (error) {
+      } catch (error) {
         console.error('Error discarding changes:', error);
         this.showNotification('Failed to discard changes', 'error');
-    }
-},
+      }
+    },
     async fetchProfile() {
       try {
         const token = localStorage.getItem('token')
@@ -331,49 +365,49 @@ export default {
     },
     async saveProfile() {
       try {
-          const token = localStorage.getItem('token');
-          const response = await fetch('http://localhost:7904/api/users/profile', {
-              method: 'PUT',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({
-                  username: this.profileData.username,
-                  firstname: this.profileData.firstname,
-                  middlename: this.profileData.middlename,
-                  lastname: this.profileData.lastname,
-                  gender: this.profileData.gender,
-                  civil_status: this.profileData.civil_status,
-                  phone_number: this.profileData.phone_number,
-                  address: this.profileData.address,
-                  birthdate: this.profileData.birthdate 
-              })
-          });
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:7904/api/users/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            username: this.profileData.username,
+            firstname: this.profileData.firstname,
+            middlename: this.profileData.middlename,
+            lastname: this.profileData.lastname,
+            gender: this.profileData.gender,
+            civil_status: this.profileData.civil_status,
+            phone_number: this.profileData.phone_number,
+            address: this.profileData.address,
+            birthdate: this.profileData.birthdate
+          })
+        });
 
-          const data = await response.json();
+        const data = await response.json();
 
-          if (response.ok) {
-              if (data.token) {
-                  localStorage.setItem('token', data.token);
-              }
-              
-              this.isEditing = false;
-              this.showNotification('Profile updated successfully', 'success');
-              await this.fetchProfile();
-              
-              setTimeout(() => {
-                  window.location.reload();
-              }, 1000); 
-          } else {
-              throw new Error('Failed to update profile');
+        if (response.ok) {
+          if (data.token) {
+            localStorage.setItem('token', data.token);
           }
+          
+          this.isEditing = false;
+          this.showNotification('Profile updated successfully', 'success');
+          
+          // Fetch updated data without affecting profile picture
+          const currentProfilePicture = this.profileData.profile_picture;
+          await this.fetchProfile();
+          this.profileData.profile_picture = currentProfilePicture;
+        } else {
+          throw new Error('Failed to update profile');
+        }
       } catch (error) {
-          console.error('Error updating profile:', error);
-          this.showNotification('Failed to update profile. Please try again.', 'error');
+        console.error('Error updating profile:', error);
+        this.showNotification('Failed to update profile. Please try again.', 'error');
       }
-  },
-  async handleProfilePictureChange(event) {
+    },
+    async handleProfilePictureChange(event) {
       const file = event.target.files[0];
       if (!file) return;
 
@@ -394,8 +428,11 @@ export default {
 
         if (response.ok) {
           this.profileData.profile_picture = data.imageUrl;
-          this.$emit('profile-updated'); 
-          this.showNotification('Profile picture updated successfully', 'success');
+          this.$emit('profile-updated');          
+          // Refresh the page after a short delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
         } else {
           throw new Error(data.message);
         }
@@ -448,12 +485,40 @@ export default {
 .info-group {
   margin-bottom: 1.2rem;
 }
-
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+.edit-profile-card {
+  flex: 1;
+}
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 20px;
+  font-weight: 500;
+  margin-top: 1rem;
+}
 .info-group label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: #666;
   font-size: 0.9rem;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-group label i {
+  color: #4CAF50;
+  width: 20px;
 }
 
 .info-group input {
@@ -469,8 +534,17 @@ export default {
 }
 
 .edit-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   background-color: #4CAF50;
   color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 .discard-button {
   background-color: #dc3545;
@@ -479,19 +553,24 @@ export default {
 
 .edit-button:hover {
   background-color: #45a049;
+  transform: translateY(-1px);
 }
-
-.discard-button:hover {
-  background-color: #c82333;
-}
-.edit-button,
 .discard-button {
-  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #dc3545;
+  color: white;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.3s ease;
+}
+.discard-button:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
 }
 .info-group input[type="date"] {
   width: 100%;
@@ -510,8 +589,12 @@ export default {
     margin-bottom: 1rem;
     border-radius: 4px;
     text-align: center;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
 }
-
+.notification.fade-out {
+    opacity: 0;
+}
 .notification.success {
     background-color: #d4edda;
     color: #155724;
@@ -553,29 +636,30 @@ export default {
   margin-bottom: 2rem;
 }
 .profile-picture-wrapper {
+  padding-top: 70px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
 }
 .profile-picture-container {
-  width: 150px;
-  height: 150px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border: 4px solid white;
+  transition: transform 0.3s ease;
 }
-
-.profile-picture {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.profile-picture-container:hover {
+  transform: scale(1.02);
 }
 
 .picture-buttons {
   display: flex;
   gap: 1rem;
   justify-content: center;
+  margin-top: 1rem;
 }
 
 .profile-picture {
@@ -589,45 +673,125 @@ export default {
   flex-direction: column;
   gap: 0.5rem;
 }
-.remove-picture-button {
-  background-color: #dc3545;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  border: none;
-  transition: background-color 0.3s ease;
-}
+
 
 .remove-picture-button:hover {
   background-color: #c82333;
+  transform: translateY(-1px);
+}
+.upload-button,
+.remove-picture-button {
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  text-align: center;
 }
 .upload-button {
   background-color: #4CAF50;
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  border: none;
-  transition: background-color 0.3s ease;
 }
-
+.remove-picture-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
 .upload-button:hover {
   background-color: #45a049;
+  transform: translateY(-1px);
 }
 .button-group {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
+  align-items: center;
 }
+.profile-info {
+  margin-top: 2rem;
+}
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.header-row h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.25rem;
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.confirm-btn,
+.cancel-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.confirm-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #c82333;
+}
+
+.cancel-btn:hover {
+  background-color: #5a6268;
+}
+.profile-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2rem;
+  margin: 0 auto;
+}
+@media (max-width: 1024px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
