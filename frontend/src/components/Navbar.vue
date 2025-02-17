@@ -29,7 +29,7 @@
             <i class="fas fa-user"></i> Profile
           </router-link>
           <div class="dropdown-divider"></div>
-          <button @click="$emit('logout')" class="dropdown-item">
+          <button @click="$emit('logout')" class="dropdown-item" data-action="logout">
             <i class="fas fa-sign-out-alt"></i> Logout
           </button>
         </div>
@@ -186,7 +186,7 @@ export default {
   padding: 0.75rem 1rem;
   color: #333;
   text-decoration: none;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
   cursor: pointer;
   border: none;
   background: none;
@@ -216,7 +216,16 @@ export default {
     transform: translateY(0);
   }
 }
+.dropdown-item[data-action="logout"],
+button.dropdown-item {
+  color: #dc3545; /* Red text color */
+}
 
+.dropdown-item[data-action="logout"]:hover,
+button.dropdown-item:hover {
+  background-color: #fdf1f2; /* Light red background on hover */
+  color: #dc3545; /* Keep text red on hover */
+}
 /* Responsive styles */
 @media (max-width: 768px) {
   .navbar {
