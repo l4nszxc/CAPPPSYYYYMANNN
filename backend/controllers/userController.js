@@ -378,3 +378,24 @@ exports.uploadProfilePicture = async (req, res) => {
         res.status(500).json({ message: 'Error uploading profile picture' });
     }
 };
+exports.removeProfilePicture = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
+
+        const decoded = jwt.verify(token, 'your-secret-key');
+        const userId = decoded.userId;
+
+        // Update the user's profile to remove the profile picture
+        await User.updateProfilePicture(userId, null);
+
+        res.status(200).json({ 
+            message: 'Profile picture removed successfully'
+        });
+    } catch (error) {
+        console.error('Profile picture removal error:', error);
+        res.status(500).json({ message: 'Error removing profile picture' });
+    }
+};

@@ -16,27 +16,38 @@
         </div>
 
         <div class="profile-picture-section">
-          <div class="profile-picture-container">
-            <img 
-              :src="profilePictureUrl" 
-              alt="Profile Picture"
-              class="profile-picture"
-            >
-        <div v-if="isEditing" class="upload-overlay">
-          <label for="profile-picture-input" class="upload-button">
-            <i class="fas fa-camera"></i>
-            Change Picture
-          </label>
-          <input
-            type="file"
-            id="profile-picture-input"
-            accept="image/*"
-            @change="handleProfilePictureChange"
-            style="display: none"
-          >
+          <div class="profile-picture-wrapper">
+            <div class="profile-picture-container">
+              <img 
+                :src="profilePictureUrl" 
+                alt="Profile Picture"
+                class="profile-picture"
+              >
+            </div>
+            
+            <div v-if="isEditing" class="picture-buttons">
+              <label for="profile-picture-input" class="upload-button">
+                <i class="fas fa-camera"></i>
+                Change Picture
+              </label>
+              <button 
+                v-if="profileData.profile_picture" 
+                @click="removeProfilePicture" 
+                class="remove-picture-button"
+              >
+                <i class="fas fa-trash"></i>
+                Remove Picture
+              </button>
+              <input
+                type="file"
+                id="profile-picture-input"
+                accept="image/*"
+                @change="handleProfilePictureChange"
+                style="display: none"
+              >
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
         <div class="profile-grid">
           <!-- Basic Information -->
@@ -132,9 +143,18 @@
             </div>
           </div>
         </div>
-        <button @click="toggleEditing" class="edit-button">
-          {{ isEditing ? 'Save Profile' : 'Edit Profile' }}
-        </button>
+        <div class="button-group">
+          <button @click="toggleEditing" class="edit-button">
+            {{ isEditing ? 'Save Profile' : 'Edit Profile' }}
+          </button>
+          <button 
+            v-if="isEditing" 
+            @click="discardChanges" 
+            class="discard-button"
+          >
+            Discard Changes
+          </button>
+        </div>
       </div>
     </div>
 
@@ -192,6 +212,7 @@ export default {
     }
   },
   methods: {
+    
     showNotification(message, type = 'success') {
         this.notification = {
             show: true,
@@ -220,6 +241,51 @@ export default {
         day: 'numeric'
       })
     },
+    async removeProfilePicture() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:7904/api/users/remove-profile-picture', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          this.profileData.profile_picture = null;
+          this.showNotification('Profile picture removed', 'success');
+          this.$emit('profile-updated');
+        } else {
+          throw new Error('Failed to remove profile picture');
+        }
+      } catch (error) {
+        console.error('Error removing profile picture:', error);
+        this.showNotification('Failed to remove profile picture', 'error');
+      }
+    },
+    async discardChanges() {
+    try {
+        this.isEditing = false;
+        // Store the current profile picture URL before fetching
+        const originalProfilePicture = this.profileData.profile_picture;
+        
+        // Fetch the latest profile data
+        await this.fetchProfile();
+        
+        // Force the profile picture to revert
+        this.profileData.profile_picture = originalProfilePicture;
+        
+        this.showNotification('Changes discarded', 'success');
+
+        // Reload the page to ensure all components update
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    } catch (error) {
+        console.error('Error discarding changes:', error);
+        this.showNotification('Failed to discard changes', 'error');
+    }
+},
     async fetchProfile() {
       try {
         const token = localStorage.getItem('token')
@@ -405,12 +471,27 @@ export default {
 .edit-button {
   background-color: #4CAF50;
   color: white;
+}
+.discard-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #45a049;
+}
+
+.discard-button:hover {
+  background-color: #c82333;
+}
+.edit-button,
+.discard-button {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  margin-top: 1rem;
+  transition: all 0.3s ease;
 }
 .info-group input[type="date"] {
   width: 100%;
@@ -471,9 +552,13 @@ export default {
   justify-content: center;
   margin-bottom: 2rem;
 }
-
+.profile-picture-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
 .profile-picture-container {
-  position: relative;
   width: 150px;
   height: 150px;
   border-radius: 50%;
@@ -487,28 +572,62 @@ export default {
   object-fit: cover;
 }
 
-.upload-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 0.5rem;
-  text-align: center;
-  transition: opacity 0.3s ease;
+.picture-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
 }
 
-.upload-button {
+.profile-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.upload-overlay {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.remove-picture-button {
+  background-color: #dc3545;
   color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.9rem;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.remove-picture-button:hover {
+  background-color: #c82333;
+}
+.upload-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  border: none;
+  transition: background-color 0.3s ease;
 }
 
 .upload-button:hover {
-  text-decoration: underline;
+  background-color: #45a049;
+}
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 </style>

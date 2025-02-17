@@ -27,6 +27,6 @@ router.post('/forgot-password', userController.forgotPassword);
 router.post('/verify-password-reset', userController.verifyPasswordReset);
 router.post('/reset-password', userController.resetPassword);
 router.post('/upload-profile-picture', upload.single('profilePicture'), userController.uploadProfilePicture);
-
+router.delete('/remove-profile-picture', userController.removeProfilePicture);
 
 module.exports = router;
