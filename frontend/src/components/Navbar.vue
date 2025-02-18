@@ -48,21 +48,18 @@ export default {
     username: {
       type: String,
       default: 'User'
-    },
-    cart: {
-      type: Array,
-      default: () => []
     }
   },
   data() {
     return {
       showDropdown: false,
-      profilePicture: null
+      profilePicture: null,
+      cartItems: []
     }
   },
   computed: {
     cartItemCount() {
-      return this.cart.length;
+      return this.cartItems.length;
     },
     profileImage() {
       if (this.profilePicture) {
@@ -72,6 +69,22 @@ export default {
     }
   },
   methods: {
+    async fetchCart() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:7904/api/cart', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          this.cartItems = await response.json();
+        }
+      } catch (error) {
+        console.error('Error fetching cart:', error);
+        this.cartItems = [];
+      }
+    },
     toggleDropdown() {
       this.showDropdown = !this.showDropdown;
     },
@@ -101,9 +114,16 @@ export default {
   mounted() {
     document.addEventListener('click', this.closeDropdown);
     this.fetchProfilePicture();
+    this.fetchCart(); // Fetch cart on mount
+    
+    // Add event listener for cart updates
+    window.addEventListener('cart-updated', () => {
+      this.fetchCart();
+    });
   },
   beforeUnmount() {
     document.removeEventListener('click', this.closeDropdown);
+    window.removeEventListener('cart-updated', this.fetchCart);
   }
 }
 </script>
@@ -268,7 +288,7 @@ button.dropdown-item:hover {
   padding: 0.5rem 1rem;
   position: relative;
   transition: color 0.3s ease;
-  text-decoration: none; /* Ensure it's not underlined */
+  text-decoration: none;
 }
 
 .cart-button:hover {
@@ -277,13 +297,18 @@ button.dropdown-item:hover {
 
 .cart-count {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -8px;
+  right: -8px;
   background-color: #e74c3c;
   color: white;
   font-size: 0.7rem;
-  padding: 2px 5px;
+  padding: 2px 6px;
   border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Responsive styles */
