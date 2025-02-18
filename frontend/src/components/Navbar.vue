@@ -8,8 +8,7 @@
 
     <div class="navbar-menu">
       <router-link to="/home" class="nav-link">Home</router-link>
-      <router-link to="/profile" class="nav-link">Profile</router-link>
-      <router-link to="/settings" class="nav-link">Settings</router-link>
+      <router-link to="/products" class="nav-link">Products</router-link> <!-- Add Products link -->
     </div>
 
     <div class="navbar-end">

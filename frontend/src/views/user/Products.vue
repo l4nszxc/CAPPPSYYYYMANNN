@@ -1,13 +1,11 @@
 <template>
-    <div class="home-container">
+    <div class="product-container">
       <Navbar 
         :username="username"
         @logout="showLogoutModal = true"
       />
       
-      <div class="content">
-        <p>USER HOMEPAGE</p>
-      </div>
+      
   
       <LogoutModal 
         :show="showLogoutModal"
@@ -90,14 +88,5 @@ export default {
 </script>
   
   <style scoped>
-  .home-container {
-    min-height: 100vh;
-    background-color: #f5f5f5;
-  }
-  
-  .content {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
+
   </style>

@@ -8,6 +8,7 @@ import RecruitStaff from '../views/admin/RecruitStaff.vue'
 import StaffHome from '../views/staff/StaffHome.vue'
 import Profile from '../views/user/Profile.vue'
 import ForgotPassword from '../views/ForgotPassword.vue' 
+import Products from '../views/user/Products.vue' 
 
 const routes = [
   {
@@ -36,6 +37,12 @@ const routes = [
     path: '/home',
     name: 'Home',
     component: Home,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/products', // Add the products route
+    name: 'Products',
+    component: Products,
     meta: { requiresAuth: true }
   },
   {
