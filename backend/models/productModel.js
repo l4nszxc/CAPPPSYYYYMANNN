@@ -1,3 +1,4 @@
+// filepath: backend/models/productModel.js
 const db = require('../config/db');
 
 class Product {
@@ -8,6 +9,24 @@ class Product {
                 [name, description, price, stock_quantity, category, image]
             );
             return result;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getAll() {
+        try {
+            const [rows] = await db.execute('SELECT * FROM products');
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getByCategory(category) {
+        try {
+            const [rows] = await db.execute('SELECT * FROM products WHERE category = ?', [category]);
+            return rows;
         } catch (error) {
             throw error;
         }

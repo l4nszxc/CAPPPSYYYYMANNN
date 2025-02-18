@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
-const adminRoutes = require('./routes/adminRoutes'); // Add this line
+const adminRoutes = require('./routes/adminRoutes'); 
+const productRoutes = require('./routes/productRoutes');
 const path = require('path');
 
 
@@ -33,6 +34,7 @@ app.use(session({
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes); 
+app.use('/api', productRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = 7904;

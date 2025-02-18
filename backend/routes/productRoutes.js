@@ -1,12 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/adminController');
-const productController = require('../controllers/productController'); // Import product controller
-const { isAdmin } = require('../middleware/auth');
+const productController = require('../controllers/productController');
 
-router.get('/stats', isAdmin, adminController.getStats);
-router.get('/users', isAdmin, adminController.getAllUsers);
-router.post('/recruit-staff', isAdmin, adminController.recruitStaff);
-router.post('/products', isAdmin, productController.insertProduct); // Add product route
+router.get('/products', productController.getAllProducts); // Get all products
+router.get('/products/category/:category', productController.getProductsByCategory); // Get products by category
 
 module.exports = router;
