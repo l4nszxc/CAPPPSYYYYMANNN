@@ -50,7 +50,7 @@
                         <p class="product-stock">Stock: {{ product.stock_quantity }}</p>
                         <p class="product-category">Category: {{ product.category }}</p>
                     </div>
-                    <button class="add-to-cart-btn"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
+                    <button class="add-to-cart-btn" @click="addToCart(product)"><i class="fas fa-shopping-cart"></i> Add to Cart</button>
                 </div>
             </div>
             <div v-if="filteredProducts.length === 0 && !loading" class="no-products-message">No products found matching
@@ -80,7 +80,8 @@ export default {
             selectedCategory: '',
             searchQuery: '',
             minPrice: null,
-            maxPrice: null
+            maxPrice: null,
+            cart: [] 
         };
     },
     computed: {
@@ -106,6 +107,51 @@ export default {
         }
     },
     methods: {
+        async addToCart(product) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:7904/api/cart', { // Updated endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        productId: product.products_id,
+                        quantity: 1
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('Product added to cart:', product);
+                    await this.fetchCart();
+                } else {
+                    const error = await response.json();
+                    console.error('Failed to add product:', error);
+                }
+            } catch (error) {
+                console.error('Error adding product to cart:', error);
+            }
+        },
+    async fetchCart() {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:7904/api/users/cart', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                this.cart = await response.json();
+            } else {
+                console.error('Failed to fetch cart');
+                this.cart = [];
+            }
+        } catch (error) {
+            console.error('Error fetching cart:', error);
+            this.cart = [];
+        }
+    },
         async handleLogout() {
             try {
                 const response = await fetch('http://localhost:7904/api/users/logout', {
@@ -181,6 +227,7 @@ export default {
     async mounted() {
         await this.getUserData();
         await this.fetchProducts();
+        await this.fetchCart(); // Fetch cart on mount
     },
 };
 </script>

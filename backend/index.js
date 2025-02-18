@@ -4,6 +4,7 @@ const session = require('express-session');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes'); 
 const productRoutes = require('./routes/productRoutes');
+const cartRoutes = require('./routes/cartRoutes');
 const path = require('path');
 
 
@@ -35,6 +36,7 @@ app.use(session({
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes); 
 app.use('/api', productRoutes);
+app.use('/api/cart', cartRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const PORT = 7904;

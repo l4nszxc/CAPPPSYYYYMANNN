@@ -1,6 +1,24 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/adminModel');
 
+exports.authenticate = (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
+
+        const decoded = jwt.verify(token, 'your-secret-key');
+        req.user = {
+            id: decoded.userId, // Make sure this matches the payload structure when creating the token
+            role: decoded.role
+        };
+        next();
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid token' });
+    }
+};
+
 exports.isAdmin = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];

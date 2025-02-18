@@ -8,21 +8,25 @@
 
     <div class="navbar-menu">
       <router-link to="/home" class="nav-link">Home</router-link>
-      <router-link to="/products" class="nav-link">Products</router-link> <!-- Add Products link -->
+      <router-link to="/products" class="nav-link">Products</router-link>
     </div>
 
     <div class="navbar-end">
+      <router-link to="/cart" class="cart-button">
+        <i class="fas fa-shopping-cart"></i>
+        <span v-if="cartItemCount > 0" class="cart-count">{{ cartItemCount }}</span>
+      </router-link>
       <div class="profile-dropdown" ref="profileDropdown">
         <div class="profile-trigger" @click="toggleDropdown">
-          <img 
-            :src="profileImage" 
-            alt="Profile" 
+          <img
+            :src="profileImage"
+            alt="Profile"
             class="profile-image"
           >
           <span class="username">{{ username }}</span>
           <i class="fas fa-chevron-down dropdown-icon"></i>
         </div>
-        
+
         <div v-show="showDropdown" class="dropdown-menu">
           <router-link to="/profile" class="dropdown-item">
             <i class="fas fa-user"></i> Profile
@@ -44,6 +48,10 @@ export default {
     username: {
       type: String,
       default: 'User'
+    },
+    cart: {
+      type: Array,
+      default: () => []
     }
   },
   data() {
@@ -53,6 +61,9 @@ export default {
     }
   },
   computed: {
+    cartItemCount() {
+      return this.cart.length;
+    },
     profileImage() {
       if (this.profilePicture) {
         return `http://localhost:7904${this.profilePicture}`;
@@ -246,6 +257,35 @@ button.dropdown-item:hover {
   background-color: #fdf1f2; /* Light red background on hover */
   color: #dc3545; /* Keep text red on hover */
 }
+
+/* Cart button styles */
+.cart-button {
+  background: none;
+  border: none;
+  color: #34495e;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  position: relative;
+  transition: color 0.3s ease;
+  text-decoration: none; /* Ensure it's not underlined */
+}
+
+.cart-button:hover {
+  color: #2980b9;
+}
+
+.cart-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #e74c3c;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 5px;
+  border-radius: 50%;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
   .navbar {

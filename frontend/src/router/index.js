@@ -10,6 +10,7 @@ import Profile from '../views/user/Profile.vue'
 import ForgotPassword from '../views/ForgotPassword.vue' 
 import Products from '../views/user/Products.vue' 
 import InsertProducts from '../views/admin/InsertProducts.vue'
+import Cart from '../views/user/Cart.vue'
 
 const routes = [
   {
@@ -57,7 +58,13 @@ const routes = [
     name: 'Profile',
     component: Profile,
     meta: { requiresAuth: true }
-},
+  },
+  {
+    path: '/cart',
+    name: 'Cart',
+    component: Cart,
+    meta: { requiresAuth: true }
+  },
 
 
 
