@@ -153,13 +153,14 @@
               </select>
             </div>
             <div class="info-group">
-              <label><i class="fas fa-calendar"></i> Birthdate</label>
-              <input
-                type="date"
-                v-model="profileData.birthdate"
-                :disabled="!isEditing"
-              />
-            </div>
+    <label><i class="fas fa-birthday-cake"></i> Birthdate</label>
+    <input
+        type="date"
+        v-model="profileData.birthdate"
+        :disabled="!isEditing"
+        class="date-input"
+    />
+</div>
           </div>
           </div>
         </div>
@@ -209,7 +210,7 @@ export default {
             type: 'success'
             
         },
-      profileData: {
+        profileData: {
         username: '',
         firstname: '',
         middlename: '',
@@ -218,7 +219,7 @@ export default {
         civil_status: '',
         phone_number: '',
         address: '',
-        birthdate: '',
+        birthdate: '', 
         created_at: '',
         role: ''
       }
@@ -226,12 +227,21 @@ export default {
   },
   computed: {
     profilePictureUrl() {
-      if (this.profileData.profile_picture) {
-        return `http://localhost:7904${this.profileData.profile_picture}`;
-      }
-      return this.defaultProfilePicture;
+        if (this.profileData.profile_picture) {
+            return `http://localhost:7904${this.profileData.profile_picture}`;
+        }
+        return this.defaultProfilePicture;
+    },
+    formattedBirthdate: {
+        get() {
+            if (!this.profileData.birthdate) return '';
+            return this.formatDateForDB(this.profileData.birthdate);
+        },
+        set(value) {
+            this.profileData.birthdate = value;
+        }
     }
-  },
+},
   methods: {
     
     showNotification(message, type = 'success') {
@@ -246,9 +256,22 @@ export default {
         
     },
     formatDateForDB(date) {
-      if (!date) return null;
-      return new Date(date).toISOString().split('T')[0];
-    },
+    if (!date) return '';
+    try {
+        // Handle both date strings and Date objects
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return ''; // Invalid date
+        
+        // Format as YYYY-MM-DD
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return '';
+    }
+},
     formatFullName(firstname, middlename, lastname) {
       const middle = middlename ? ` ${middlename} ` : ' '
       return firstname && lastname ? `${firstname}${middle}${lastname}` : 'N/A'
@@ -321,27 +344,29 @@ export default {
       }
     },
     async fetchProfile() {
-      try {
+    try {
         const token = localStorage.getItem('token')
         const response = await fetch('http://localhost:7904/api/users/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         })
 
         if (response.ok) {
-          const data = await response.json()
-          // Format the birthdate to YYYY-MM-DD for the date input
-          if (data.birthdate) {
-            data.birthdate = new Date(data.birthdate).toISOString().split('T')[0]
-          }
-          this.profileData = data
-          this.username = data.username
+            const data = await response.json()
+            
+            // Format the birthdate if it exists
+            if (data.birthdate) {
+                data.birthdate = this.formatDateForDB(data.birthdate);
+            }
+   
+            this.profileData = data;
+            this.username = data.username;
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Error fetching profile:', error)
-      }
-    },
+    }
+},
     async handleLogout() {
       try {
         const response = await fetch('http://localhost:7904/api/users/logout', {
@@ -364,49 +389,63 @@ export default {
       }
     },
     async saveProfile() {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:7904/api/users/profile', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            username: this.profileData.username,
-            firstname: this.profileData.firstname,
-            middlename: this.profileData.middlename,
-            lastname: this.profileData.lastname,
-            gender: this.profileData.gender,
-            civil_status: this.profileData.civil_status,
-            phone_number: this.profileData.phone_number,
-            address: this.profileData.address,
-            birthdate: this.profileData.birthdate
-          })
-        });
+    try {
+        const updateData = {
+            username: this.profileData.username || '',
+            firstname: this.profileData.firstname || '',
+            middlename: this.profileData.middlename || null,
+            lastname: this.profileData.lastname || '',
+            gender: this.profileData.gender || '',
+            civil_status: this.profileData.civil_status || '',
+            phone_number: this.profileData.phone_number || '',
+            address: this.profileData.address || '',
+            birthdate: this.formatDateForDB(this.profileData.birthdate) // Format the date
+        };
 
-        const data = await response.json();
+    // Validate required fields
+    const requiredFields = ['username', 'firstname', 'lastname', 'gender', 'civil_status' ,'birthdate'];
+    const missingFields = requiredFields.filter(field => !updateData[field]);
+    
+    if (missingFields.length > 0) {
+      throw new Error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+    }
 
-        if (response.ok) {
-          if (data.token) {
-            localStorage.setItem('token', data.token);
-          }
-          
-          this.isEditing = false;
-          this.showNotification('Profile updated successfully', 'success');
-          
-          // Fetch updated data without affecting profile picture
-          const currentProfilePicture = this.profileData.profile_picture;
-          await this.fetchProfile();
-          this.profileData.profile_picture = currentProfilePicture;
-        } else {
-          throw new Error('Failed to update profile');
-        }
-      } catch (error) {
-        console.error('Error updating profile:', error);
-        this.showNotification('Failed to update profile. Please try again.', 'error');
+    const token = localStorage.getItem('token');
+    const response = await fetch('http://localhost:7904/api/users/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(updateData)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data.token) {
+        localStorage.setItem('token', data.token);
       }
-    },
+      
+      this.isEditing = false;
+      this.showNotification('Profile updated successfully', 'success');
+      
+      // Store current profile picture
+      const currentProfilePicture = this.profileData.profile_picture;
+      
+      // Fetch updated profile data
+      await this.fetchProfile();
+      
+      // Restore profile picture
+      this.profileData.profile_picture = currentProfilePicture;
+    } else {
+      throw new Error(data.message || 'Failed to update profile');
+    }
+  } catch (error) {
+        console.error('Error updating profile:', error);
+        this.showNotification(error.message || 'Failed to update profile. Please try again.', 'error');
+    }
+},
     async handleProfilePictureChange(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -793,5 +832,28 @@ export default {
     grid-template-columns: 1fr;
   }
 }
+.date-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  cursor: pointer;
+}
 
+.date-input:disabled {
+  background-color: #eee;
+  cursor: not-allowed;
+}
+
+/* Fix date input appearance in various browsers */
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 0.2rem;
+}
+
+.date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
 </style>

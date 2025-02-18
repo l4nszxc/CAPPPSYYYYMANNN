@@ -25,36 +25,37 @@ class User {
     }
     static async updateProfile(userId, data) {
         try {
-            const [result] = await db.execute(
-                `UPDATE users 
-                 SET username = ?, 
-                     firstname = ?, 
-                     middlename = ?, 
-                     lastname = ?, 
-                     gender = ?, 
-                     civil_status = ?, 
-                     phone_number = ?, 
-                     address = ?, 
-                     birthdate = ?
-                 WHERE id = ?`,
-                [
-                    data.username,
-                    data.firstname,
-                    data.middlename,
-                    data.lastname,
-                    data.gender,
-                    data.civil_status,
-                    data.phone_number,
-                    data.address,
-                    data.birthdate,
-                    userId
-                ]
-            );
-            return result;
+          const [result] = await db.execute(
+            `UPDATE users 
+             SET username = ?, 
+                 firstname = ?, 
+                 middlename = ?, 
+                 lastname = ?, 
+                 gender = ?, 
+                 civil_status = ?, 
+                 phone_number = ?, 
+                 address = ?,
+                 birthdate = ?
+             WHERE id = ?`,
+            [
+              data.username,
+              data.firstname,
+              data.middlename || null, // Convert empty string to null
+              data.lastname,
+              data.gender,
+              data.civil_status,
+              data.phone_number,
+              data.address,
+              data.birthdate,
+              userId
+            ]
+          );
+          return result;
         } catch (error) {
-            throw error;
+          console.error('Database error:', error);
+          throw error;
         }
-    }
+      }
 
     static async updateOTP(email, otp) {
         try {
