@@ -5,8 +5,11 @@
       </div>
       <div class="nav-menu">
         <router-link to="/admin/recruit-staff" class="recruit-btn">
-          Recruit Staff
-        </router-link>
+  Recruit Staff
+</router-link>
+<router-link to="/admin/insert-products" class="recruit-btn">
+    Insert Products
+</router-link>
         <span class="admin-name">Welcome, {{ username }}</span>
         <button @click="$emit('logout')" class="logout-btn">
           Logout

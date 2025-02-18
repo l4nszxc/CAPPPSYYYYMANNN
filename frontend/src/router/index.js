@@ -9,6 +9,7 @@ import StaffHome from '../views/staff/StaffHome.vue'
 import Profile from '../views/user/Profile.vue'
 import ForgotPassword from '../views/ForgotPassword.vue' 
 import Products from '../views/user/Products.vue' 
+import InsertProducts from '../views/admin/InsertProducts.vue'
 
 const routes = [
   {
@@ -80,7 +81,13 @@ const routes = [
     name: 'AllUsers',
     component: () => import('../views/admin/UsersList.vue'),
     meta: { requiresAuth: true, requiresAdmin: true }
-},
+  },
+  {
+    path: '/admin/insert-products',
+    name: 'InsertProducts',
+    component: InsertProducts,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
 
 
 
