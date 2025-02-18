@@ -60,7 +60,7 @@
           <div class="button-group">
             <button v-if="isEditing" @click="discardChanges" class="discard-button">
               <i class="fas fa-times"></i>
-              Discard Changes
+              Discard Changes $
             </button>
             <button @click="toggleEditing" class="edit-button">
               <i :class="isEditing ? 'fas fa-save' : 'fas fa-pen'"></i>

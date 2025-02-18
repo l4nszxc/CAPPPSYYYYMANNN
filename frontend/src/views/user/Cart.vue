@@ -3,6 +3,9 @@
         <Navbar :username="username" :cart="cart" @logout="showLogoutModal = true"/>
         
         <div class="cart-content">
+            <div class="cart-header">
+                <h1><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
+            </div>
             
             <div v-if="cart.length > 0" class="cart-items">
                 <div v-for="item in cart" :key="item.product_id" class="cart-item">
@@ -11,27 +14,43 @@
                         class="cart-item-image"
                         @error="handleImageError">
                     <div class="cart-item-details">
-                        <h3>{{ item.name }}</h3>
-                        <p class="price">Price: ${{ (item.price || 0).toFixed(2) }}</p>
+                        <h3><i class="fas fa-box"></i> {{ item.name }}</h3>
+                        <p class="price"><i class="fas fa-tag"></i> Price: ${{ (item.price || 0).toFixed(2) }}</p>
                         <div class="quantity-controls">
+                            <span class="quantity-label"><i class="fas fa-cubes"></i> Quantity:</span>
                             <button @click="updateQuantity(item.product_id, item.quantity - 1)" 
-                                    :disabled="item.quantity <= 1">-</button>
-                            <span>{{ item.quantity }}</span>
-                            <button @click="updateQuantity(item.product_id, item.quantity + 1)">+</button>
+                                    :disabled="item.quantity <= 1"
+                                    class="quantity-btn">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span class="quantity-value">{{ item.quantity }}</span>
+                            <button @click="updateQuantity(item.product_id, item.quantity + 1)"
+                                    class="quantity-btn">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
-                        <p class="subtotal">Subtotal: ${{ ((item.price || 0) * item.quantity).toFixed(2) }}</p>
-                        <button class="remove-btn" @click="removeFromCart(item.product_id)">Remove</button>
+                        <p class="subtotal"><i class="fas fa-calculator"></i> Subtotal: ${{ ((item.price || 0) * item.quantity).toFixed(2) }}</p>
+                        <button class="remove-btn" @click="removeFromCart(item.product_id)">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
                     </div>
                 </div>
                 <div class="cart-summary">
-                    <h3>Cart Total: ${{ cartTotal.toFixed(2) }}</h3>
-                    <button class="checkout-btn">Proceed to Checkout</button>
+                    <h3><i class="fas fa-receipt"></i> Cart Summary</h3>
+                    <div class="summary-details">
+                        <p class="total-items"><i class="fas fa-shopping-basket"></i> Total Items: {{ cart.length }}</p>
+                        <p class="total-amount"><i class="fas fa-dollar-sign"></i> Total Amount: ${{ cartTotal.toFixed(2) }}</p>
+                    </div>
+                    <button class="checkout-btn">
+                        <i class="fas fa-credit-card"></i> Proceed to Checkout
+                    </button>
                 </div>
             </div>
             <div v-else class="empty-cart">
-                <p>Your cart is empty.</p>
+                <i class="fas fa-shopping-cart empty-cart-icon"></i>
+                <p>Your cart is empty</p>
                 <button class="continue-shopping" @click="$router.push('/products')">
-                    Continue Shopping
+                    <i class="fas fa-store"></i> Continue Shopping
                 </button>
             </div>
         </div>
@@ -179,13 +198,6 @@ export default {
 </script>
 
 <style scoped>
-.cart-item-image {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 4px;
-    margin-right: 1rem;
-}
 .cart-container {
     min-height: 100vh;
     background-color: #f5f5f5;
@@ -197,6 +209,18 @@ export default {
     padding: 2rem;
 }
 
+.cart-header {
+    margin-bottom: 2rem;
+}
+
+.cart-header h1 {
+    color: #2c3e50;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .cart-items {
     display: flex;
     flex-direction: column;
@@ -206,21 +230,45 @@ export default {
 .cart-item {
     display: flex;
     background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.cart-item:hover {
+    transform: translateY(-2px);
 }
 
 .cart-item-image {
-    width: 120px;
-    height: 120px;
+    width: 150px;
+    height: 150px;
     object-fit: cover;
-    border-radius: 4px;
-    margin-right: 1rem;
+    border-radius: 8px;
+    margin-right: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .cart-item-details {
     flex-grow: 1;
+}
+
+.cart-item-details h3 {
+    font-size: 1.25rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.price, .subtotal {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .quantity-controls {
@@ -230,28 +278,79 @@ export default {
     margin: 1rem 0;
 }
 
-.quantity-controls button {
+.quantity-label {
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quantity-btn {
     padding: 0.5rem 1rem;
     border: 1px solid #ddd;
     background: white;
     cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.quantity-btn:hover:not(:disabled) {
+    background-color: #f8f9fa;
+    border-color: #4CAF50;
+    color: #4CAF50;
+}
+
+.quantity-value {
+    font-size: 1.1rem;
+    min-width: 2rem;
+    text-align: center;
 }
 
 .remove-btn {
-    background-color: #ff4444;
+    background-color: #dc3545;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.remove-btn:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
 }
 
 .cart-summary {
     margin-top: 2rem;
-    padding: 1rem;
+    padding: 2rem;
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cart-summary h3 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.summary-details {
+    margin-bottom: 1.5rem;
+}
+
+.summary-details p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+    color: #2c3e50;
 }
 
 .checkout-btn {
@@ -259,18 +358,41 @@ export default {
     color: white;
     border: none;
     padding: 1rem 2rem;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
     width: 100%;
-    margin-top: 1rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.checkout-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
 }
 
 .empty-cart {
     text-align: center;
-    padding: 2rem;
+    padding: 3rem;
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.empty-cart-icon {
+    font-size: 4rem;
+    color: #cbd5e0;
+    margin-bottom: 1rem;
+}
+
+.empty-cart p {
+    color: #2c3e50;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
 }
 
 .continue-shopping {
@@ -278,8 +400,35 @@ export default {
     color: white;
     border: none;
     padding: 1rem 2rem;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    margin-top: 1rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.continue-shopping:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+}
+
+@media (max-width: 768px) {
+    .cart-item {
+        flex-direction: column;
+    }
+
+    .cart-item-image {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .quantity-controls {
+        justify-content: center;
+    }
 }
 </style>
