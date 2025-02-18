@@ -2,10 +2,6 @@ const db = require('../config/db');
 
 class Cart {
     static async getCart(userId) {
-        if (!userId) {
-            throw new Error('User ID is required');
-        }
-
         try {
             const [rows] = await db.execute(
                 `SELECT 
@@ -20,10 +16,10 @@ class Cart {
                 [userId]
             );
             
-            // Convert price strings to numbers
             return rows.map(item => ({
                 ...item,
-                price: parseFloat(item.price)
+                price: parseFloat(item.price),
+                image: item.image || null // Ensure image property is included
             }));
         } catch (error) {
             throw error;

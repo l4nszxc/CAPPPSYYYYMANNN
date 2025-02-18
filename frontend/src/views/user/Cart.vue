@@ -1,12 +1,15 @@
 <template>
     <div class="cart-container">
         <Navbar :username="username" :cart="cart" @logout="showLogoutModal = true"/>
+        
         <div class="cart-content">
+            
             <div v-if="cart.length > 0" class="cart-items">
                 <div v-for="item in cart" :key="item.product_id" class="cart-item">
-                    <img :src="`http://localhost:7904/uploads/products/${item.image}`" 
-                         :alt="item.name" 
-                         class="cart-item-image">
+                    <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : 'placeholder-image.jpg'"
+                        :alt="item.name" 
+                        class="cart-item-image"
+                        @error="handleImageError">
                     <div class="cart-item-details">
                         <h3>{{ item.name }}</h3>
                         <p class="price">Price: ${{ (item.price || 0).toFixed(2) }}</p>
@@ -66,6 +69,9 @@ export default {
         }
     },
     methods: {
+        handleImageError(e) {
+            e.target.src = 'placeholder-image.jpg'; // Fallback image
+        },
         async handleLogout() {
             try {
                 const response = await fetch('http://localhost:7904/api/users/logout', {
@@ -173,6 +179,13 @@ export default {
 </script>
 
 <style scoped>
+.cart-item-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 1rem;
+}
 .cart-container {
     min-height: 100vh;
     background-color: #f5f5f5;
