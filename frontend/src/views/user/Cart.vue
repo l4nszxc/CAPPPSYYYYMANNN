@@ -53,8 +53,8 @@ export default {
     data() {
         return {
             username: '',
+            showLogoutModal: false,
             cart: [],
-            showLogoutModal: false
         };
     },
     computed: {
@@ -66,6 +66,25 @@ export default {
         }
     },
     methods: {
+        async handleLogout() {
+            try {
+                const response = await fetch('http://localhost:7904/api/users/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    localStorage.removeItem('token');
+                    this.$router.push('/login');
+                } else {
+                    console.error('Logout failed');
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+            } finally {
+                this.showLogoutModal = false;
+            }
+        },
         async getUserData() {
             try {
                 const token = localStorage.getItem('token');
