@@ -3,31 +3,35 @@
         <div class="modal-content">
             <h3><i class="fas fa-clipboard-list"></i> Order Summary</h3>
             
-            <div class="order-items">
-                <div v-for="item in selectedItems" :key="item.product_id" class="order-item">
-                    <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : 'placeholder-image.jpg'"
-                         :alt="item.name" 
-                         class="order-item-image">
-                    <div class="order-item-details">
-                        <h4>{{ item.name }}</h4>
-                        <p class="item-price">Price: ₱{{ item.price }}</p>
-                        <p class="item-quantity">Quantity: {{ item.quantity }}</p>
-                        <p class="item-subtotal">Subtotal: ₱{{ (item.price * item.quantity).toFixed(2) }}</p>
+            <div class="scrollable-content">
+                <div class="order-items">
+                    <div v-for="item in selectedItems" :key="item.product_id" class="order-item">
+                        <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : 'placeholder-image.jpg'"
+                             :alt="item.name" 
+                             class="order-item-image">
+                        <div class="order-item-details">
+                            <h4>{{ item.name }}</h4>
+                            <p class="item-price">Price: ₱{{ item.price }}</p>
+                            <p class="item-quantity">Quantity: {{ item.quantity }}</p>
+                            <p class="item-subtotal">Subtotal: ₱{{ (item.price * item.quantity).toFixed(2) }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="order-total">
-                <h4>Total Amount: ₱{{ totalAmount.toFixed(2) }}</h4>
-            </div>
+            <div class="fixed-bottom">
+                <div class="order-total">
+                    <h4>Total Amount: ₱{{ totalAmount.toFixed(2) }}</h4>
+                </div>
 
-            <div class="modal-buttons">
-                <button @click="$emit('place-order')" class="place-order-btn">
-                    <i class="fas fa-check"></i> Confirm Order
-                </button>
-                <button @click="$emit('close')" class="cancel-btn">
-                    <i class="fas fa-times"></i> Close
-                </button>
+                <div class="modal-buttons">
+                    <button @click="$emit('place-order')" class="place-order-btn">
+                        <i class="fas fa-check"></i> Confirm Order
+                    </button>
+                    <button @click="$emit('close')" class="cancel-btn">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -65,17 +69,29 @@ export default {
 }
 
 .modal-content {
+    position: relative;
     background: white;
-    padding: 2rem;
     border-radius: 12px;
     width: 90%;
     max-width: 600px;
-    max-height: 80vh;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content h3 {
+    margin: 0;
+    padding: 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.scrollable-content {
+    flex: 1;
     overflow-y: auto;
+    padding: 1.5rem;
 }
 
 .order-items {
-    margin: 1.5rem 0;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -110,18 +126,28 @@ export default {
     color: #666;
 }
 
-.order-total {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
+.fixed-bottom {
     border-top: 2px solid #eee;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0 0 12px 12px;
+}
+
+.order-total {
+    margin-bottom: 1rem;
     text-align: right;
+}
+
+.order-total h4 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
 }
 
 .modal-buttons {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 1.5rem;
 }
 
 .place-order-btn, .cancel-btn {
