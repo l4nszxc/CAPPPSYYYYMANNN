@@ -52,10 +52,23 @@
                             <i class="fas fa-dollar-sign"></i> Total Amount: ₱{{ cartTotal.toFixed(2) }}
                         </p>
                     </div>
-                    <button class="checkout-btn" :disabled="checkedItemsCount === 0">
+                    <div class="cart-actions">
+                    <button 
+                        class="view-orders-btn" 
+                        @click="showOrdersModal = true" 
+                        :disabled="checkedItemsCount === 0"
+                    >
+                        <i class="fas fa-eye"></i> View Selected Orders
+                    </button>
+                    <button 
+                        class="checkout-btn" 
+                        :disabled="checkedItemsCount === 0"
+                    >
                         <i class="fas fa-credit-card"></i> Place Order
                     </button>
                 </div>
+                </div>
+                
             </div>
             <div v-else class="empty-cart">
                 <i class="fas fa-shopping-cart empty-cart-icon"></i>
@@ -70,28 +83,40 @@
             @confirm="handleLogout" 
             @cancel="showLogoutModal = false" 
         />
+        <ViewOrdersModal 
+            :show="showOrdersModal"
+            :selectedItems="selectedItems"
+            @close="showOrdersModal = false"
+            @place-order="handlePlaceOrder"
+        />
     </div>
 </template>
 
 <script>
 import Navbar from '../../components/Navbar.vue';
 import LogoutModal from '../../components/LogoutModal.vue';
+import ViewOrdersModal from '../../components/ViewOrdersModal.vue';
 
 export default {
     name: 'Cart',
     components: {
         Navbar,
-        LogoutModal
+        LogoutModal,
+        ViewOrdersModal
     },
     data() {
         return {
             username: '',
             showLogoutModal: false,
+            showOrdersModal: false,
             cart: [],
             checkedItems: new Set() 
         };
     },
     computed: {
+        selectedItems() {
+            return this.cart.filter(item => this.checkedItems.has(item.product_id));
+        },
         cartTotal() {
             return this.cart.reduce((total, item) => {
                 if (this.checkedItems.has(item.product_id)) {
@@ -106,6 +131,9 @@ export default {
         }
     },
     methods: {
+        handlePlaceOrder() {
+            this.showOrdersModal = false;
+        },
         toggleItemCheck(productId) {
             if (this.checkedItems.has(productId)) {
                 this.checkedItems.delete(productId);
@@ -459,6 +487,47 @@ export default {
 }
 .checkout-btn:disabled:hover {
     background-color: #cccccc;
+    transform: none;
+    box-shadow: none;
+}
+.cart-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.view-orders-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.view-orders-btn:hover:not(:disabled) {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+}
+
+.view-orders-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.cart-actions button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
     transform: none;
     box-shadow: none;
 }
