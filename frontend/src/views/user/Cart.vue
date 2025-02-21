@@ -53,7 +53,7 @@
                         </p>
                     </div>
                     <button class="checkout-btn" :disabled="checkedItemsCount === 0">
-                        <i class="fas fa-credit-card"></i> Proceed to Checkout
+                        <i class="fas fa-credit-card"></i> Place Order
                     </button>
                 </div>
             </div>
