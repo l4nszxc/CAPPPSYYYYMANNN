@@ -9,13 +9,20 @@
             
             <div v-if="cart.length > 0" class="cart-items">
                 <div v-for="item in cart" :key="item.product_id" class="cart-item">
+                    <div class="cart-item-checkbox">
+                    <input 
+                        type="checkbox" 
+                        :checked="checkedItems.has(item.product_id)"
+                        @change="toggleItemCheck(item.product_id)"
+                    >
+                </div>
                     <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : 'placeholder-image.jpg'"
                         :alt="item.name" 
                         class="cart-item-image"
                         @error="handleImageError">
                     <div class="cart-item-details">
                         <h3><i class="fas fa-box"></i> {{ item.name }}</h3>
-                        <p class="price"><i class="fas fa-tag"></i> Price: ${{ (item.price || 0).toFixed(2) }}</p>
+                        <p class="price"><i class="fas fa-tag"></i> Price: ₱{{ (item.price || 0).toFixed(2) }}</p>
                         <div class="quantity-controls">
                             <span class="quantity-label"><i class="fas fa-cubes"></i> Quantity:</span>
                             <button @click="updateQuantity(item.product_id, item.quantity - 1)" 
@@ -29,7 +36,7 @@
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                        <p class="subtotal"><i class="fas fa-calculator"></i> Subtotal: ${{ ((item.price || 0) * item.quantity).toFixed(2) }}</p>
+                        <p class="subtotal"><i class="fas fa-calculator"></i> Subtotal: ₱{{ ((item.price || 0) * item.quantity).toFixed(2) }}</p>
                         <button class="remove-btn" @click="removeFromCart(item.product_id)">
                             <i class="fas fa-trash"></i> Remove
                         </button>
@@ -38,10 +45,14 @@
                 <div class="cart-summary">
                     <h3><i class="fas fa-receipt"></i> Cart Summary</h3>
                     <div class="summary-details">
-                        <p class="total-items"><i class="fas fa-shopping-basket"></i> Total Items: {{ cart.length }}</p>
-                        <p class="total-amount"><i class="fas fa-dollar-sign"></i> Total Amount: ${{ cartTotal.toFixed(2) }}</p>
+                        <p class="total-items">
+                            <i class="fas fa-shopping-basket"></i> Selected Items: {{ checkedItemsCount }}
+                        </p>
+                        <p class="total-amount">
+                            <i class="fas fa-dollar-sign"></i> Total Amount: ₱{{ cartTotal.toFixed(2) }}
+                        </p>
                     </div>
-                    <button class="checkout-btn">
+                    <button class="checkout-btn" :disabled="checkedItemsCount === 0">
                         <i class="fas fa-credit-card"></i> Proceed to Checkout
                     </button>
                 </div>
@@ -77,17 +88,32 @@ export default {
             username: '',
             showLogoutModal: false,
             cart: [],
+            checkedItems: new Set() 
         };
     },
     computed: {
         cartTotal() {
             return this.cart.reduce((total, item) => {
-                const price = parseFloat(item.price) || 0;
-                return total + (price * item.quantity);
+                if (this.checkedItems.has(item.product_id)) {
+                    const price = parseFloat(item.price) || 0;
+                    return total + (price * item.quantity);
+                }
+                return total;
             }, 0);
+        },
+        checkedItemsCount() {
+            return this.checkedItems.size;
         }
     },
     methods: {
+        toggleItemCheck(productId) {
+            if (this.checkedItems.has(productId)) {
+                this.checkedItems.delete(productId);
+            } else {
+                this.checkedItems.add(productId);
+            }
+        },
+        
         handleImageError(e) {
             e.target.src = 'placeholder-image.jpg'; // Fallback image
         },
@@ -415,7 +441,27 @@ export default {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
 }
-
+.cart-item-checkbox {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+}
+.cart-item-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+.checkout-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+.checkout-btn:disabled:hover {
+    background-color: #cccccc;
+    transform: none;
+    box-shadow: none;
+}
 @media (max-width: 768px) {
     .cart-item {
         flex-direction: column;

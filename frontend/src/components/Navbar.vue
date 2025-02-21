@@ -2,7 +2,7 @@
   <nav class="navbar">
     <div class="navbar-brand">
       <router-link to="/home" class="logo">
-        Dashboard
+        JM Garis Store
       </router-link>
     </div>
 

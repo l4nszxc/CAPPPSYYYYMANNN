@@ -3,7 +3,7 @@
       <div class="login-card">
         <div class="form-header">
           <i class="fas fa-leaf logo-icon"></i>
-          <h2>Welcome Back</h2>
+          <h2>JM Garis Store</h2>
           <p class="subtitle">Login to your account</p>
         </div>
         

@@ -46,7 +46,7 @@
                     <div class="product-details">
                         <h3>{{ product.name }}</h3>
                         <p class="product-description">{{ product.description }}</p>
-                        <p class="product-price">Price: ${{ product.price }}</p>
+                        <p class="product-price">Price: ₱{{ product.price }}</p>
                         <p class="product-stock">Stock: {{ product.stock_quantity }}</p>
                         <p class="product-category">Category: {{ product.category }}</p>
                     </div>

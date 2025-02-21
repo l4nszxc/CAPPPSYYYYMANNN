@@ -3,8 +3,8 @@
     <div class="register-card">
       <div class="form-header">
         <i class="fas fa-user-plus logo-icon"></i>
-        <h2>Create Account</h2>
-        <p class="subtitle">Join our community today</p>
+        <h2>JM Garis Store</h2>
+        <p class="subtitle">Create an account</p>
       </div>
 
       <form @submit.prevent="handleRegister" class="register-form">
