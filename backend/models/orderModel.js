@@ -57,7 +57,7 @@ class Order {
                     o.total_amount,
                     o.created_at,
                     o.cancel_reason,
-                    GROUP_CONCAT(
+                    JSON_ARRAYAGG(
                         JSON_OBJECT(
                             'product_id', oi.product_id,
                             'quantity', oi.quantity,
@@ -70,17 +70,18 @@ class Order {
                 JOIN order_items oi ON o.order_id = oi.order_id
                 JOIN products p ON oi.product_id = p.products_id
                 WHERE o.user_id = ?
-                GROUP BY o.order_id
+                GROUP BY o.order_id, o.status, o.total_amount, o.created_at, o.cancel_reason
                 ORDER BY o.created_at DESC`,
                 [userId]
             );
     
             return rows.map(order => ({
                 ...order,
-                items: JSON.parse(`[${order.items}]`),
+                items: Array.isArray(order.items) ? order.items : JSON.parse(order.items),
                 total_amount: Number(order.total_amount)
             }));
         } catch (error) {
+            console.error('Error in getUserOrders:', error);
             throw error;
         }
     }
