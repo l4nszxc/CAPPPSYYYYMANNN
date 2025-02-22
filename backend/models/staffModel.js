@@ -23,6 +23,66 @@ class Staff {
             throw error;
         }
     }
+    static async getAllOrders() {
+        try {
+            const [rows] = await db.execute(`
+                SELECT 
+                    o.order_id,
+                    u.username as customer_name,
+                    o.status,
+                    o.total_amount,
+                    o.created_at
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                ORDER BY o.created_at DESC
+            `);
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async getOrderDetails(orderId) {
+        try {
+            const [orderDetails] = await db.execute(`
+                SELECT 
+                    o.*,
+                    u.username as customer_name
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                WHERE o.order_id = ?
+            `, [orderId]);
+
+            const [orderItems] = await db.execute(`
+                SELECT 
+                    oi.*,
+                    p.name,
+                    p.image
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = ?
+            `, [orderId]);
+
+            return {
+                ...orderDetails[0],
+                items: orderItems
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async updateOrderStatus(orderId, status) {
+        try {
+            const [result] = await db.execute(
+                'UPDATE orders SET status = ? WHERE order_id = ?',
+                [status, orderId]
+            );
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = Staff;

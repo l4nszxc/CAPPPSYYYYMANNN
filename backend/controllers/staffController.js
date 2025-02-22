@@ -1,0 +1,46 @@
+const Staff = require('../models/staffModel');
+
+exports.getAllOrders = async (req, res) => {
+    try {
+        const orders = await Staff.getAllOrders();
+        res.json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ message: 'Error fetching orders' });
+    }
+};
+
+exports.getOrderDetails = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const orderDetails = await Staff.getOrderDetails(orderId);
+        
+        if (!orderDetails) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.json(orderDetails);
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).json({ message: 'Error fetching order details' });
+    }
+};
+
+exports.updateOrderStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        // Validate status
+        const validStatuses = ['pending', 'preparing', 'ready for pickup', 'paid'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
+        }
+
+        await Staff.updateOrderStatus(orderId, status);
+        res.json({ message: 'Order status updated successfully' });
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        res.status(500).json({ message: 'Error updating order status' });
+    }
+};

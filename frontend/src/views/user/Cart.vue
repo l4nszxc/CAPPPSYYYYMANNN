@@ -53,15 +53,10 @@
                         </p>
                     </div>
                     <div class="cart-actions">
-                    <button 
-                        class="view-orders-btn" 
-                        @click="showOrdersModal = true" 
-                        :disabled="checkedItemsCount === 0"
-                    >
-                        <i class="fas fa-eye"></i> View Selected Orders
-                    </button>
+                   
                     <button 
                         class="checkout-btn" 
+                        @click="showOrdersModal = true" 
                         :disabled="checkedItemsCount === 0"
                     >
                         <i class="fas fa-credit-card"></i> Place Order
