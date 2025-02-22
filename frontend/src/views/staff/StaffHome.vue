@@ -30,6 +30,7 @@
                         <option value="preparing">Preparing</option>
                         <option value="ready for pickup">Ready for Pickup</option>
                         <option value="paid">Paid</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
 
@@ -54,11 +55,13 @@
                                         v-model="order.status"
                                         @change="updateOrderStatus(order.order_id, order.status)"
                                         :class="['status-select', order.status]"
+                                        :disabled="order.status === 'cancelled'"
                                     >
                                         <option value="pending">Pending</option>
                                         <option value="preparing">Preparing</option>
                                         <option value="ready for pickup">Ready for Pickup</option>
                                         <option value="paid">Paid</option>
+                                        <option value="cancelled">Cancelled</option>
                                     </select>
                                 </td>
                                 <td>₱{{ formatPrice(order.total_amount) }}</td>
@@ -86,6 +89,9 @@
                     <p><strong>Customer:</strong> {{ selectedOrder.customer_name }}</p>
                     <p><strong>Status:</strong> {{ selectedOrder.status }}</p>
                     <p><strong>Date:</strong> {{ formatDate(selectedOrder.created_at) }}</p>
+                    <p v-if="selectedOrder.status === 'cancelled'" class="cancel-reason">
+                        <strong>Cancellation Reason:</strong> {{ selectedOrder.cancel_reason }}
+                    </p>
                 </div>
                 <div class="products-table">
                     <table>
@@ -203,6 +209,16 @@ export default {
         },
         async updateOrderStatus(orderId, newStatus) {
             try {
+                // Get the current order
+                const order = this.orders.find(o => o.order_id === orderId);
+                
+                // Prevent updating if order is cancelled
+                if (order.status === 'cancelled') {
+                    console.warn('Cannot update status of cancelled orders');
+                    this.fetchOrders(); // Refresh orders to revert any UI changes
+                    return;
+                }
+
                 const token = localStorage.getItem('token');
                 const response = await fetch(`http://localhost:7904/api/staff/orders/${orderId}/status`, {
                     method: 'PUT',
@@ -573,5 +589,21 @@ th {
 .order-details .close-btn:hover {
     background-color: #5a6268;
     transform: translateY(-1px);
+}
+.status-select.cancelled {
+    background-color: #f8d7da;
+    color: #842029;
+}
+.cancel-reason {
+    color: #842029;
+    background-color: #f8d7da;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+.status-select:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    border: 1px solid #dee2e6;
 }
 </style>

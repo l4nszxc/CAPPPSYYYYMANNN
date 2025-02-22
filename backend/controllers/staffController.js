@@ -32,7 +32,7 @@ exports.updateOrderStatus = async (req, res) => {
         const { status } = req.body;
 
         // Validate status
-        const validStatuses = ['pending', 'preparing', 'ready for pickup', 'paid'];
+        const validStatuses = ['pending', 'preparing', 'ready for pickup', 'paid', 'cancelled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ message: 'Invalid status' });
         }

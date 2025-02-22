@@ -14,11 +14,9 @@
 
     <div class="navbar-end">
       
-      <router-link to="/view-orders" class="dropdown-item">
-            <i class="fas fa-truck"></i> Track Orders
-        </router-link>
+      
       <router-link to="/cart" class="cart-button">
-        <i class="fas fa-shopping-cart"></i>
+        <i class="fas fa-shopping-cart"></i> 
         <span v-if="cartItemCount > 0" class="cart-count">{{ cartItemCount }}</span>
       </router-link>
       <div class="profile-dropdown" ref="profileDropdown">
@@ -35,6 +33,9 @@
         <div v-show="showDropdown" class="dropdown-menu">
         <router-link to="/profile" class="dropdown-item">
             <i class="fas fa-user"></i> Profile
+        </router-link>
+        <router-link to="/view-orders" class="dropdown-item">
+            <i class="fas fa-truck"></i> Track Orders
         </router-link>
         <router-link to="/order-history" class="dropdown-item">
             <i class="fas fa-history"></i> Order History

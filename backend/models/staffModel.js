@@ -31,7 +31,8 @@ class Staff {
                     u.username as customer_name,
                     o.status,
                     o.total_amount,
-                    o.created_at
+                    o.created_at,
+                    o.cancel_reason
                 FROM orders o
                 JOIN users u ON o.user_id = u.id
                 ORDER BY o.created_at DESC
@@ -41,7 +42,7 @@ class Staff {
             throw error;
         }
     }
-
+    
     static async getOrderDetails(orderId) {
         try {
             const [orderDetails] = await db.execute(`
@@ -50,6 +51,7 @@ class Staff {
                     o.status,
                     o.total_amount,
                     o.created_at,
+                    o.cancel_reason,
                     u.username as customer_name
                 FROM orders o
                 JOIN users u ON o.user_id = u.id

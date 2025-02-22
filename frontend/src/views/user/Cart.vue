@@ -271,6 +271,7 @@ export default {
 
 <style scoped>
 .cart-container {
+    font-family: Arial, sans-serif;
     min-height: 100vh;
     background-color: #f5f5f5;
 }
