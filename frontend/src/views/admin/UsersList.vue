@@ -7,7 +7,7 @@
     
     <div class="users-content">
       <div class="header">
-        <h2>All Users</h2>
+        <h2>ALL USERS</h2>
         <div class="filters">
           <div class="search-box">
             <input 
@@ -199,129 +199,232 @@ export default {
   }
   </script>
   
-  
-<style scoped>
+  <style scoped>
 .users-list-container {
-    min-height: 100vh;
-    background-color: #f5f5f5;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-left: 250px;
 }
 
 .users-content {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
+/* Header and Filters */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.header h2 {
+  color: #2c3e50;
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
 }
 
 .filters {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Search and Filter Inputs */
+.search-box {
+  flex: 1;
 }
 
 .search-box input {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 250px;
-    font-size: 1rem;
+  width: 98%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
 
 .status-filter {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-    background-color: white;
+  width: 20%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
 }
 
+.status-filter {
+  background-color: white;
+  cursor: pointer;
+}
+
+/* Table Styles */
 .table-container {
-    max-width: 100%;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: auto;
-    margin-top: 1rem;
-    padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: auto;
+  max-height: calc(100vh - 200px);
 }
 
 table {
-    width: 100%;
-    min-width: 1200px;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
 }
 
 th {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
 }
+
 td {
-  vertical-align: top;
-  max-width: 200px; /* Prevent cells from getting too wide */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-td:hover {
-  white-space: normal;
-  overflow: visible;
-  position: relative;
-  z-index: 1;
+  padding: 1rem;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.95rem;
 }
 
-th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-}
-
+/* Status Badge */
 .status-badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
   font-size: 0.875rem;
   font-weight: 500;
   display: inline-block;
 }
 
 .verified {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #a5d6a7;
+  background-color: #dcfce7;
+  color: #166534;
 }
 
 .unverified {
   background-color: #fee2e2;
   color: #dc2626;
-  border: 1px solid #fecaca;
 }
 
-.no-results {
-    padding: 2rem;
-    text-align: center;
-    color: #666;
+/* Table Column Widths for Desktop */
+@media (min-width: 1024px) {
+  table th:nth-child(1), table td:nth-child(1) { width: 10%; }
+  table th:nth-child(2), table td:nth-child(2) { width: 15%; }
+  table th:nth-child(3), table td:nth-child(3) { width: 8%; }
+  table th:nth-child(4), table td:nth-child(4) { width: 17%; }
+  table th:nth-child(5), table td:nth-child(5) { width: 20%; }
+  table th:nth-child(6), table td:nth-child(6) { width: 10%; }
+  table th:nth-child(7), table td:nth-child(7) { width: 12%; }
+  table th:nth-child(8), table td:nth-child(8) { width: 8%; }
 }
 
-/* Responsive styles */
+/* Responsive Breakpoints */
+@media (max-width: 1200px) {
+  .users-content {
+    padding: 1.5rem;
+  }
+  
+  td, th {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .filters {
+    flex-direction: column;
+  }
+
+  .search-box,
+  .status-filter {
+    width: 100%;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 900px;
+  }
+}
+
 @media (max-width: 768px) {
-    .header {
-        flex-direction: column;
-        gap: 1rem;
-    }
+  .users-list-container {
+    padding-left: 60px;
+  }
 
-    .filters {
-        flex-direction: column;
-        width: 100%;
-    }
+  .header {
+    padding: 1rem;
+  }
 
-    .search-box input,
-    .status-filter {
-        width: 100%;
-    }
+  .header h2 {
+    font-size: 1.25rem;
+  }
+
+  .contact-info {
+    font-size: 0.9rem;
+  }
+
+  .status-badge {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .users-content {
+    padding: 1rem;
+  }
+
+  .header {
+    margin-bottom: 1rem;
+  }
+
+  .table-container {
+    border-radius: 8px;
+  }
+
+  th {
+    font-size: 0.8rem;
+  }
+
+  td {
+    font-size: 0.85rem;
+  }
+}
+
+/* Hover States and Interactions */
+.search-box input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* No Results Message */
+.no-results {
+  padding: 3rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 1rem;
 }
 </style>

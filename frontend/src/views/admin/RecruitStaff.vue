@@ -146,8 +146,10 @@ export default {
 
 <style scoped>
 .recruit-container {
+    font-family: Arial, sans-serif;
     min-height: 100vh;
     background-color: #f5f5f5;
+    padding-left: 250px; /* Match sidebar width */
 }
 
 .recruit-content {

@@ -8,6 +8,7 @@ const { isAdmin } = require('../middleware/auth');
 router.get('/stats', isAdmin, adminController.getStats);
 router.get('/users', isAdmin, adminController.getAllUsers);
 router.post('/recruit-staff', isAdmin, adminController.recruitStaff);
-router.post('/products', isAdmin, productController.insertProduct); // Add product route
+router.post('/products', isAdmin, productController.insertProduct);
+router.get('/dashboard-stats', isAdmin, adminController.getDashboardStats);
 
 module.exports = router;

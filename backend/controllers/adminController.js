@@ -43,3 +43,12 @@ exports.recruitStaff = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+exports.getDashboardStats = async (req, res) => {
+    try {
+        const stats = await Admin.getDashboardStats();
+        res.json(stats);
+    } catch (error) {
+        console.error('Error getting dashboard stats:', error);
+        res.status(500).json({ message: 'Error getting dashboard stats' });
+    }
+};
