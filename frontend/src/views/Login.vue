@@ -185,6 +185,7 @@ export default {
   
 <style scoped>
 .login-container {
+  font-family: Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;

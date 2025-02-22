@@ -259,6 +259,11 @@ export default {
 </script>
 
 <style scoped>
+.product-container {
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+}
 .product-content {
     max-width: 1200px;
     margin: 0 auto;

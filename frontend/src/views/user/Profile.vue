@@ -490,8 +490,10 @@ export default {
 
 <style scoped>
 .profile-container {
+  font-family: Arial, sans-serif;
   min-height: 100vh;
   background-color: #f5f5f5;
+  
 }
 
 .profile-content {

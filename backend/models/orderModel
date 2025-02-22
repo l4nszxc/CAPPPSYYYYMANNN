@@ -1,0 +1,88 @@
+const db = require('../config/db');
+
+class Order {
+    static generateOrderId() {
+        return Math.floor(1000000 + Math.random() * 9000000).toString();
+    }
+
+    static async create(userId, items, totalAmount) {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+            
+            const orderId = this.generateOrderId();
+            
+            // Create order
+            await connection.execute(
+                'INSERT INTO orders (order_id, user_id, total_amount) VALUES (?, ?, ?)',
+                [orderId, userId, totalAmount]
+            );
+
+            // Create order items
+            for (const item of items) {
+                await connection.execute(
+                    'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
+                    [orderId, item.product_id, item.quantity, item.price]
+                );
+
+                // Update product stock
+                await connection.execute(
+                    'UPDATE products SET stock_quantity = stock_quantity - ? WHERE products_id = ?',
+                    [item.quantity, item.product_id]
+                );
+            }
+
+            // Clear cart items
+            await connection.execute(
+                'DELETE FROM cart WHERE user_id = ?',
+                [userId]
+            );
+
+            await connection.commit();
+            return orderId;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
+
+    static async getUserOrders(userId) {
+        try {
+            const [orders] = await db.execute(
+                `SELECT 
+                    o.order_id,
+                    CAST(o.total_amount AS DECIMAL(10,2)) as total_amount,
+                    o.status,
+                    o.created_at,
+                    GROUP_CONCAT(
+                        JSON_OBJECT(
+                            'product_id', oi.product_id,
+                            'quantity', oi.quantity,
+                            'price', oi.price,
+                            'name', p.name,
+                            'image', p.image
+                        )
+                    ) as items
+                FROM orders o
+                JOIN order_items oi ON o.order_id = oi.order_id
+                JOIN products p ON oi.product_id = p.products_id
+                WHERE o.user_id = ?
+                GROUP BY o.order_id
+                ORDER BY o.created_at DESC`,
+                [userId]
+            );
+    
+            return orders.map(order => ({
+                ...order,
+                items: JSON.parse(`[${order.items}]`),
+                total_amount: Number(order.total_amount)
+            }));
+        } catch (error) {
+            throw error;
+        }
+    }
+}
+
+module.exports = Order;

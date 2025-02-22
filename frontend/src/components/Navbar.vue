@@ -1,10 +1,11 @@
 <template>
   <nav class="navbar">
     <div class="navbar-brand">
-      <router-link to="/home" class="logo">
-        JM Garis Store
-      </router-link>
-    </div>
+  <router-link to="/home" class="logo">
+    <i class="fas fa-store"></i>
+    <span class="store-name">JM GARIS STORE</span>
+  </router-link>
+</div>
 
     <div class="navbar-menu">
       <router-link to="/home" class="nav-link">Home</router-link>
@@ -28,14 +29,17 @@
         </div>
 
         <div v-show="showDropdown" class="dropdown-menu">
-          <router-link to="/profile" class="dropdown-item">
-            <i class="fas fa-user"></i> Profile
-          </router-link>
-          <div class="dropdown-divider"></div>
-          <button @click="$emit('logout')" class="dropdown-item" data-action="logout">
-            <i class="fas fa-sign-out-alt"></i> Logout
-          </button>
-        </div>
+        <router-link to="/profile" class="dropdown-item">
+          <i class="fas fa-user"></i> Profile
+        </router-link>
+        <router-link to="/order-history" class="dropdown-item">
+          <i class="fas fa-history"></i> Order History
+        </router-link>
+        <div class="dropdown-divider"></div>
+        <button @click="$emit('logout')" class="dropdown-item" data-action="logout">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
       </div>
     </div>
   </nav>
@@ -151,13 +155,22 @@ export default {
   font-size: 1.5rem;
   font-weight: bold;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo i {
+  font-size: 1.25rem;
 }
 
 .navbar-menu {
   display: flex;
   gap: 1.5rem;
 }
-
+.store-name {
+  font-family: Arial, sans-serif;
+}
 .nav-link {
   color: #666;
   text-decoration: none;

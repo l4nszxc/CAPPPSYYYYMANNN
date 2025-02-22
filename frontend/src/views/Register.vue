@@ -285,6 +285,7 @@ export default {
   
   <style scoped>
 .register-container {
+  font-family: Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;

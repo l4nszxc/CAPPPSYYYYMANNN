@@ -105,13 +105,13 @@ export default {
         ViewOrdersModal
     },
     data() {
-        return {
-            username: '',
-            showLogoutModal: false,
-            showOrdersModal: false,
-            cart: [],
-            checkedItems: new Set() 
-        };
+    return {
+        username: '',
+        showLogoutModal: false,
+        showOrdersModal: false,
+        cart: [],
+        checkedItems: new Set()
+    };
     },
     computed: {
         selectedItems() {
@@ -131,14 +131,37 @@ export default {
         }
     },
     methods: {
-        handlePlaceOrder() {
-            this.showOrdersModal = false;
-        },
         toggleItemCheck(productId) {
             if (this.checkedItems.has(productId)) {
                 this.checkedItems.delete(productId);
             } else {
                 this.checkedItems.add(productId);
+            }
+        },  
+        async handlePlaceOrder() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:7904/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        items: this.selectedItems,
+                        totalAmount: this.cartTotal
+                    })
+                });
+
+                if (response.ok) {
+                    const { orderId } = await response.json();
+                    this.showOrdersModal = false;
+                    this.checkedItems.clear();
+                    await this.fetchCart();
+                    this.$router.push('/order-history');
+                }
+            } catch (error) {
+                console.error('Error placing order:', error);
             }
         },
         
