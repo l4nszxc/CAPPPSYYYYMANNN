@@ -13,6 +13,10 @@
     </div>
 
     <div class="navbar-end">
+      
+      <router-link to="/view-orders" class="dropdown-item">
+            <i class="fas fa-truck"></i> Track Orders
+        </router-link>
       <router-link to="/cart" class="cart-button">
         <i class="fas fa-shopping-cart"></i>
         <span v-if="cartItemCount > 0" class="cart-count">{{ cartItemCount }}</span>
@@ -30,16 +34,16 @@
 
         <div v-show="showDropdown" class="dropdown-menu">
         <router-link to="/profile" class="dropdown-item">
-          <i class="fas fa-user"></i> Profile
+            <i class="fas fa-user"></i> Profile
         </router-link>
         <router-link to="/order-history" class="dropdown-item">
-          <i class="fas fa-history"></i> Order History
+            <i class="fas fa-history"></i> Order History
         </router-link>
         <div class="dropdown-divider"></div>
         <button @click="$emit('logout')" class="dropdown-item" data-action="logout">
-          <i class="fas fa-sign-out-alt"></i> Logout
+            <i class="fas fa-sign-out-alt"></i> Logout
         </button>
-      </div>
+    </div>
       </div>
     </div>
   </nav>

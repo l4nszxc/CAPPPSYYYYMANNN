@@ -53,8 +53,8 @@ class Order {
             const [orders] = await db.execute(
                 `SELECT 
                     o.order_id,
-                    CAST(o.total_amount AS DECIMAL(10,2)) as total_amount,
                     o.status,
+                    CAST(o.total_amount AS DECIMAL(10,2)) as total_amount,
                     o.created_at,
                     GROUP_CONCAT(
                         JSON_OBJECT(
@@ -68,7 +68,7 @@ class Order {
                 FROM orders o
                 JOIN order_items oi ON o.order_id = oi.order_id
                 JOIN products p ON oi.product_id = p.products_id
-                WHERE o.user_id = ?
+                WHERE o.user_id = ? AND o.status IN ('pending', 'preparing', 'ready for pickup')
                 GROUP BY o.order_id
                 ORDER BY o.created_at DESC`,
                 [userId]
@@ -81,6 +81,40 @@ class Order {
             }));
         } catch (error) {
             throw error;
+        }
+    }
+    static async cancelOrder(orderId, reason) {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+    
+            // Get order items to restore stock
+            const [orderItems] = await connection.execute(
+                'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
+                [orderId]
+            );
+    
+            // Restore stock quantities
+            for (const item of orderItems) {
+                await connection.execute(
+                    'UPDATE products SET stock_quantity = stock_quantity + ? WHERE products_id = ?',
+                    [item.quantity, item.product_id]
+                );
+            }
+    
+            // Update order status and reason
+            await connection.execute(
+                'UPDATE orders SET status = ?, cancel_reason = ? WHERE order_id = ?',
+                ['cancelled', reason, orderId]
+            );
+    
+            await connection.commit();
+            return true;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
         }
     }
    

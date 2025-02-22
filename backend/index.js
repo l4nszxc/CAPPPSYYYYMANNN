@@ -36,6 +36,7 @@ app.use(session({
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes); 
 app.use('/api/staff', staffRoutes);
 app.use('/api', productRoutes);

@@ -12,6 +12,7 @@ import Products from '../views/user/Products.vue'
 import InsertProducts from '../views/admin/InsertProducts.vue'
 import Cart from '../views/user/Cart.vue'
 import OrderHistory from '../views/user/OrderHistory.vue'
+import ViewOrder from '../views/user/ViewOrder.vue'
 
 const routes = [
   {
@@ -70,6 +71,12 @@ const routes = [
     path: '/order-history',
     name: 'OrderHistory',
     component: OrderHistory,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/view-orders',
+    name: 'ViewOrder',
+    component: ViewOrder,
     meta: { requiresAuth: true }
   },
 
