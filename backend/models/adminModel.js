@@ -57,32 +57,33 @@ class Admin {
     }
     static async getDashboardStats() {
         try {
+            // Get main stats
             const [salesStats] = await db.execute(`
                 SELECT 
                     COUNT(DISTINCT o.order_id) as totalOrders,
-                    SUM(o.total_amount) as totalSales,
-                    COUNT(DISTINCT p.products_id) as totalProducts,
-                    SUM(p.stock_quantity) as totalStock,
-                    (
-                        SELECT GROUP_CONCAT(
-                            JSON_OBJECT(
-                                'name', p2.name,
-                                'quantity', SUM(oi2.quantity),
-                                'total', SUM(oi2.price * oi2.quantity)
-                            )
-                        )
-                        FROM order_items oi2
-                        JOIN products p2 ON oi2.product_id = p2.products_id
-                        GROUP BY p2.products_id
-                        ORDER BY SUM(oi2.quantity) DESC
-                        LIMIT 5
-                    ) as topProducts
+                    COALESCE(SUM(o.total_amount), 0) as totalSales,
+                    (SELECT COUNT(*) FROM products) as totalProducts,
+                    (SELECT SUM(stock_quantity) FROM products) as totalStock
                 FROM orders o
-                LEFT JOIN order_items oi ON o.order_id = oi.order_id
-                LEFT JOIN products p ON oi.product_id = p.products_id
                 WHERE o.status = 'paid'
             `);
-
+    
+            // Get top products separately
+            const [topProducts] = await db.execute(`
+                SELECT 
+                    p.name,
+                    SUM(oi.quantity) as quantity,
+                    SUM(oi.price * oi.quantity) as total
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.products_id
+                JOIN orders o ON oi.order_id = o.order_id
+                WHERE o.status = 'paid'
+                GROUP BY p.products_id, p.name
+                ORDER BY quantity DESC
+                LIMIT 5
+            `);
+    
+            // Get low stock products
             const [lowStock] = await db.execute(`
                 SELECT 
                     products_id,
@@ -94,13 +95,14 @@ class Admin {
                 ORDER BY stock_quantity ASC
                 LIMIT 5
             `);
-
+    
             return {
                 ...salesStats[0],
-                topProducts: salesStats[0].topProducts ? JSON.parse(`[${salesStats[0].topProducts}]`) : [],
-                lowStock
+                topProducts: topProducts || [],
+                lowStock: lowStock || []
             };
         } catch (error) {
+            console.error('Error in getDashboardStats:', error);
             throw error;
         }
     }
