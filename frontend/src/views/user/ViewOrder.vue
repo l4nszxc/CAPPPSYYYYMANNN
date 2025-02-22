@@ -1,12 +1,12 @@
 <template>
     <div class="view-order-container">
         <Navbar 
-        :username="username"
-        @logout="showLogoutModal = true"
-      />    
+            :username="username"
+            @logout="showLogoutModal = true"
+        />    
 
         <div class="view-order-content">
-            <h1><i class="fas fa-truck-loading"></i> View Orders</h1>
+            <h1><i class="fas fa-truck-loading"></i> Track Orders</h1>
             
             <div class="active-orders">
                 <div v-if="activeOrders.length > 0">
@@ -18,10 +18,17 @@
                                     {{ order.status }}
                                 </span>
                             </div>
-                            <p class="order-date">{{ formatDate(order.created_at) }}</p>
+                            <div class="order-secondary-info">
+                                <p class="order-date">{{ formatDate(order.created_at) }}</p>
+                                <p class="total-amount">Total: ₱{{ order.total_amount.toFixed(2) }}</p>
+                                <button class="toggle-btn" @click="toggleOrderDetails(order.order_id)">
+                                    <i :class="['fas', expandedOrders.has(order.order_id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+                                    {{ expandedOrders.has(order.order_id) ? 'Hide Details' : 'Show Details' }}
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="order-items">
+                        <div v-show="expandedOrders.has(order.order_id)" class="order-items">
                             <div v-for="item in order.items" :key="item.product_id" class="order-item">
                                 <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : '/img/placeholder.jpg'"
                                     :alt="item.name" 
@@ -39,13 +46,15 @@
                             <div class="total-amount">
                                 <p>Total Amount: ₱{{ order.total_amount.toFixed(2) }}</p>
                             </div>
-                            <button 
-                                v-if="order.status === 'pending'"
-                                @click="showCancelModal(order)" 
-                                class="cancel-btn"
-                            >
-                                <i class="fas fa-times"></i> Cancel Order
-                            </button>
+                            <div class="order-actions">
+                                <button 
+                                    v-if="order.status === 'pending'"
+                                    @click="showCancelModal(order)" 
+                                    class="cancel-btn"
+                                >
+                                    <i class="fas fa-times"></i> Cancel Order
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -120,7 +129,8 @@ export default {
             showCancelOrderModal: false,
             selectedOrder: null,
             cancelReason: '',
-            otherReason: ''
+            otherReason: '',
+            expandedOrders: new Set() // Add this line
         }
     },
     computed: {
@@ -131,6 +141,13 @@ export default {
         }
     },
     methods: {
+        toggleOrderDetails(orderId) {
+            if (this.expandedOrders.has(orderId)) {
+                this.expandedOrders.delete(orderId);
+            } else {
+                this.expandedOrders.add(orderId);
+            }
+        },
         formatDate(date) {
             return new Date(date).toLocaleString('en-US', {
                 year: 'numeric',
@@ -266,7 +283,9 @@ export default {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
 
 .order-info {
@@ -309,12 +328,10 @@ export default {
 
 .order-items {
     border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
-    padding: 1.5rem 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
 }
+
 
 .order-item {
     display: flex;
@@ -484,5 +501,47 @@ export default {
 .shop-now-btn:hover {
     background-color: #45a049;
     transform: translateY(-1px);
+}
+.order-secondary-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.toggle-btn {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #495057;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.toggle-btn:hover {
+    background-color: #e9ecef;
+    border-color: #4CAF50;
+    color: #4CAF50;
+}
+@media (max-width: 768px) {
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .order-secondary-info {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .toggle-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
