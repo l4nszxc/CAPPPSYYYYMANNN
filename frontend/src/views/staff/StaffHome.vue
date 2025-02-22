@@ -78,7 +78,6 @@
             </div>
         </div>
 
-        <!-- Order Details Modal -->
         <div v-if="selectedOrder" class="modal-overlay">
             <div class="modal-content order-details">
                 <h2>Order Details</h2>
@@ -88,21 +87,44 @@
                     <p><strong>Status:</strong> {{ selectedOrder.status }}</p>
                     <p><strong>Date:</strong> {{ formatDate(selectedOrder.created_at) }}</p>
                 </div>
-                <div class="order-items">
-                    <h3>Items</h3>
-                    <div v-for="item in selectedOrder.items" :key="item.product_id" class="order-item">
-                        <img :src="item.image" :alt="item.name" class="item-image">
-                        <div class="item-details">
-                            <h4>{{ item.name }}</h4>
-                            <p>Quantity: {{ item.quantity }}</p>
-                            <p>Price: ₱{{ formatPrice(item.price) }}</p>
-                        </div>
-                    </div>
+                <div class="products-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Image</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in selectedOrder.items" :key="item.product_id">
+                                <td>{{ item.name }}</td>
+                                <td>
+                                    <img 
+                                        :src="item.image ? `http://localhost:7904/uploads/${item.image}` : '/img/placeholder.jpg'" 
+                                        :alt="item.name"
+                                        class="product-image"
+                                        @error="handleImageError"
+                                    >
+                                </td>
+                                <td>₱{{ formatPrice(item.price) }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₱{{ formatPrice(item.price * item.quantity) }}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="total-label">Total Amount:</td>
+                                <td class="total-amount">₱{{ formatPrice(selectedOrder.total_amount) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
-                <div class="order-total">
-                    <p><strong>Total Amount:</strong> ₱{{ formatPrice(selectedOrder.total_amount) }}</p>
+                <div class="modal-actions">
+                    <button @click="selectedOrder = null" class="close-btn">Close</button>
                 </div>
-                <button @click="selectedOrder = null" class="close-btn">Close</button>
             </div>
         </div>
 
@@ -148,6 +170,9 @@ export default {
         }
     },
     methods: {
+        handleImageError(e) {
+            e.target.src = '/img/placeholder.jpg';
+        },
         formatPrice(price) {
             return Number(price).toFixed(2);
         },
@@ -196,8 +221,22 @@ export default {
                 this.fetchOrders();
             }
         },
-        viewOrderDetails(order) {
-            this.selectedOrder = order;
+        async viewOrderDetails(order) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:7904/api/staff/orders/${order.order_id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const details = await response.json();
+                    this.selectedOrder = details;
+                }
+            } catch (error) {
+                console.error('Error fetching order details:', error);
+            }
         },
         async handleLogout() {
             try {
@@ -286,7 +325,6 @@ export default {
     margin-bottom: 2rem;
 }
 
-/* Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -302,11 +340,12 @@ export default {
 
 .modal-content {
     background: white;
-    padding: 2rem;
     border-radius: 8px;
+    padding: 2rem;
+    max-width: 800px;
     width: 90%;
-    max-width: 400px;
-    text-align: center;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-buttons {
@@ -473,16 +512,67 @@ th {
 }
 
 .close-btn {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
     background-color: #6c757d;
     color: white;
     border: none;
+    padding: 0.5rem 1.5rem;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
 }
 
 .close-btn:hover {
     background-color: #5a6268;
+}
+.products-table {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    max-height: 400px;
+}
+
+.products-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.products-table th,
+.products-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.products-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.product-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+.total-label {
+    text-align: right;
+    font-weight: bold;
+}
+.modal-content.order-details {
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.total-amount {
+    font-weight: bold;
+}
+
+.modal-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
 }
 </style>

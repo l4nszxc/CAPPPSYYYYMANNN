@@ -46,23 +46,32 @@ class Staff {
         try {
             const [orderDetails] = await db.execute(`
                 SELECT 
-                    o.*,
+                    o.order_id,
+                    o.status,
+                    o.total_amount,
+                    o.created_at,
                     u.username as customer_name
                 FROM orders o
                 JOIN users u ON o.user_id = u.id
                 WHERE o.order_id = ?
             `, [orderId]);
-
+    
             const [orderItems] = await db.execute(`
                 SELECT 
-                    oi.*,
+                    oi.product_id,
+                    oi.quantity,
+                    oi.price,
                     p.name,
                     p.image
                 FROM order_items oi
-                JOIN products p ON oi.product_id = p.id
+                JOIN products p ON oi.product_id = p.products_id
                 WHERE oi.order_id = ?
             `, [orderId]);
-
+    
+            if (!orderDetails[0]) {
+                return null;
+            }
+    
             return {
                 ...orderDetails[0],
                 items: orderItems
