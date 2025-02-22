@@ -22,7 +22,7 @@
                             type="text" 
                             v-model="searchQuery" 
                             placeholder="Search by order ID or customer name..."
-                        >
+                        > 
                     </div>
                     <select v-model="statusFilter" class="status-filter">
                         <option value="all">All Status</option>
@@ -130,7 +130,7 @@
 
         <!-- Logout Modal -->
         <div v-if="showLogoutModal" class="modal-overlay">
-            <div class="modal-content">
+            <div class="modal-content logout-modal">
                 <h2>Confirm Logout</h2>
                 <p>Are you sure you want to logout?</p>
                 <div class="modal-buttons">
@@ -264,13 +264,14 @@ export default {
     }
 }
 </script>
-
 <style scoped>
+/* Base Layout Styles */
 .staff-container {
     min-height: 100vh;
     background-color: #f5f5f5;
 }
 
+/* Navbar Styles */
 .staff-navbar {
     background-color: #3498db;
     padding: 1rem 2rem;
@@ -311,75 +312,14 @@ export default {
     background-color: #c0392b;
 }
 
+/* Content Area Styles */
 .staff-content {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.welcome-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 2rem;
-}
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 8px;
-    padding: 2rem;
-    max-width: 800px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.confirm-btn, .cancel-btn {
-    padding: 0.5rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-}
-
-.confirm-btn {
-    background-color: #e74c3c;
-    color: white;
-}
-
-.cancel-btn {
-    background-color: #95a5a6;
-    color: white;
-}
-
-.confirm-btn:hover {
-    background-color: #c0392b;
-}
-
-.cancel-btn:hover {
-    background-color: #7f8c8d;
-}
+/* Orders Section Styles */
 .orders-section {
     background: white;
     padding: 2rem;
@@ -406,6 +346,7 @@ export default {
     width: 300px;
 }
 
+/* Table Styles */
 .table-container {
     overflow-x: auto;
 }
@@ -427,6 +368,7 @@ th {
     font-weight: 600;
 }
 
+/* Status Select Styles */
 .status-select {
     padding: 0.4rem;
     border-radius: 4px;
@@ -462,92 +404,134 @@ th {
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9rem;
+    transition: background-color 0.2s;
 }
 
 .view-btn:hover {
     background-color: #45a049;
 }
 
-.order-details {
-    max-width: 600px !important;
-}
-
-.order-info {
-    margin: 1rem 0;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 4px;
-}
-
-.order-items {
-    margin: 1rem 0;
-}
-
-.order-item {
+/* Modal Base Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Logout Modal Styles */
+.logout-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 2.5rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.logout-modal h2 {
+    color: #2c3e50;
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+}
+
+.logout-modal p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.logout-modal .modal-buttons {
+    display: flex;
+    justify-content: center;
     gap: 1rem;
-    padding: 1rem;
-    border-bottom: 1px solid #eee;
+    margin-top: 2rem;
 }
 
-.item-image {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.item-details {
-    flex: 1;
-}
-
-.item-details h4 {
-    margin: 0 0 0.5rem 0;
-}
-
-.order-total {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #eee;
-}
-
-.close-btn {
-    background-color: #6c757d;
-    color: white;
+.logout-modal .confirm-btn,
+.logout-modal .cancel-btn {
+    padding: 0.75rem 2rem;
     border: none;
-    padding: 0.5rem 1.5rem;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-.close-btn:hover {
-    background-color: #5a6268;
+.logout-modal .confirm-btn {
+    background-color: #dc3545;
+    color: white;
 }
+
+.logout-modal .confirm-btn:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+.logout-modal .cancel-btn {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.logout-modal .cancel-btn:hover {
+    background-color: #e2e6ea;
+    transform: translateY(-1px);
+}
+
+/* Order Details Modal Styles */
+.modal-content.order-details {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.order-details h2 {
+    color: #2c3e50;
+    margin: 0 0 1.5rem 0;
+    font-size: 1.75rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 1rem;
+}
+
+.order-details .order-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.order-details .order-info p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+    color: #2c3e50;
+}
+
+.order-details .products-table {
+    margin: 1.5rem 0;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    max-height: 380px; /* Set a fixed height for scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
 .products-table {
     margin: 1.5rem 0;
     overflow-x: auto;
     max-height: 400px;
-}
-
-.products-table table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-}
-
-.products-table th,
-.products-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-.products-table th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #2c3e50;
 }
 
 .product-image {
@@ -556,23 +540,38 @@ th {
     object-fit: cover;
     border-radius: 4px;
 }
+
 .total-label {
     text-align: right;
     font-weight: bold;
 }
-.modal-content.order-details {
-    width: 90%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-}
+
 .total-amount {
     font-weight: bold;
 }
 
-.modal-actions {
-    margin-top: 1.5rem;
+.order-details .modal-actions {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #dee2e6;
     display: flex;
     justify-content: flex-end;
+}
+
+.order-details .close-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.order-details .close-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
 }
 </style>
