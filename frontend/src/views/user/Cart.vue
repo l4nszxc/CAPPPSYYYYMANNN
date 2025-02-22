@@ -7,6 +7,20 @@
                 <h1><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
             </div>
             
+            <!-- Keep only this select all container -->
+            <div v-if="cart.length > 0" class="select-all-container">
+                <div class="select-all-checkbox">
+                    <label>
+                        <input 
+                            type="checkbox" 
+                            :checked="allItemsSelected"
+                            @change="toggleSelectAll"
+                            id="select-all"
+                        >
+                        <span class="checkbox-label">Select All</span>
+                    </label>
+                </div>
+            </div>
             <div v-if="cart.length > 0" class="cart-items">
                 <div v-for="item in cart" :key="item.product_id" class="cart-item">
                     <div class="cart-item-checkbox">
@@ -109,6 +123,9 @@ export default {
     };
     },
     computed: {
+        allItemsSelected() {
+            return this.cart.length > 0 && this.checkedItems.size === this.cart.length;
+        },
         selectedItems() {
             return this.cart.filter(item => this.checkedItems.has(item.product_id));
         },
@@ -126,6 +143,17 @@ export default {
         }
     },
     methods: {
+        toggleSelectAll() {
+            if (this.allItemsSelected) {
+                // If all items are selected, unselect all
+                this.checkedItems.clear();
+            } else {
+                // Select all items
+                this.cart.forEach(item => {
+                    this.checkedItems.add(item.product_id);
+                });
+            }
+        },
         toggleItemCheck(productId) {
             if (this.checkedItems.has(productId)) {
                 this.checkedItems.delete(productId);
@@ -550,6 +578,37 @@ export default {
     transform: none;
     box-shadow: none;
 }
+.select-all-container {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.select-all-checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.select-all-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.select-all-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.checkbox-label {
+    user-select: none;
+}
 @media (max-width: 768px) {
     .cart-item {
         flex-direction: column;
@@ -565,4 +624,5 @@ export default {
         justify-content: center;
     }
 }
+
 </style>
