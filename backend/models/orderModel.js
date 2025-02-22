@@ -50,12 +50,13 @@ class Order {
 
     static async getUserOrders(userId) {
         try {
-            const [orders] = await db.execute(
-                `SELECT 
+            const [rows] = await db.execute(`
+                SELECT 
                     o.order_id,
                     o.status,
-                    CAST(o.total_amount AS DECIMAL(10,2)) as total_amount,
+                    o.total_amount,
                     o.created_at,
+                    o.cancel_reason,
                     GROUP_CONCAT(
                         JSON_OBJECT(
                             'product_id', oi.product_id,
@@ -68,13 +69,13 @@ class Order {
                 FROM orders o
                 JOIN order_items oi ON o.order_id = oi.order_id
                 JOIN products p ON oi.product_id = p.products_id
-                WHERE o.user_id = ? AND o.status IN ('pending', 'preparing', 'ready for pickup')
+                WHERE o.user_id = ?
                 GROUP BY o.order_id
                 ORDER BY o.created_at DESC`,
                 [userId]
             );
     
-            return orders.map(order => ({
+            return rows.map(order => ({
                 ...order,
                 items: JSON.parse(`[${order.items}]`),
                 total_amount: Number(order.total_amount)

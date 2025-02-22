@@ -20,6 +20,7 @@
                         <option value="preparing">Preparing</option>
                         <option value="ready for pickup">Ready for Pickup</option>
                         <option value="paid">Paid</option>
+                        <option value="cancelled">Cancelled</option>
                     </select>
                 </div>
             </div>
@@ -37,6 +38,9 @@
                             <div class="order-secondary-info">
                                 <p class="order-date">{{ formatDate(order.created_at) }}</p>
                                 <p class="order-amount">Total: ₱{{ formatPrice(order.total_amount) }}</p>
+                                <p v-if="order.status === 'cancelled'" class="cancel-reason">
+                                    Reason: {{ order.cancel_reason }}
+                                </p>
                                 <button class="toggle-btn" @click="toggleOrderDetails(order.order_id)">
                                     <i :class="['fas', expandedOrders.has(order.order_id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
                                     {{ expandedOrders.has(order.order_id) ? 'Hide Details' : 'Show Details' }}
@@ -309,10 +313,11 @@
   }
   
   .order-secondary-info {
-      display: flex;
-      align-items: center;
-      gap: 2rem;
-  }
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
   
   .order-date, .order-amount {
       color: #666;
@@ -357,7 +362,17 @@
       color: #0f5132;
       border: 1px solid #badbcc;
   }
-  
+  .cancelled {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+.cancel-reason {
+    color: #842029;
+    font-size: 0.9rem;
+    margin: 0;
+    font-style: italic;
+}
   .toggle-btn {
       background-color: #f8f9fa;
       border: 1px solid #dee2e6;
@@ -501,12 +516,6 @@
           padding: 1rem;
       }
   
-      .order-secondary-info {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 0.75rem;
-          width: 100%;
-      }
   
       .toggle-btn {
           width: 100%;
