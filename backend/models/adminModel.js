@@ -63,7 +63,8 @@ class Admin {
                     COUNT(DISTINCT o.order_id) as totalOrders,
                     COALESCE(SUM(o.total_amount), 0) as totalSales,
                     (SELECT COUNT(*) FROM products) as totalProducts,
-                    (SELECT SUM(stock_quantity) FROM products) as totalStock
+                    (SELECT SUM(stock_quantity) FROM products) as totalStock,
+                    (SELECT COUNT(*) FROM users WHERE role = 'user') as totalUsers
                 FROM orders o
                 WHERE o.status = 'paid'
             `);
