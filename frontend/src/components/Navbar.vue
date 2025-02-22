@@ -14,7 +14,10 @@
 
     <div class="navbar-end">
       
-      
+      <router-link to="/view-orders" class="orders-button">
+        <i class="fas fa-truck"></i> 
+        <span v-if="activeOrdersCount > 0" class="count-badge">{{ activeOrdersCount }}</span>
+      </router-link>
       <router-link to="/cart" class="cart-button">
         <i class="fas fa-shopping-cart"></i> 
         <span v-if="cartItemCount > 0" class="cart-count">{{ cartItemCount }}</span>
@@ -33,9 +36,6 @@
         <div v-show="showDropdown" class="dropdown-menu">
         <router-link to="/profile" class="dropdown-item">
             <i class="fas fa-user"></i> Profile
-        </router-link>
-        <router-link to="/view-orders" class="dropdown-item">
-            <i class="fas fa-truck"></i> Track Orders
         </router-link>
         <router-link to="/order-history" class="dropdown-item">
             <i class="fas fa-history"></i> Order History
@@ -63,12 +63,19 @@ export default {
     return {
       showDropdown: false,
       profilePicture: null,
-      cartItems: []
+      cartItems: [],
+      activeOrders: []
     }
   },
   computed: {
+    
     cartItemCount() {
       return this.cartItems.length;
+    },
+    activeOrdersCount() {
+      return this.activeOrders.filter(order => 
+        ['pending', 'preparing', 'ready for pickup'].includes(order.status.toLowerCase())
+      ).length;
     },
     profileImage() {
       if (this.profilePicture) {
@@ -78,6 +85,22 @@ export default {
     }
   },
   methods: {
+    async fetchActiveOrders() {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:7904/api/orders/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          this.activeOrders = await response.json();
+        }
+      } catch (error) {
+        console.error('Error fetching active orders:', error);
+        this.activeOrders = [];
+      }
+    },
     async fetchCart() {
       try {
         const token = localStorage.getItem('token');
@@ -123,12 +146,21 @@ export default {
   mounted() {
     document.addEventListener('click', this.closeDropdown);
     this.fetchProfilePicture();
-    this.fetchCart(); // Fetch cart on mount
+    this.fetchCart();
+    this.fetchActiveOrders(); // Fetch active orders on mount
     
-    // Add event listener for cart updates
+    // Add event listeners for updates
     window.addEventListener('cart-updated', () => {
       this.fetchCart();
     });
+    window.addEventListener('orders-updated', () => {
+      this.fetchActiveOrders();
+    });
+  },
+  beforeUnmount() {
+    document.removeEventListener('click', this.closeDropdown);
+    window.removeEventListener('cart-updated', this.fetchCart);
+    window.removeEventListener('orders-updated', this.fetchActiveOrders);
   },
   beforeUnmount() {
     document.removeEventListener('click', this.closeDropdown);
@@ -154,7 +186,36 @@ export default {
   display: flex;
   align-items: center;
 }
-
+.orders-button {
+  background: none;
+  border: none;
+  color: #34495e;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  position: relative;
+  transition: color 0.3s ease;
+  text-decoration: none;
+  margin-right: 0.5rem;
+}
+.count-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.orders-button:hover {
+  color: #2980b9;
+}
 .logo {
   color: #4CAF50;
   font-size: 1.5rem;
@@ -341,6 +402,13 @@ button.dropdown-item:hover {
 
   .username {
     display: none;
+  }
+  .orders-button {
+    padding: 0.5rem;
+  }
+
+  .cart-button {
+    padding: 0.5rem;
   }
 }
 </style>

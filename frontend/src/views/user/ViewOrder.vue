@@ -6,7 +6,7 @@
       />    
 
         <div class="view-order-content">
-            <h1><i class="fas fa-truck-loading"></i> Track Orders</h1>
+            <h1><i class="fas fa-truck-loading"></i> View Orders</h1>
             
             <div class="active-orders">
                 <div v-if="activeOrders.length > 0">
