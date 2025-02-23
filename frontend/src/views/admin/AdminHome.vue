@@ -123,30 +123,22 @@
     </div>
 
     <!-- Logout Confirmation Modal -->
-    <div v-if="showLogoutModal" class="modal-overlay">
-      <div class="modal-content">
-        <i class="fas fa-sign-out-alt modal-icon"></i>
-        <h2>Confirm Logout</h2>
-        <p>Are you sure you want to logout from the admin dashboard?</p>
-        <div class="modal-buttons">
-          <button @click="handleLogout" class="confirm-btn">
-            <i class="fas fa-check"></i> Yes, Logout
-          </button>
-          <button @click="showLogoutModal = false" class="cancel-btn">
-            <i class="fas fa-times"></i> Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    <LogoutModal 
+    :show="showLogoutModal"
+    @confirm="handleLogout"
+    @cancel="showLogoutModal = false"
+/>
   </div>
 </template>
   
   <script>
-import AdminNavbar from '../../components/AdminNavbar.vue'  
+  import AdminNavbar from '../../components/AdminNavbar.vue' 
+  import LogoutModal from '../../components/LogoutModal.vue'  
   export default {
     name: 'AdminHome',
     components: {
-      AdminNavbar
+      AdminNavbar,
+      LogoutModal
     },
     data() {
     return {
@@ -386,78 +378,6 @@ import AdminNavbar from '../../components/AdminNavbar.vue'
     font-size: 1rem;
   }
   
-  /* Modal Styles */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-  }
-  
-  .modal-content {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .modal-content h2 {
-    color: #1e293b;
-    margin: 0 0 1rem;
-    font-size: 1.5rem;
-  }
-  
-  .modal-content p {
-    color: #64748b;
-    margin-bottom: 1.5rem;
-  }
-  
-  .modal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-  
-  .confirm-btn, .cancel-btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-  
-  .confirm-btn {
-    background-color: #ef4444;
-    color: white;
-  }
-  
-  .confirm-btn:hover {
-    background-color: #dc2626;
-    transform: translateY(-1px);
-  }
-  
-  .cancel-btn {
-    background-color: #e2e8f0;
-    color: #475569;
-  }
-  
-  .cancel-btn:hover {
-    background-color: #cbd5e1;
-    transform: translateY(-1px);
-  }
   
   /* Responsive Design */
   @media (max-width: 768px) {
