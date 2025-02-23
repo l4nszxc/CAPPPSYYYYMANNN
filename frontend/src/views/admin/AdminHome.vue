@@ -6,8 +6,12 @@
     />
     
     <div class="admin-content">
-      <!-- Summary Statistics Cards -->
       <div class="dashboard-cards">
+        <router-link to="/admin/users" class="card clickable">
+          <i class="fas fa-users"></i>
+          <h3>Total Users</h3>
+          <p class="number">{{ stats.totalUsers || 0 }}</p>
+        </router-link>  
         <div class="card">
           <i class="fas fa-dollar-sign"></i>
           <h3>Total Sales</h3>
@@ -18,7 +22,7 @@
           <i class="fas fa-box"></i>
           <h3>Total Products</h3>
           <p class="number">{{ stats.totalProducts || 0 }}</p>
-      </router-link>
+        </router-link>
 
         <div class="card">
           <i class="fas fa-shopping-cart"></i>
@@ -31,12 +35,6 @@
           <h3>Total Stock</h3>
           <p class="number">{{ stats.totalStock || 0 }}</p>
         </div>
-
-        <router-link to="/admin/users" class="card clickable">
-          <i class="fas fa-users"></i>
-          <h3>Total Users</h3>
-          <p class="number">{{ stats.totalUsers || 0 }}</p>
-        </router-link>
       </div>
 
       <!-- Low Stock Alert Section -->
@@ -156,8 +154,12 @@
   },
     methods: {
       formatPrice(price) {
-      return Number(price).toFixed(2);
-    },
+          const num = Number(price);
+          if (num >= 1000) {
+              return `${(num / 1000).toFixed(1)}k`;
+          }
+          return num.toFixed(2);
+      },
     async fetchDashboardStats() {
       try {
         const token = localStorage.getItem('token');
@@ -249,20 +251,20 @@
   
   /* Dashboard Cards */
   .dashboard-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* Change to 5 equal columns */
+  gap: 1rem; /* Reduced gap to fit all cards */
+  margin-bottom: 2rem;
+}
   
-  .card {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
+.card {
+  background: white;
+  padding: 1.5rem; /* Reduced padding */
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
   
   .clickable {
     cursor: pointer;
@@ -387,9 +389,8 @@
     .admin-content {
       padding: 1rem;
     }
-  
     .dashboard-cards {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
     }
   
     .card {
@@ -413,11 +414,18 @@
       margin: 1rem;
     }
   }
-  
+  @media (max-width: 1200px) {
+  .dashboard-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
   @media (max-width: 480px) {
     .table-container {
       margin: 0 -1rem;
       border-radius: 0;
     }
+    .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
   }
   </style>
