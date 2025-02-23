@@ -145,8 +145,7 @@ export default {
                 filtered = filtered.filter(product => product.price <= this.maxPrice);
             }
 
-            console.log('Filtered products:', filtered); // Debug log
-            return filtered;
+            return filtered; // Removed console.log
         }
     },
     methods: {
@@ -255,39 +254,30 @@ export default {
             }
         },
         async fetchProducts() {
-    this.loading = true;
-    try {
-        let url = 'http://localhost:7904/api/products';
-        if (this.selectedCategory) {
-            url = `http://localhost:7904/api/products/category/${this.selectedCategory}`;
-        }
+            this.loading = true;
+            try {
+                let url = 'http://localhost:7904/api/products';
+                if (this.selectedCategory) {
+                    url = `http://localhost:7904/api/products/category/${this.selectedCategory}`;
+                }
 
-        const response = await fetch(url);
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Raw product data:', data); // Debug log
-
-            this.products = data.map(product => {
-                const totalSold = parseInt(product.total_sold) || 0;
-                console.log(`Product ${product.name} total sold:`, totalSold); // Debug log
-                return {
-                    ...product,
-                    total_sold: totalSold
-                };
-            });
-
-            console.log('Processed products:', this.products); // Debug log
-        } else {
-            console.error('Failed to fetch products');
-            this.products = [];
-        }
-    } catch (error) {
-        console.error('Error fetching products:', error);
-        this.products = [];
-    } finally {
-        this.loading = false;
-    }
-},
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    this.products = data.map(product => ({
+                        ...product,
+                        total_sold: parseInt(product.total_sold) || 0
+                    }));
+                } else {
+                    this.products = [];
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                this.products = [];
+            } finally {
+                this.loading = false;
+            }
+        },
         resetFilters() {
             this.searchQuery = '';
             this.minPrice = null;
