@@ -19,7 +19,7 @@
       <!-- Add this new router-link for All Products -->
       <router-link to="/admin/products" class="menu-item" active-class="active">
         <i class="fas fa-boxes"></i>
-        <span>All Products</span>
+        <span>Manage Products</span>
       </router-link>
 
       <router-link to="/admin/insert-products" class="menu-item" active-class="active">

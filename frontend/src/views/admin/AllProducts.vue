@@ -3,7 +3,39 @@
         <AdminNavbar :username="username" @logout="showLogoutModal = true" />
         
         <div class="admin-content">
-            <h1><i class="fas fa-box"></i> All Products</h1>
+            <h1><i class="fas fa-box"></i> Manage Products</h1>
+            <div class="filters-container">
+                <div class="search-filter">
+                    <label for="search"><i class="fas fa-search"></i> Search:</label>
+                    <input 
+                        type="text" 
+                        id="search" 
+                        v-model="searchQuery" 
+                        placeholder="Search by product name..."
+                    >
+                </div>
+                
+                <div class="category-filter">
+                    <label for="category"><i class="fas fa-filter"></i> Category:</label>
+                    <select id="category" v-model="selectedCategory">
+                        <option value="">All Categories</option>
+                        <option value="Fruits & Vegetables">Fruits & Vegetables</option>
+                        <option value="Dairy & Eggs">Dairy & Eggs</option>
+                        <option value="Meat & Seafood">Meat & Seafood</option>
+                        <option value="Beverages">Beverages</option>
+                        <option value="Bakery & Snacks">Bakery & Snacks</option>
+                        <option value="Canned & Packaged Goods">Canned & Packaged Goods</option>
+                        <option value="Frozen Foods">Frozen Foods</option>
+                        <option value="Grains & Pasta">Grains & Pasta</option>
+                        <option value="Condiments & Sauces">Condiments & Sauces</option>
+                        <option value="Spices & Seasonings">Spices & Seasonings</option>
+                    </select>
+                </div>
+
+                <button @click="resetFilters" class="reset-btn">
+                    <i class="fas fa-undo"></i> Reset
+                </button>
+            </div>
             
             <div class="products-section">
                 <div class="table-container">
@@ -20,8 +52,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="product in products" :key="product.products_id">
-                                <td>
+                            <tr v-for="product in filteredProducts" :key="product.products_id">                                <td>
                                     <img 
                                         :src="product.image ? `http://localhost:7904/uploads/${product.image}` : '/img/placeholder.jpg'"
                                         :alt="product.name"
@@ -141,10 +172,28 @@ export default {
             showLogoutModal: false,
             showModal: false,
             editingProduct: null,
-            newImage: null
+            newImage: null,
+            searchQuery: '', 
+            selectedCategory: '' 
         };
     },
+    computed: {
+        filteredProducts() {
+            return this.products.filter(product => {
+                const matchesSearch = !this.searchQuery || 
+                    product.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+                const matchesCategory = !this.selectedCategory || 
+                    product.category === this.selectedCategory;
+                
+                return matchesSearch && matchesCategory;
+            });
+        }
+    },
     methods: {
+        resetFilters() {
+            this.searchQuery = '';
+            this.selectedCategory = '';
+        },
         async fetchProducts() {
             try {
                 const response = await fetch('http://localhost:7904/api/products');
@@ -426,7 +475,61 @@ th {
     font-size: 3rem;
     margin-bottom: 1rem;
 }
+.filters-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
 
+.search-filter, .category-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-filter input, .category-filter select {
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    flex: 1;
+}
+
+.search-filter label, .category-filter label {
+    color: #64748b;
+    font-weight: 600;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reset-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.reset-btn:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+}
 @media (max-width: 768px) {
     .admin-container {
         padding-left: 0;
@@ -439,6 +542,15 @@ th {
     .modal-content {
         margin: 1rem;
         padding: 1.5rem;
+    }
+    .filters-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .search-filter, .category-filter {
+        width: 100%;
     }
 }
 </style>
