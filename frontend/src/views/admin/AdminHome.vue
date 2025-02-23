@@ -14,11 +14,11 @@
           <p class="number">₱{{ formatPrice(stats.totalSales || 0) }}</p>
         </div>
 
-        <div class="card">
+        <router-link to="/admin/products" class="card clickable">
           <i class="fas fa-box"></i>
           <h3>Total Products</h3>
           <p class="number">{{ stats.totalProducts || 0 }}</p>
-        </div>
+      </router-link>
 
         <div class="card">
           <i class="fas fa-shopping-cart"></i>

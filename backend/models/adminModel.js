@@ -69,32 +69,27 @@ class Admin {
                 WHERE o.status = 'paid'
             `);
     
-            // Get top products separately
+            // Get top products with consistent calculation
             const [topProducts] = await db.execute(`
                 SELECT 
                     p.name,
-                    SUM(oi.quantity) as quantity,
-                    SUM(oi.price * oi.quantity) as total
+                    SUM(CASE WHEN o.status = 'paid' THEN oi.quantity ELSE 0 END) as quantity,
+                    SUM(CASE WHEN o.status = 'paid' THEN (oi.price * oi.quantity) ELSE 0 END) as total
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.products_id
                 JOIN orders o ON oi.order_id = o.order_id
-                WHERE o.status = 'paid'
                 GROUP BY p.products_id, p.name
+                HAVING quantity > 0
                 ORDER BY quantity DESC
                 LIMIT 5
             `);
     
             // Get low stock products
             const [lowStock] = await db.execute(`
-                SELECT 
-                    products_id,
-                    name,
-                    stock_quantity,
-                    price
-                FROM products 
+                SELECT products_id, name, stock_quantity, price
+                FROM products
                 WHERE stock_quantity <= 10
                 ORDER BY stock_quantity ASC
-                LIMIT 5
             `);
     
             return {

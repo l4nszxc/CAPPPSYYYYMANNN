@@ -90,25 +90,30 @@ const routes = [
       name: 'AdminHome',
       component: AdminHome,
       meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/recruit-staff',
-    name: 'RecruitStaff',
-    component: RecruitStaff,
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/users',
-    name: 'AllUsers',
-    component: () => import('../views/admin/UsersList.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
-  {
-    path: '/admin/insert-products',
-    name: 'InsertProducts',
-    component: InsertProducts,
-    meta: { requiresAuth: true, requiresAdmin: true }
-  },
+    },
+    {
+      path: '/admin/recruit-staff',
+      name: 'RecruitStaff',
+      component: RecruitStaff,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/users',
+      name: 'AllUsers',
+      component: () => import('../views/admin/UsersList.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/insert-products',
+      name: 'InsertProducts',
+      component: InsertProducts,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/products',
+      name: 'AllProducts',
+      component: () => import('../views/admin/AllProducts.vue')
+    },
 
 
 

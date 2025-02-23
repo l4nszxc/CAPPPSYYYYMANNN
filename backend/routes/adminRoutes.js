@@ -10,5 +10,6 @@ router.get('/users', isAdmin, adminController.getAllUsers);
 router.post('/recruit-staff', isAdmin, adminController.recruitStaff);
 router.post('/products', isAdmin, productController.insertProduct);
 router.get('/dashboard-stats', isAdmin, adminController.getDashboardStats);
+router.put('/products/:id', isAdmin, productController.updateProduct);
 
 module.exports = router;

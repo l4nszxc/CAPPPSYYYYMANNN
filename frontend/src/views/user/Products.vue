@@ -38,25 +38,52 @@
                 <button @click="resetFilters" class="reset-filter-btn"><i class="fas fa-undo"></i> Reset Filters</button>
             </div>
 
-            <div v-if="loading" class="loading-message">Loading products...</div>
+            <div v-if="loading" class="loading-message">
+                <i class="fas fa-spinner fa-spin"></i> Loading products...
+            </div>
             <div v-else class="products-grid">
                 <div v-for="product in filteredProducts" :key="product.products_id" class="product-card">
-                    <img :src="product.image ? `http://localhost:7904/uploads/${product.image}` : 'placeholder-image.jpg'"
-                        alt="Product Image" class="product-image">
+                    <div class="product-image-container">
+                        <img :src="product.image ? `http://localhost:7904/uploads/${product.image}` : 'placeholder-image.jpg'"
+                            alt="Product Image" 
+                            class="product-image"
+                            @error="handleImageError"
+                        >
+                        <span class="sold-badge" v-if="parseInt(product.total_sold) > 0">
+                            <i class="fas fa-fire"></i> {{ parseInt(product.total_sold) }} sold
+                        </span>
+                    </div>
                     <div class="product-details">
                         <h3>{{ product.name }}</h3>
                         <p class="product-description">{{ product.description }}</p>
-                        <p class="product-price">Price: ₱{{ product.price }}</p>
-                        <p class="product-stock">Stock: {{ product.stock_quantity }}</p>
-                        <p class="product-category">Category: {{ product.category }}</p>
+                        <div class="product-info">
+                            <p class="product-price">₱{{ formatPrice(product.price) }}</p>
+                            <p class="product-stock" :class="{ 'low-stock': product.stock_quantity <= 10 }">
+                                <i class="fas fa-box"></i> 
+                                {{ product.stock_quantity }} in stock
+                            </p>
+                        </div>
+                        <p class="product-category">
+                            <i class="fas fa-tag"></i> {{ product.category }}
+                            <span v-if="product.total_sold && product.total_sold > 0" class="total-sold">
+                                <i class="fas fa-fire"></i> {{ product.total_sold }} sold
+                            </span>
+                        </p>
                     </div>
-                    <button class="add-to-cart-btn" @click="showQuantityModal(product)">
-                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    <button 
+                        class="add-to-cart-btn" 
+                        @click="showQuantityModal(product)"
+                        :disabled="product.stock_quantity === 0"
+                    >
+                        <i class="fas fa-shopping-cart"></i> 
+                        {{ product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart' }}
                     </button>
                 </div>
             </div>
-            <div v-if="filteredProducts.length === 0 && !loading" class="no-products-message">No products found matching
-                your criteria.</div>
+            <div v-if="filteredProducts.length === 0 && !loading" class="no-products-message">
+                <i class="fas fa-box-open"></i>
+                No products found matching your criteria.
+            </div>
         </div>
 
         <LogoutModal :show="showLogoutModal" @confirm="handleLogout" @cancel="showLogoutModal = false" />
@@ -98,7 +125,10 @@ export default {
     },
     computed: {
         filteredProducts() {
-            let filtered = this.products;
+            let filtered = this.products.map(product => ({
+                ...product,
+                total_sold: parseInt(product.total_sold) || 0
+            }));
 
             if (this.searchQuery) {
                 const searchTerm = this.searchQuery.toLowerCase();
@@ -115,18 +145,22 @@ export default {
                 filtered = filtered.filter(product => product.price <= this.maxPrice);
             }
 
+            console.log('Filtered products:', filtered); // Debug log
             return filtered;
         }
     },
     methods: {
-    showQuantityModal(product) {
-        this.selectedProduct = product;
-        this.showModal = true;
-    },
-    cancelAddToCart() {
-        this.showModal = false;
-        this.selectedProduct = null;
-    },
+        formatPrice(price) {
+        return Number(price).toFixed(2);
+        },
+        showQuantityModal(product) {
+            this.selectedProduct = product;
+            this.showModal = true;
+        },
+        cancelAddToCart() {
+            this.showModal = false;
+            this.selectedProduct = null;
+        },
     async confirmAddToCart(quantity) {
         if (!this.selectedProduct) return;
         
@@ -221,27 +255,39 @@ export default {
             }
         },
         async fetchProducts() {
-            this.loading = true;
-            try {
-                let url = 'http://localhost:7904/api/products';
-                if (this.selectedCategory) {
-                    url = `http://localhost:7904/api/products/category/${this.selectedCategory}`;
-                }
+    this.loading = true;
+    try {
+        let url = 'http://localhost:7904/api/products';
+        if (this.selectedCategory) {
+            url = `http://localhost:7904/api/products/category/${this.selectedCategory}`;
+        }
 
-                const response = await fetch(url);
-                if (response.ok) {
-                    this.products = await response.json();
-                } else {
-                    console.error('Failed to fetch products');
-                    this.products = [];
-                }
-            } catch (error) {
-                console.error('Error fetching products:', error);
-                this.products = [];
-            } finally {
-                this.loading = false;
-            }
-        },
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Raw product data:', data); // Debug log
+
+            this.products = data.map(product => {
+                const totalSold = parseInt(product.total_sold) || 0;
+                console.log(`Product ${product.name} total sold:`, totalSold); // Debug log
+                return {
+                    ...product,
+                    total_sold: totalSold
+                };
+            });
+
+            console.log('Processed products:', this.products); // Debug log
+        } else {
+            console.error('Failed to fetch products');
+            this.products = [];
+        }
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        this.products = [];
+    } finally {
+        this.loading = false;
+    }
+},
         resetFilters() {
             this.searchQuery = '';
             this.minPrice = null;
@@ -260,13 +306,24 @@ export default {
 
 <style scoped>
 .product-container {
+    
     font-family: Arial, sans-serif;
     min-height: 100vh;
     background-color: #f5f5f5;
 }
 .product-content {
-    max-width: 1200px;
+    max-width: 2000px;
     margin: 0 auto;
+    padding: 2rem;
+}
+
+.product-content h1 {
+    color: #1e293b;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 /* Filters Section */
@@ -348,137 +405,223 @@ export default {
 /* Products Grid */
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    grid-template-columns: repeat(auto-fit, minmax(150px, calc(100% / 8)));
-    gap: 25px;
-    margin-top: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Reduced from 280px */
+    gap: 1.5rem; /* Reduced from 2rem */
+    margin-top: 1.5rem; /* Reduced from 2rem */
 }
 
 .product-card {
-    background-color: #fff;
+    background-color: white;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 .product-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-container {
+    position: relative;
+    width: 100%;
+    height: 160px; /* Reduced from 200px */
+    overflow: hidden;
 }
 
 .product-image {
     width: 100%;
-    height: 150px;
+    height: 100%;
     object-fit: cover;
-    border-bottom: 1px solid #eee;
+    transition: transform 0.3s ease;
 }
-
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
 .product-details {
-    padding: 10px;
+    padding: 1rem;
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.sold-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(239, 68, 68, 0.9);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    z-index: 10; /* Increased z-index */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    font-weight: 600; /* Made text bolder */
 }
 
+.sold-badge i {
+    font-size: 0.7rem;
+}
 .product-details h3 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    color: #222;
+    margin: 0;
+    color: #1e293b;
     font-size: 1rem;
+    font-weight: 600;
 }
 
 .product-description {
-    color: #555;
-    margin-bottom: 8px;
-    line-height: 1.2;
-    font-size: 0.8rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0.5rem 0;
+    flex-grow: 1;
 }
 
+.product-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0;
+}
 .product-price {
-    color: #27ae60;
-    font-weight: bold;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
 }
 
 .product-stock {
-    color: #777;
-    font-size: 0.7rem;
-    margin-bottom: 5px;
+    color: #22c55e;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0;
 }
-
+.low-stock {
+    color: #f59e0b;
+}
 .product-category {
-    color: #888;
-    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 0;
+    padding: 0.5rem 0;
 }
 
 .add-to-cart-btn {
-    background-color: #3498db;
+    background-color: #3b82f6;
     color: white;
-    padding: 8px 12px;
+    padding: 1rem;
     border: none;
-    border-radius: 6px;
+    border-radius: 0;
     cursor: pointer;
-    font-size: 0.8rem;
-    transition: background-color 0.3s ease;
+    font-size: 0.95rem;
+    font-weight: 500;
     width: 100%;
-    display: block;
-    text-align: center;
-    margin-top: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
 }
-
+.total-sold {
+    margin-left: auto;
+    color: #ef4444;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 500;
+}
 .add-to-cart-btn:hover {
     background-color: #2980b9;
 }
-
+.add-to-cart-btn:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+.add-to-cart-btn:disabled {
+    background-color: #cbd5e1;
+    cursor: not-allowed;
+}
 /* Loading and No Products Messages */
 .loading-message {
     text-align: center;
-    font-style: italic;
-    color: #666;
-    padding: 20px;
+    color: #64748b;
+    padding: 3rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
 }
 
 .no-products-message {
     text-align: center;
-    color: #e74c3c;
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
+    color: #64748b;
+    padding: 3rem;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
-    .filters-container {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 5px;
-    }
-
-    .search-filter,
-    .price-filter,
-    .category-filter {
-        width: 100%;
-        margin-bottom: 5px;
-        min-width: auto;
-    }
-
-    .price-filter {
-        flex-direction: row;
-    }
-
-    .price-filter input {
-        width: auto;
-        flex-grow: 1;
+@media (max-width: 1024px) {
+    .product-content {
+        padding: 1.5rem;
     }
 
     .products-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .product-content {
+        padding: 1rem;
+    }
+
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .product-image-container {
+        height: 180px;
+    }
+
+    .product-details {
+        padding: 1rem;
+    }
+
+    .product-price {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-content h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .products-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>

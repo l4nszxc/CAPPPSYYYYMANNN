@@ -63,3 +63,31 @@ exports.getProductsByCategory = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+exports.updateProduct = [
+    upload.single('image'),
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { name, description, price, stock_quantity, category } = req.body;
+            const image = req.file ? 'products/' + req.file.filename : null;
+
+            const updates = {
+                name,
+                description,
+                price,
+                stock_quantity,
+                category
+            };
+
+            if (image) {
+                updates.image = image;
+            }
+
+            await Product.update(id, updates);
+            res.json({ message: 'Product updated successfully' });
+        } catch (error) {
+            console.error('Error updating product:', error);
+            res.status(500).json({ message: 'Error updating product' });
+        }
+    }
+];
