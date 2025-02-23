@@ -86,7 +86,7 @@ class Admin {
     
             // Get low stock products
             const [lowStock] = await db.execute(`
-                SELECT products_id, name, stock_quantity, price
+                SELECT products_id, name, description, stock_quantity, price, category
                 FROM products
                 WHERE stock_quantity <= 10
                 ORDER BY stock_quantity ASC

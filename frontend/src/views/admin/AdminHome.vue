@@ -119,6 +119,63 @@
         </div>
       </div>
     </div>
+    <!-- Edit Product Modal -->
+    <div v-if="showEditModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Edit Product</h2>
+            <form @submit.prevent="handleEditSubmit" class="edit-form">
+                <div class="form-group">
+                    <label for="name">Product Name</label>
+                    <input type="text" id="name" v-model="editingProduct.name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" v-model="editingProduct.description" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="number" id="price" v-model="editingProduct.price" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="stock">Stock Quantity</label>
+                    <input type="number" id="stock" v-model="editingProduct.stock_quantity" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" v-model="editingProduct.category" required>
+                        <option value="Fruits & Vegetables">Fruits & Vegetables</option>
+                        <option value="Dairy & Eggs">Dairy & Eggs</option>
+                        <option value="Meat & Seafood">Meat & Seafood</option>
+                        <option value="Beverages">Beverages</option>
+                        <option value="Bakery & Snacks">Bakery & Snacks</option>
+                        <option value="Canned & Packaged Goods">Canned & Packaged Goods</option>
+                        <option value="Frozen Foods">Frozen Foods</option>
+                        <option value="Grains & Pasta">Grains & Pasta</option>
+                        <option value="Condiments & Sauces">Condiments & Sauces</option>
+                        <option value="Spices & Seasonings">Spices & Seasonings</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newImage">New Image (optional)</label>
+                    <input type="file" id="newImage" @change="handleImageUpload" accept="image/*">
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="save-btn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" @click="closeModal" class="cancel-btn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Logout Confirmation Modal -->
     <LogoutModal 
@@ -138,28 +195,73 @@
       AdminNavbar,
       LogoutModal
     },
-    data() {
-    return {
-      username: '',
-      showLogoutModal: false,
-      stats: {
-        totalSales: 0,
-        totalProducts: 0,
-        totalOrders: 0,
-        totalStock: 0,
-        lowStock: [],
-        topProducts: []
-      }
-    }
-  },
+      data() {
+        return {
+            username: '',
+            showLogoutModal: false,
+            showEditModal: false, 
+            editingProduct: null, 
+            newImage: null, 
+            stats: {
+                totalSales: 0,
+                totalProducts: 0,
+                totalOrders: 0,
+                totalStock: 0,
+                lowStock: [],
+                topProducts: []
+            }
+        }
+    },
     methods: {
+      editProduct(product) {
+        this.editingProduct = { ...product };
+        this.showEditModal = true;
+    },
+
+    closeModal() {
+        this.showEditModal = false;
+        this.editingProduct = null;
+        this.newImage = null;
+    },
+
+    handleImageUpload(event) {
+        this.newImage = event.target.files[0];
+    },
       formatPrice(price) {
           const num = Number(price);
           if (num >= 1000) {
               return `${(num / 1000).toFixed(1)}k`;
           }
           return num.toFixed(2);
-      },
+    },
+    async handleEditSubmit() {
+        try {
+            const formData = new FormData();
+            Object.keys(this.editingProduct).forEach(key => {
+                formData.append(key, this.editingProduct[key]);
+            });
+            if (this.newImage) {
+                formData.append('image', this.newImage);
+            }
+
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:7904/api/admin/products/${this.editingProduct.products_id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                this.closeModal();
+                await this.fetchDashboardStats(); // Refresh the dashboard data
+            }
+        } catch (error) {
+            console.error('Error updating product:', error);
+        }
+    },
+
     async fetchDashboardStats() {
       try {
         const token = localStorage.getItem('token');
@@ -176,9 +278,6 @@
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
       }
-    },
-    editProduct(product) {
-      // Implement edit product functionality
     },
       async handleLogout() {
         try {
@@ -217,21 +316,14 @@
       }
     },
     async mounted() {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const decoded = JSON.parse(atob(token.split('.')[1]));
-        this.username = decoded.username || 'Admin';
-      }
-      await this.fetchStats();
-    },
-    mounted() {
     const token = localStorage.getItem('token');
     if (token) {
-      const decoded = JSON.parse(atob(token.split('.')[1]));
-      this.username = decoded.username || 'Admin';
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        this.username = decoded.username || 'Admin';
     }
-    this.fetchDashboardStats();
-  }
+    await this.fetchStats();
+    await this.fetchDashboardStats();
+}
   }
   </script>
   <style scoped>
@@ -313,6 +405,89 @@
     gap: 0.5rem;
   }
   
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 0.95rem;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.save-btn, .cancel-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    border: none;
+}
+
+.save-btn {
+    background-color: #10b981;
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #ef4444;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #059669;
+}
+
+.cancel-btn:hover {
+    background-color: #dc2626;
+}
   /* Tables */
   .table-container {
     overflow-x: auto;
