@@ -497,24 +497,28 @@ export default {
 }
 
 .continue-shopping {
-    background-color: #3498db;
+    background-color: #4CAF50;
     color: white;
-    border: none;
+    border: 2px solid transparent;
     padding: 1rem 2rem;
-    border-radius: 8px;
+    border-radius: 25px;
     cursor: pointer;
     font-size: 1.1rem;
-    display: flex;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin: 0 auto;
+    box-shadow: 0 4px 6px rgba(76, 175, 80, 0.2);
     transition: all 0.3s ease;
 }
 
 .continue-shopping:hover {
-    background-color: #2980b9;
+    background-color: white;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
 }
 .cart-item-checkbox {
     display: flex;

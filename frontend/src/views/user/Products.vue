@@ -509,20 +509,42 @@ export default {
 }
 
 .add-to-cart-btn {
-    background-color: #3b82f6;
+    background-color: #4CAF50;
     color: white;
-    padding: 1rem;
-    border: none;
-    border-radius: 0;
+    border: 2px solid transparent;
+    padding: 1rem 2rem;
+    border-radius: 25px;
     cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    width: 100%;
-    display: flex;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    margin: 1rem;
+    width: calc(100% - 2rem);
+    box-shadow: 0 4px 6px rgba(76, 175, 80, 0.2);
     transition: all 0.3s ease;
+}
+.add-to-cart-btn:hover:not(:disabled) {
+    background-color: white;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+}
+
+.add-to-cart-btn:disabled {
+    background-color: #cccccc;
+    border: 2px solid transparent;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.add-to-cart-btn i {
+    font-size: 0.9em;
+    line-height: 1;
 }
 .total-sold {
     margin-left: auto;
@@ -532,16 +554,6 @@ export default {
     align-items: center;
     gap: 0.25rem;
     font-weight: 500;
-}
-.add-to-cart-btn:hover {
-    background-color: #2980b9;
-}
-.add-to-cart-btn:hover:not(:disabled) {
-    background-color: #2563eb;
-}
-.add-to-cart-btn:disabled {
-    background-color: #cbd5e1;
-    cursor: not-allowed;
 }
 /* Loading and No Products Messages */
 .loading-message {

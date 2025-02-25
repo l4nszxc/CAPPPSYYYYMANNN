@@ -490,17 +490,29 @@ export default {
     background-color: #4CAF50;
     color: white;
     text-decoration: none;
-    padding: 0.875rem 1.75rem;
-    border-radius: 8px;
+    padding: 1rem 2rem;
+    border-radius: 25px;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 6px rgba(76, 175, 80, 0.2);
     transition: all 0.3s ease;
+    border: 2px solid transparent;
 }
 
 .shop-now-btn:hover {
-    background-color: #45a049;
-    transform: translateY(-1px);
+    background-color: white;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+}
+.shop-now-btn i {
+    font-size: 1.5em; /* Changed from 1.5em to 0.9em to make it smaller */
+    position: relative;
+    top: 1px; /* Small adjustment to align with text */
 }
 .order-secondary-info {
     display: flex;
