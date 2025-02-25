@@ -233,12 +233,9 @@ export default {
   gap: 1rem;
   align-items: center;
 }
-
-/* Search and Filter Inputs */
 .search-box {
   flex: 1;
 }
-
 .search-box input {
   width: 98%;
   padding: 0.75rem 1rem;
