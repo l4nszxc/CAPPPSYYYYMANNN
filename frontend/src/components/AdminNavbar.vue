@@ -2,7 +2,7 @@
   <nav class="admin-sidebar">
     <div class="sidebar-header">
       <i class="fas fa-leaf logo-icon"></i>
-      <h1>JM Garis Store</h1>
+      <h1>JM Garis Store/Admin</h1>
     </div>
     
     <div class="sidebar-menu">

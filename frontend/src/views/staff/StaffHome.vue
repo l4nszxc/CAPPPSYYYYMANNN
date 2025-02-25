@@ -7,7 +7,7 @@
         
         <div class="staff-content">
             <div class="orders-section">
-                <h2>Manage Orders</h2>
+                <h2>All Orders</h2>
                 
                 <div class="filters">
                     <div class="search-box">

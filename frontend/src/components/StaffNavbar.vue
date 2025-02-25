@@ -9,7 +9,7 @@
         <div class="sidebar-menu">
             <router-link to="/staff" class="menu-item" exact-active-class="active">
                 <i class="fas fa-clipboard-list"></i>
-                <span>Manage Orders</span>
+                <span>All Orders</span>
             </router-link>
         </div>
 
