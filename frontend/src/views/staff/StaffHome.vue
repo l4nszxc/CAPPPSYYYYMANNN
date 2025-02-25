@@ -1,17 +1,10 @@
 <template>
     <div class="staff-container">
-        <nav class="staff-navbar">
-            <div class="nav-brand">
-                <h1>Staff Dashboard</h1>
-            </div>
-            <div class="nav-menu">
-                <span class="staff-name">Welcome, {{ username }}</span>
-                <button @click="showLogoutModal = true" class="logout-btn">
-                    Logout
-                </button>
-            </div>
-        </nav>
-
+        <StaffNavbar 
+            :username="username"
+            @logout="showLogoutModal = true"
+        />
+        
         <div class="staff-content">
             <div class="orders-section">
                 <h2>Manage Orders</h2>
@@ -149,8 +142,12 @@
 </template>
 
 <script>
+import StaffNavbar from '../../components/StaffNavbar.vue'
 export default {
     name: 'StaffHome',
+    components: {
+        StaffNavbar
+    },
     data() {
         return {
             username: '',
@@ -281,10 +278,11 @@ export default {
 }
 </script>
 <style scoped>
-/* Base Layout Styles */
 .staff-container {
+    font-family: Arial, sans-serif;
     min-height: 100vh;
     background-color: #f5f5f5;
+    padding-left: 250px; /* Match sidebar width */
 }
 
 /* Navbar Styles */
@@ -312,7 +310,11 @@ export default {
 .staff-name {
     font-weight: 500;
 }
-
+@media (max-width: 768px) {
+    .staff-container {
+        padding-left: 60px; /* Match collapsed sidebar width */
+    }
+}
 .logout-btn {
     background-color: #e74c3c;
     color: white;
