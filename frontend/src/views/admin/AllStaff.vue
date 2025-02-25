@@ -447,34 +447,56 @@
   }
   
   .table-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: auto;
-  }
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: auto;
+  max-height: calc(100vh - 200px);
+}
   
-  table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-  
-  th {
-    background-color: #f8fafc;
-    font-weight: 600;
-    color: #475569;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 1rem;
-    text-align: left;
-  }
-  
-  td {
-    padding: 1rem;
-    border-top: 1px solid #e2e8f0;
-  }
-  
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
+}
+th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+  padding: 1rem;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.95rem;
+}
+.search-box input {
+  width: 98%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
   .status-badge {
     padding: 0.4rem 1rem;
     border-radius: 20px;
@@ -504,7 +526,9 @@
     gap: 0.5rem;
     transition: all 0.2s;
   }
-  
+  tbody tr:hover {
+  background-color: #f8fafc;
+}
   .edit {
     background-color: #3b82f6;
     color: white;
