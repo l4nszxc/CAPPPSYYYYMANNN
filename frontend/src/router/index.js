@@ -115,6 +115,12 @@ const routes = [
       name: 'AllProducts',
       component: () => import('../views/admin/AllProducts.vue')
     },
+    {
+      path: '/admin/staff',
+      name: 'AllStaff',
+      component: () => import('../views/admin/AllStaff.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
 
 
 

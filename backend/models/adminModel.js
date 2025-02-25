@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const bcrypt = require('bcryptjs'); 
 
 class Admin {
     static async getUserStats() {
@@ -16,7 +17,88 @@ class Admin {
             throw error;
         }
     }
-
+    static async createStaff(staffData) {
+        try {
+            const hashedPassword = await bcrypt.hash(staffData.password, 10);
+            
+            const [result] = await db.execute(`
+                INSERT INTO users (
+                    username,
+                    firstname, 
+                    middlename, 
+                    lastname, 
+                    gender, 
+                    civil_status, 
+                    phone_number, 
+                    address, 
+                    birthdate, 
+                    email, 
+                    role, 
+                    password,
+                    email_verified
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'staff', ?, 1)
+            `, [
+                staffData.username,
+                staffData.firstname,
+                staffData.middlename,
+                staffData.lastname,
+                staffData.gender,
+                staffData.civilStatus,
+                staffData.phoneNumber,
+                staffData.address,
+                staffData.birthdate,
+                staffData.email,
+                hashedPassword
+            ]);
+            return result;
+        } catch (error) {
+            throw error;               
+        }
+    }
+    static async updateStaff(staffId, staffData) {
+        try {
+            const [result] = await db.execute(`
+                UPDATE users 
+                SET 
+                    username = ?,
+                    firstname = ?,
+                    middlename = ?,
+                    lastname = ?,
+                    gender = ?,
+                    civil_status = ?,
+                    phone_number = ?,
+                    address = ?,
+                    email = ?
+                WHERE id = ? AND role = 'staff'
+            `, [
+                staffData.username,
+                staffData.firstname,
+                staffData.middlename,
+                staffData.lastname,
+                staffData.gender,
+                staffData.civilStatus,
+                staffData.phoneNumber,
+                staffData.address,
+                staffData.email,
+                staffId
+            ]);
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    }
+    
+    static async deleteStaff(staffId) {
+        try {
+            const [result] = await db.execute(
+                'DELETE FROM users WHERE id = ? AND role = "staff"',
+                [staffId]
+            );
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    }
     static async getAllUsers() {
         try {
             const [rows] = await db.execute(`
@@ -37,6 +119,36 @@ class Admin {
                 FROM users 
                 WHERE role = 'user'
                 ORDER BY created_at DESC
+            `);
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+    static async getAllStaff() {
+        try {
+            const [rows] = await db.execute(`
+                SELECT 
+                    u.id as user_id,
+                    u.username,
+                    u.firstname,
+                    u.middlename,
+                    u.lastname,
+                    CONCAT(u.firstname, ' ', COALESCE(u.middlename, ''), ' ', u.lastname) as fullname,
+                    u.gender,
+                    u.civil_status,
+                    u.phone_number,
+                    u.address,
+                    u.email,
+                    u.role as position,
+                    CASE 
+                        WHEN u.email_verified = 1 THEN 'active'
+                        ELSE 'inactive'
+                    END as status,
+                    u.created_at
+                FROM users u
+                WHERE u.role = 'staff'
+                ORDER BY u.created_at DESC
             `);
             return rows;
         } catch (error) {

@@ -16,6 +16,11 @@
         <span>Users</span>
       </router-link>
 
+      <router-link to="/admin/staff" class="menu-item" active-class="active">
+        <i class="fas fa-id-card"></i>
+        <span>Staff</span>
+      </router-link>
+
       <!-- Add this new router-link for All Products -->
       <router-link to="/admin/products" class="menu-item" active-class="active">
         <i class="fas fa-boxes"></i>

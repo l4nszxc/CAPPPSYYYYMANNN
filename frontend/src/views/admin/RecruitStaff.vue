@@ -7,43 +7,67 @@
                 <h2>Recruit New Staff Member</h2>
                 <form @submit.prevent="handleStaffRegistration" class="recruit-form">
                     <div class="form-group">
-                        <label for="fullname">Full Name</label>
-                        <input
-                            type="text"
-                            id="fullname"
-                            v-model="formData.fullname"
-                            required
-                        />
+                        <label for="username">Username</label>
+                        <input type="text" id="username" v-model="formData.username" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="firstname">First Name</label>
+                        <input type="text" id="firstname" v-model="formData.firstname" required />
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Email</label>
-                        <input
-                            type="email"
-                            id="email"
-                            v-model="formData.email"
-                            required
-                        />
+                        <label for="middlename">Middle Name</label>
+                        <input type="text" id="middlename" v-model="formData.middlename" />
                     </div>
 
                     <div class="form-group">
-                        <label for="position">Position</label>
-                        <select id="position" v-model="formData.position" required>
-                            <option value="">Select Position</option>
-                            <option value="staff">Staff</option>
-                            <option value="supervisor">Supervisor</option>
-                            <option value="manager">Manager</option>
+                        <label for="lastname">Last Name</label>
+                        <input type="text" id="lastname" v-model="formData.lastname" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" v-model="formData.gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
                         </select>
                     </div>
 
                     <div class="form-group">
+                        <label for="civilStatus">Civil Status</label>
+                        <select id="civilStatus" v-model="formData.civilStatus" required>
+                            <option value="">Select Civil Status</option>
+                            <option value="single">Single</option>
+                            <option value="married">Married</option>
+                            <option value="widowed">Widowed</option>
+                            <option value="divorced">Divorced</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="tel" id="phoneNumber" v-model="formData.phoneNumber" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea id="address" v-model="formData.address" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthdate">Birthdate</label>
+                        <input type="date" id="birthdate" v-model="formData.birthdate" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" v-model="formData.email" required />
+                    </div>
+
+                    <div class="form-group">
                         <label for="password">Initial Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            v-model="formData.password"
-                            required
-                        />
+                        <input type="password" id="password" v-model="formData.password" required />
                     </div>
 
                     <button type="submit" class="submit-btn">Register Staff</button>
@@ -54,34 +78,39 @@
         </div>
 
         <!-- Logout Modal -->
-        <div v-if="showLogoutModal" class="modal-overlay">
-            <div class="modal-content">
-                <h2>Confirm Logout</h2>
-                <p>Are you sure you want to logout?</p>
-                <div class="modal-buttons">
-                    <button @click="handleLogout" class="confirm-btn">Yes, Logout</button>
-                    <button @click="showLogoutModal = false" class="cancel-btn">Cancel</button>
-                </div>
-            </div>
-        </div>
+        <LogoutModal 
+            :show="showLogoutModal"
+            @confirm="handleLogout"
+            @cancel="showLogoutModal = false"
+        />
     </div>
 </template>
 
 <script>
 import AdminNavbar from '../../components/AdminNavbar.vue'
+import LogoutModal from '../../components/LogoutModal.vue' // Add this import
+
 export default {
     name: 'RecruitStaff',
     components: {
-        AdminNavbar
+        AdminNavbar,
+        LogoutModal 
     },
     data() {
         return {
             username: '',
             showLogoutModal: false,
             formData: {
-                fullname: '',
+                username: '', 
+                firstname: '',
+                middlename: '',
+                lastname: '',
+                gender: '',
+                civilStatus: '',
+                phoneNumber: '',
+                address: '',
+                birthdate: '',
                 email: '',
-                position: '',
                 password: ''
             },
             error: '',
@@ -176,8 +205,16 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    margin-bottom: 1rem;
 }
-
+textarea {
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    min-height: 100px;
+    resize: vertical;
+}
 label {
     font-weight: bold;
     color: #333;
@@ -269,5 +306,18 @@ input, select {
 
 .cancel-btn:hover {
     background-color: #7f8c8d;
+}
+@media (max-width: 768px) {
+    .recruit-container {
+        padding-left: 0;
+    }
+    
+    .recruit-content {
+        padding: 1rem;
+    }
+    
+    .recruit-card {
+        padding: 1rem;
+    }
 }
 </style>
