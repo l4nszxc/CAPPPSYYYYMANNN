@@ -161,7 +161,7 @@ export default {
                 this.checkedItems.add(productId);
             }
         },  
-        async handlePlaceOrder() {
+        async handlePlaceOrder(updatedItems) {
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch('http://localhost:7904/api/orders', {
@@ -171,8 +171,8 @@ export default {
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        items: this.selectedItems,
-                        totalAmount: this.cartTotal
+                        items: updatedItems,
+                        totalAmount: updatedItems.reduce((total, item) => total + (item.price * item.quantity), 0)
                     })
                 });
 
