@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { checkTokenExpiration } from '../utils/auth';
 import Register from '../views/Register.vue'
 import Login from '../views/Login.vue'
 import Home from '../views/user/Home.vue'
@@ -157,6 +158,15 @@ router.beforeEach((to, from, next) => {
   } else {
       next();
   }
+});
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+      if (!checkTokenExpiration()) {
+          next('/login');
+          return;
+      }
+  }
+  next();
 });
 
 export default router
