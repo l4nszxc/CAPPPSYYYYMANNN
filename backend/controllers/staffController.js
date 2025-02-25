@@ -1,3 +1,4 @@
+const db = require('../config/db');
 const Staff = require('../models/staffModel');
 
 exports.getAllOrders = async (req, res) => {
@@ -42,5 +43,24 @@ exports.updateOrderStatus = async (req, res) => {
     } catch (error) {
         console.error('Error updating order status:', error);
         res.status(500).json({ message: 'Error updating order status' });
+    }
+};
+exports.acceptOrder = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const staffId = req.user.id;
+
+        await db.execute(`
+            UPDATE orders 
+            SET status = 'preparing', 
+                accepted_by = ?, 
+                accepted_at = CURRENT_TIMESTAMP 
+            WHERE order_id = ?
+        `, [staffId, orderId]);
+
+        res.status(200).json({ message: 'Order accepted successfully' });
+    } catch (error) {
+        console.error('Error accepting order:', error);
+        res.status(500).json({ error: error.message });
     }
 };

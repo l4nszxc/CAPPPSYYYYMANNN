@@ -52,9 +52,13 @@ class Staff {
                     o.total_amount,
                     o.created_at,
                     o.cancel_reason,
-                    u.username as customer_name
+                    o.accepted_by,
+                    o.accepted_at,
+                    u.username as customer_name,
+                    s.username as staff_name
                 FROM orders o
                 JOIN users u ON o.user_id = u.id
+                LEFT JOIN users s ON o.accepted_by = s.id
                 WHERE o.order_id = ?
             `, [orderId]);
     
@@ -82,6 +86,7 @@ class Staff {
             throw error;
         }
     }
+    
 
     static async updateOrderStatus(orderId, status) {
         try {
@@ -90,6 +95,21 @@ class Staff {
                 [status, orderId]
             );
             return result;
+        } catch (error) {
+            throw error;
+        }
+    }
+    static async acceptOrder(orderId, staffId) {
+        try {
+            await db.execute(`
+                UPDATE orders 
+                SET status = 'preparing', 
+                    accepted_by = ?, 
+                    accepted_at = CURRENT_TIMESTAMP 
+                WHERE order_id = ?
+            `, [staffId, orderId]);
+            
+            return true;
         } catch (error) {
             throw error;
         }

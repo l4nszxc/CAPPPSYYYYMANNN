@@ -85,6 +85,11 @@
                     <p v-if="selectedOrder.status === 'cancelled'" class="cancel-reason">
                         <strong>Cancellation Reason:</strong> {{ selectedOrder.cancel_reason }}
                     </p>
+                    <p v-if="selectedOrder.staff_name" class="accepted-info">
+                        <strong>Accepted by:</strong> <span class="staff-name">{{ selectedOrder.staff_name }}</span>
+                        <br>
+                        <strong>Accepted on:</strong> <span class="accepted-time">{{ formatDate(selectedOrder.accepted_at) }}</span>
+                    </p>
                 </div>
                 <div class="products-table">
                     <table>
@@ -122,6 +127,13 @@
                     </table>
                 </div>
                 <div class="modal-actions">
+                    <button 
+                        v-if="selectedOrder.status === 'pending'"
+                        @click="acceptOrder(selectedOrder.order_id)" 
+                        class="accept-btn"
+                    >
+                        <i class="fas fa-check"></i> Accept Order
+                    </button>
                     <button @click="selectedOrder = null" class="close-btn">Close</button>
                 </div>
             </div>
@@ -187,6 +199,25 @@ export default {
                 hour: '2-digit',
                 minute: '2-digit'
             });
+        },
+        async acceptOrder(orderId) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:7904/api/staff/orders/${orderId}/accept`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    // Refresh the order details and order list
+                    await this.viewOrderDetails(this.selectedOrder);
+                    await this.fetchOrders();
+                }
+            } catch (error) {
+                console.error('Error accepting order:', error);
+            }
         },
         async fetchOrders() {
             try {
@@ -345,7 +376,34 @@ export default {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-top: 2rem;
 }
+.accept-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
+.accept-btn:hover {
+    background-color: #45a049;
+    transform: translateY(-1px);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #dee2e6;
+}
 .filters {
     display: flex;
     gap: 1rem;
@@ -607,5 +665,22 @@ th {
     opacity: 0.7;
     cursor: not-allowed;
     border: 1px solid #dee2e6;
+}
+.accepted-info {
+    background-color: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.accepted-info .staff-name {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+.accepted-info .accepted-time {
+    color: #546e7a;
 }
 </style>
