@@ -32,9 +32,13 @@ class Staff {
                     o.status,
                     o.total_amount,
                     o.created_at,
-                    o.cancel_reason
+                    o.cancel_reason,
+                    o.accepted_by,
+                    o.accepted_at,
+                    s.username as staff_name
                 FROM orders o
                 JOIN users u ON o.user_id = u.id
+                LEFT JOIN users s ON o.accepted_by = s.id
                 ORDER BY o.created_at DESC
             `);
             return rows;
