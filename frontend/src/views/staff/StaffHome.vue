@@ -44,19 +44,22 @@
                                 <td>{{ order.order_id }}</td>
                                 <td>{{ order.customer_name }}</td>
                                 <td>
-                                    <select 
-                                        v-model="order.status"
-                                        @change="updateOrderStatus(order.order_id, order.status)"
-                                        :class="['status-select', order.status]"
-                                        :disabled="order.status === 'cancelled'"
-                                    >
-                                        <option value="pending">Pending</option>
-                                        <option value="preparing">Preparing</option>
-                                        <option value="ready for pickup">Ready for Pickup</option>
-                                        <option value="paid">Paid</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </select>
-                                </td>
+                <select 
+                    v-model="order.status"
+                    @change="updateOrderStatus(order.order_id, order.status)"
+                    :class="['status-select', order.status]"
+                    :disabled="order.status === 'cancelled'"
+                >
+                    <option value="pending">Pending</option>
+                    <option value="preparing">Preparing</option>
+                    <option value="ready for pickup">Ready for Pickup</option>
+                    <option value="paid">Paid</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <div v-if="order.status === 'preparing' && order.staff_name" class="staff-info">
+                    <small>Accepted by: {{ order.staff_name }}</small>
+                </div>
+            </td>
                                 <td>₱{{ formatPrice(order.total_amount) }}</td>
                                 <td>{{ formatDate(order.created_at) }}</td>
                                 <td>
@@ -315,7 +318,11 @@ export default {
     background-color: #f5f5f5;
     padding-left: 250px; /* Match sidebar width */
 }
-
+.staff-info {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+}
 /* Navbar Styles */
 .staff-navbar {
     background-color: #3498db;

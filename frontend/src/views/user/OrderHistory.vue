@@ -30,11 +30,19 @@
                     <div v-for="order in filteredOrders" :key="order.order_id" class="order-card">
                         <div class="order-summary">
                             <div class="order-primary-info">
-                                <h3>Order #{{ order.order_id }}</h3>
-                                <span :class="['status-badge', order.status.toLowerCase()]">
-                                    {{ order.status }}
-                                </span>
-                            </div>
+        <h3>Order #{{ order.order_id }}</h3>
+        <span :class="['status-badge', order.status.toLowerCase()]">
+            {{ order.status }}
+        </span>
+        <!-- Updated staff info display -->
+        <span v-if="order.status === 'preparing' && order.staff_name" class="staff-info">
+            <i class="fas fa-user"></i> 
+            <span class="staff-details">
+                Being prepared by: {{ order.staff_name }}
+                <small>{{ formatDate(order.accepted_at) }}</small>
+            </span>
+        </span>
+    </div>
                             <div class="order-secondary-info">
                                 <p class="order-date">{{ formatDate(order.created_at) }}</p>
                                 <p class="order-amount">Total: ₱{{ formatPrice(order.total_amount) }}</p>
@@ -180,6 +188,34 @@
   </script>
   
   <style scoped>
+  .staff-info {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+    border: 1px solid #c8e6c9;
+}
+
+.staff-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.staff-details small {
+    font-size: 0.8rem;
+    color: #4caf50;
+    margin-top: 0.2rem;
+}
+
+.staff-info i {
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+}
     .order-history-container {
         min-height: 100vh;
         background-color: #f5f5f5;
@@ -434,7 +470,22 @@
       flex-direction: column;
       justify-content: center;
   }
-  
+  .staff-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+    border: 1px solid #c8e6c9;
+}
+
+.staff-info i {
+    font-size: 0.8rem;
+}
   .item-details h4 {
       margin: 0 0 0.5rem 0;
       color: #2c3e50;

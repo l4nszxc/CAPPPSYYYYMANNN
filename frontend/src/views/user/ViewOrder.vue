@@ -1,9 +1,6 @@
 <template>
     <div class="view-order-container">
-        <Navbar 
-            :username="username"
-            @logout="showLogoutModal = true"
-        />    
+        <Navbar :username="username" @logout="showLogoutModal = true" />    
 
         <div class="view-order-content">
             <h1><i class="fas fa-truck-loading"></i> Track Orders</h1>
@@ -17,10 +14,18 @@
                                 <span :class="['status-badge', order.status.toLowerCase()]">
                                     {{ order.status }}
                                 </span>
+                                <!-- Add staff info display -->
+                                <div v-if="order.status === 'preparing' && order.staff_name" class="staff-info">
+                                    <i class="fas fa-user"></i>
+                                    <div class="staff-details">
+                                        <span>Being prepared by: {{ order.staff_name }}</span>
+                                        <small>{{ formatDate(order.accepted_at) }}</small>
+                                    </div>
+                                </div>
                             </div>
                             <div class="order-secondary-info">
                                 <p class="order-date">{{ formatDate(order.created_at) }}</p>
-                                <p class="total-amount">Total: ₱{{ order.total_amount.toFixed(2) }}</p>
+                                <p class="total-amount">Total: ₱{{ Number(order.total_amount).toFixed(2) }}</p>
                                 <button class="toggle-btn" @click="toggleOrderDetails(order.order_id)">
                                     <i :class="['fas', expandedOrders.has(order.order_id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
                                     {{ expandedOrders.has(order.order_id) ? 'Hide Details' : 'Show Details' }}
@@ -28,32 +33,18 @@
                             </div>
                         </div>
 
+                        <!-- Order items section -->
                         <div v-show="expandedOrders.has(order.order_id)" class="order-items">
                             <div v-for="item in order.items" :key="item.product_id" class="order-item">
                                 <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : '/img/placeholder.jpg'"
-                                    :alt="item.name" 
-                                    class="item-image"
-                                    @error="handleImageError">
+                                     :alt="item.name" 
+                                     class="item-image"
+                                     @error="handleImageError">
                                 <div class="item-details">
                                     <h4>{{ item.name }}</h4>
-                                    <p class="item-price">₱{{ item.price }} x {{ item.quantity }}</p>
-                                    <p class="item-subtotal">Subtotal: ₱{{ (item.price * item.quantity).toFixed(2) }}</p>
+                                    <p class="item-price">₱{{ Number(item.price).toFixed(2) }} x {{ item.quantity }}</p>
+                                    <p class="item-subtotal">Subtotal: ₱{{ (Number(item.price) * item.quantity).toFixed(2) }}</p>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="order-footer">
-                            <div class="total-amount">
-                                <p>Total Amount: ₱{{ order.total_amount.toFixed(2) }}</p>
-                            </div>
-                            <div class="order-actions">
-                                <button 
-                                    v-if="order.status === 'pending'"
-                                    @click="showCancelModal(order)" 
-                                    class="cancel-btn"
-                                >
-                                    <i class="fas fa-times"></i> Cancel Order
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -501,7 +492,34 @@ export default {
     transition: all 0.3s ease;
     border: 2px solid transparent;
 }
+.staff-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+    border: 1px solid #c8e6c9;
+}
 
+.staff-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.staff-details small {
+    font-size: 0.8rem;
+    color: #4caf50;
+    margin-top: 0.2rem;
+}
+
+.staff-info i {
+    font-size: 1rem;
+    color: #2e7d32;
+}
 .shop-now-btn:hover {
     background-color: white;
     color: #4CAF50;
