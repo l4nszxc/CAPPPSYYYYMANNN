@@ -14,6 +14,13 @@
                                 <span :class="['status-badge', order.status.toLowerCase()]">
                                     {{ order.status }}
                                 </span>
+                                <div v-if="order.status === 'preparing'" class="estimated-time">
+                                    <i class="fas fa-clock"></i>
+                                    <div class="time-details">
+                                        <span>Estimated ready by:</span>
+                                        <strong>{{ formatDate(order.estimatedPickupTime) }}</strong>
+                                    </div>
+                                </div>
                                 <!-- Add staff info display -->
                                 <div v-if="order.status === 'preparing' && order.staff_name" class="staff-info">
                                     <i class="fas fa-user"></i>
@@ -163,6 +170,7 @@ export default {
             this.cancelReason = '';
             this.otherReason = '';
         },
+        
         async confirmCancelOrder() {
             if (!this.cancelReason) return;
 
@@ -552,7 +560,33 @@ export default {
     transition: all 0.2s ease;
     font-weight: 500;
 }
+.estimated-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+    border: 1px solid #bbdefb;
+}
 
+.estimated-time i {
+    font-size: 1rem;
+}
+
+.time-details {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+}
+
+.time-details strong {
+    font-size: 0.9rem;
+    color: #1565c0;
+}
 .toggle-btn:hover {
     background-color: #e9ecef;
     border-color: #4CAF50;
@@ -570,6 +604,11 @@ export default {
     }
 
     .toggle-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    .estimated-time {
+        margin: 0.5rem 0;
         width: 100%;
         justify-content: center;
     }

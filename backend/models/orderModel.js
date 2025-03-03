@@ -47,7 +47,21 @@ class Order {
             connection.release();
         }
     }
-
+    static calculateEstimatedTime(items) {
+        // Base preparation time in minutes
+        const baseTime = 15;
+        // Additional time per item in minutes
+        const timePerItem = 5;
+        
+        const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+        const estimatedMinutes = baseTime + (timePerItem * totalQuantity);
+        
+        // Create a date object with the estimated completion time
+        const estimatedTime = new Date();
+        estimatedTime.setMinutes(estimatedTime.getMinutes() + estimatedMinutes);
+        
+        return estimatedTime;
+    }
     static async getUserOrders(userId) {
         try {
             const [rows] = await db.execute(`
@@ -79,10 +93,15 @@ class Order {
                 [userId]
             );
     
-            return rows.map(order => ({
-                ...order,
-                items: Array.isArray(order.items) ? order.items : JSON.parse(order.items)
-            }));
+            return rows.map(order => {
+                const parsedItems = Array.isArray(order.items) ? order.items : JSON.parse(order.items);
+                const estimatedTime = this.calculateEstimatedTime(parsedItems);
+                return {
+                    ...order,
+                    items: parsedItems,
+                    estimatedPickupTime: estimatedTime
+                };
+            });
         } catch (error) {
             throw error;
         }
