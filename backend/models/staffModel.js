@@ -118,6 +118,46 @@ class Staff {
             throw error;
         }
     }
+    static async getAcceptedOrders(staffId) {
+        try {
+            const [rows] = await db.execute(`
+                SELECT 
+                    o.order_id,
+                    u.username as customer_name,
+                    o.status,
+                    o.total_amount,
+                    o.created_at,
+                    o.accepted_at,
+                    o.accepted_by,
+                    JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'product_id', oi.product_id,
+                            'quantity', oi.quantity,
+                            'price', oi.price,
+                            'name', p.name,
+                            'image', p.image
+                        )
+                    ) as items
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                JOIN order_items oi ON o.order_id = oi.order_id
+                JOIN products p ON oi.product_id = p.products_id
+                WHERE o.accepted_by = ?
+                GROUP BY o.order_id, o.status, o.total_amount, o.created_at, o.accepted_at, o.accepted_by, u.username
+                ORDER BY o.accepted_at DESC
+            `, [staffId]);
+    
+            return rows.map(order => {
+                const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                return {
+                    ...order,
+                    items: items
+                };
+            });
+        } catch (error) {
+            throw error;
+        }
+    }
 }
 
 module.exports = Staff;

@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const Staff = require('../models/staffModel');
+const Order = require('../models/orderModel');
 
 exports.getAllOrders = async (req, res) => {
     try {
@@ -62,5 +63,24 @@ exports.acceptOrder = async (req, res) => {
     } catch (error) {
         console.error('Error accepting order:', error);
         res.status(500).json({ error: error.message });
+    }
+};
+exports.getAcceptedOrders = async (req, res) => {
+    try {
+        const staffId = req.user.id;
+        const orders = await Staff.getAcceptedOrders(staffId);
+        
+        const ordersWithEstimatedTime = orders.map(order => {
+            const estimatedTime = Order.calculateEstimatedTime(order.items);
+            return {
+                ...order,
+                estimatedPickupTime: estimatedTime
+            };
+        });
+
+        res.json(ordersWithEstimatedTime);
+    } catch (error) {
+        console.error('Error fetching accepted orders:', error);
+        res.status(500).json({ message: 'Error fetching accepted orders' });
     }
 };

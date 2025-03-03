@@ -130,7 +130,13 @@ const routes = [
       name: 'StaffHome',
       component: StaffHome,
       meta: { requiresAuth: true, requiresStaff: true }
-  }
+    },
+    {
+      path: '/staff/accepted-orders',
+      name: 'AcceptedOrders',
+      component: () => import('../views/staff/AcceptedOrders.vue'),
+      meta: { requiresAuth: true, role: 'staff' }
+    }
     
 
     

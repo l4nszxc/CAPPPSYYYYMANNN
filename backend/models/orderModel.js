@@ -48,19 +48,25 @@ class Order {
         }
     }
     static calculateEstimatedTime(items) {
-        // Base preparation time in minutes
-        const baseTime = 15;
-        // Additional time per item in minutes
-        const timePerItem = 5;
-        
-        const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-        const estimatedMinutes = baseTime + (timePerItem * totalQuantity);
-        
-        // Create a date object with the estimated completion time
-        const estimatedTime = new Date();
-        estimatedTime.setMinutes(estimatedTime.getMinutes() + estimatedMinutes);
-        
-        return estimatedTime;
+        try {
+            // Base preparation time in minutes
+            const baseTime = 15;
+            // Additional time per item in minutes
+            const timePerItem = 5;
+            
+            const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+            const estimatedMinutes = baseTime + (timePerItem * totalQuantity);
+            
+            // Create a date object with the estimated completion time
+            const estimatedTime = new Date();
+            estimatedTime.setMinutes(estimatedTime.getMinutes() + estimatedMinutes);
+            
+            // Return ISO string for consistent date formatting
+            return estimatedTime.toISOString();
+        } catch (error) {
+            console.error('Error calculating estimated time:', error);
+            return null;
+        }
     }
     static async getUserOrders(userId) {
         try {
