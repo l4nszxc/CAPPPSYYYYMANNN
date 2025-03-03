@@ -220,11 +220,11 @@
         min-height: 100vh;
         background-color: #f5f5f5;
         padding-bottom: 2rem;
-        font-family: Arial, sans-serif; /* Add this line */
+        font-family: Arial, sans-serif; 
     }
   
   .order-history-content {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 2rem;
   }
