@@ -1,6 +1,6 @@
 <template>
     <div class="staff-container">
-        <StaffNavbar />
+        <StaffNavbar :username="username" @logout="showLogoutModal = true" />
         <div class="staff-content">
             <h1><i class="fas fa-tasks"></i> My Accepted Orders</h1>
 
@@ -114,6 +114,16 @@
             </div>
         </div>
     </div>
+    <div v-if="showLogoutModal" class="modal-overlay">
+            <div class="modal-content logout-modal">
+                <h2>Confirm Logout</h2>
+                <p>Are you sure you want to logout?</p>
+                <div class="modal-buttons">
+                    <button @click="handleLogout" class="confirm-btn">Yes, Logout</button>
+                    <button @click="showLogoutModal = false" class="cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
 </template>
 
 <script>
@@ -126,11 +136,28 @@ export default {
     },
     data() {
         return {
+            username: '',
+            showLogoutModal: false,
             acceptedOrders: [],
             selectedOrder: null
         }
     },
     methods: {
+        async handleLogout() {
+            try {
+                const response = await fetch('http://localhost:7904/api/users/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    localStorage.removeItem('token');
+                    this.$router.push('/login');
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        },
         formatPrice(price) {
             return Number(price).toFixed(2)
         },
@@ -253,9 +280,12 @@ export default {
         }
     },
     mounted() {
-        this.fetchAcceptedOrders()
-        // Refresh orders every minute to update time remaining
-        setInterval(this.fetchAcceptedOrders, 60000)
+        const token = localStorage.getItem('token');
+        if (token) {
+            const decoded = JSON.parse(atob(token.split('.')[1]));
+            this.username = decoded.username;
+        }
+        this.fetchAcceptedOrders();
     }
 }
 </script>
@@ -460,7 +490,57 @@ th {
 .close-btn:hover {
     background-color: #5a6268;
 }
+.logout-modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
 
+.logout-modal h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.logout-modal p {
+    margin-bottom: 1.5rem;
+    color: #666;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.confirm-btn, .cancel-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.confirm-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.confirm-btn:hover {
+    background-color: #c82333;
+}
+
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #5a6268;
+}
 @media (max-width: 768px) {
     .staff-container {
         padding-left: 60px;

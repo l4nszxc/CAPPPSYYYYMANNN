@@ -1,16 +1,16 @@
 <template>
     <nav class="staff-sidebar">
         <div class="sidebar-header">
-            <i class="fas fa-leaf logo-icon"></i>
-            <h1>JM Garis Store/Staff
-            </h1>
+            <i class="fas fa-store logo-icon"></i>
+            <h1>JM Garis Store</h1>
         </div>
-        
+
         <div class="sidebar-menu">
             <router-link to="/staff" class="menu-item" exact-active-class="active">
                 <i class="fas fa-clipboard-list"></i>
                 <span>All Orders</span>
             </router-link>
+            
             <router-link to="/staff/accepted-orders" class="menu-item" exact-active-class="active">
                 <i class="fas fa-tasks"></i>
                 <span>My Accepted Orders</span>

@@ -507,69 +507,57 @@ th {
     align-items: center;
     z-index: 1000;
 }
-
-/* Logout Modal Styles */
 .logout-modal {
     background: white;
-    border-radius: 12px;
-    padding: 2.5rem;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
     max-width: 400px;
     width: 90%;
-    text-align: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .logout-modal h2 {
     color: #2c3e50;
-    margin: 0 0 1rem 0;
-    font-size: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .logout-modal p {
-    color: #6c757d;
     margin-bottom: 1.5rem;
-    font-size: 1rem;
+    color: #666;
 }
 
-.logout-modal .modal-buttons {
+.modal-buttons {
     display: flex;
     justify-content: center;
     gap: 1rem;
-    margin-top: 2rem;
 }
 
-.logout-modal .confirm-btn,
-.logout-modal .cancel-btn {
-    padding: 0.75rem 2rem;
+.confirm-btn, .cancel-btn {
+    padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.95rem;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
-.logout-modal .confirm-btn {
+.confirm-btn {
     background-color: #dc3545;
     color: white;
 }
 
-.logout-modal .confirm-btn:hover {
+.confirm-btn:hover {
     background-color: #c82333;
-    transform: translateY(-1px);
 }
 
-.logout-modal .cancel-btn {
-    background-color: #f8f9fa;
-    color: #6c757d;
-    border: 1px solid #dee2e6;
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
 }
 
-.logout-modal .cancel-btn:hover {
-    background-color: #e2e6ea;
-    transform: translateY(-1px);
+.cancel-btn:hover {
+    background-color: #5a6268;
 }
-
 /* Order Details Modal Styles */
 .modal-content.order-details {
     background: white;
