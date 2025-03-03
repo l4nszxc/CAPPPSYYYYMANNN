@@ -37,8 +37,8 @@
                                 <td>{{ formatDate(order.accepted_at) }}</td>
                                 <td class="estimated-time">
                                     {{ formatDate(order.estimatedPickupTime) }}
-                                    <div class="time-remaining" :class="{'past-due': isPastDue(order.estimatedPickupTime)}">
-                                        {{ getTimeRemaining(order.estimatedPickupTime) }}
+                                    <div class="time-remaining" :class="{'past-due': isPastDue(order.estimatedPickupTime) && order.status !== 'ready for pickup' && order.status !== 'paid'}">
+                                        {{ getTimeRemaining(order.estimatedPickupTime, order.status) }}
                                     </div>
                                 </td>
                                 <td>
@@ -67,8 +67,8 @@
                     </p>
                     <p><strong>Accepted On:</strong> {{ formatDate(selectedOrder.accepted_at) }}</p>
                     <p><strong>Estimated Ready By:</strong> {{ formatDate(selectedOrder.estimatedPickupTime) }}</p>
-                    <p class="time-remaining" :class="{'past-due': isPastDue(selectedOrder.estimatedPickupTime)}">
-                        <i class="fas fa-clock"></i> {{ getTimeRemaining(selectedOrder.estimatedPickupTime) }}
+                    <p class="time-remaining" :class="{'past-due': isPastDue(selectedOrder.estimatedPickupTime) && selectedOrder.status !== 'ready for pickup' && selectedOrder.status !== 'paid'}">
+                        <i class="fas fa-clock"></i> {{ getTimeRemaining(selectedOrder.estimatedPickupTime, selectedOrder.status) }}
                     </p>
                 </div>
                 <div class="products-table">
@@ -146,23 +146,27 @@ export default {
         isPastDue(estimatedTime) {
             return new Date(estimatedTime) < new Date()
         },
-        getTimeRemaining(estimatedTime) {
-            const now = new Date()
-            const estimated = new Date(estimatedTime)
-            const diff = estimated - now
+        getTimeRemaining(estimatedTime, status) {
+            if (status === 'ready for pickup' || status === 'paid') {
+                return 'Complete';
+            }
+
+            const now = new Date();
+            const estimated = new Date(estimatedTime);
+            const diff = estimated - now;
 
             if (diff < 0) {
-                return 'Past due'
+                return 'Past due';
             }
 
-            const minutes = Math.floor(diff / 60000)
+            const minutes = Math.floor(diff / 60000);
             if (minutes < 60) {
-                return `${minutes} minutes remaining`
+                return `${minutes} minutes remaining`;
             }
 
-            const hours = Math.floor(minutes / 60)
-            const remainingMinutes = minutes % 60
-            return `${hours}h ${remainingMinutes}m remaining`
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = minutes % 60;
+            return `${hours}h ${remainingMinutes}m remaining`;
         },
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg'
@@ -445,7 +449,14 @@ th {
     font-size: 0.95rem;
     transition: all 0.3s ease;
 }
+.time-remaining:not(.past-due) {
+    color: #2e7d32;
+}
 
+.time-remaining:has(+ .complete) {
+    color: #1565c0;
+    font-weight: 600;
+}
 .close-btn:hover {
     background-color: #5a6268;
 }
