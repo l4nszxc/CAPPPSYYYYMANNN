@@ -30,11 +30,11 @@
           <p class="number">{{ stats.totalOrders || 0 }}</p>
         </div>
 
-        <div class="card">
+        <router-link to="/admin/products" class="card clickable">
           <i class="fas fa-warehouse"></i>
           <h3>Total Stock</h3>
           <p class="number">{{ stats.totalStock || 0 }}</p>
-        </div>
+        </router-link>
       </div>
 
       <!-- Low Stock Alert Section -->
