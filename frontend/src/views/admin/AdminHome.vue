@@ -12,6 +12,7 @@
           <h3>Total Users</h3>
           <p class="number">{{ stats.totalUsers || 0 }}</p>
         </router-link>  
+
         <div class="card">
           <i class="fas fa-dollar-sign"></i>
           <h3>Total Sales</h3>
@@ -29,6 +30,12 @@
           <h3>Total Orders</h3>
           <p class="number">{{ stats.totalOrders || 0 }}</p>
         </div>
+        
+        <router-link to="/admin/orders" class="card clickable">
+            <i class="fas fa-clipboard-list"></i>
+            <h3>View Orders</h3>
+            <p class="number">{{ stats.totalOrders || 0 }}</p>
+        </router-link>
 
         <router-link to="/admin/products" class="card clickable">
           <i class="fas fa-warehouse"></i>
@@ -118,7 +125,50 @@
           </p>
         </div>
       </div>
+      
+    <div class="dashboard-section">
+      <h2>
+          <i class="fas fa-star"></i>
+          Top Performing Staff
+      </h2>
+      <div class="table-container">
+          <table v-if="stats.topStaff && stats.topStaff.length">
+              <thead>
+                  <tr>
+                      <th>Rank</th>
+                      <th>Staff Name</th>
+                      <th>Orders Handled</th>
+                      <th>Total Sales</th>
+                      <th>Performance</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr v-for="(staff, index) in stats.topStaff" :key="staff.id">
+                      <td>
+                          <span class="rank">{{ index + 1 }}</span>
+                      </td>
+                      <td>{{ staff.username }}</td>
+                      <td>{{ staff.orders_handled }}</td>
+                      <td>₱{{ formatPrice(staff.total_sales) }}</td>
+                      <td>
+                          <div class="performance-indicator">
+                              <i class="fas fa-trophy" v-if="index === 0"></i>
+                              <i class="fas fa-medal" v-else-if="index === 1"></i>
+                              <i class="fas fa-award" v-else-if="index === 2"></i>
+                              {{ getPerformanceLabel(staff.orders_handled) }}
+                          </div>
+                      </td>
+                  </tr>
+              </tbody>
+          </table>
+          <p v-else class="no-data">
+              <i class="fas fa-users"></i>
+              No staff performance data available yet
+          </p>
+      </div>
+  </div>
     </div>
+
     <!-- Edit Product Modal -->
     <div v-if="showEditModal" class="modal-overlay">
         <div class="modal-content">
@@ -213,6 +263,13 @@
         }
     },
     methods: {
+      getPerformanceLabel(ordersHandled) {
+        if (ordersHandled >= 50) return 'Outstanding';
+        if (ordersHandled >= 30) return 'Excellent';
+        if (ordersHandled >= 20) return 'Great';
+        if (ordersHandled >= 10) return 'Good';
+        return 'New';
+    },
       editProduct(product) {
         this.editingProduct = { ...product };
         this.showEditModal = true;
@@ -337,7 +394,6 @@
   
   .admin-content {
     padding: 2rem;
-    max-width: 1200px;
     margin: 0 auto;
   }
   
@@ -404,7 +460,48 @@
     align-items: center;
     gap: 0.5rem;
   }
-  
+  .rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.performance-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    background-color: #f0fdf4;
+    color: #166534;
+}
+
+.performance-indicator i {
+    color: #fbbf24;
+}
+
+tr:nth-child(1) .rank {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+tr:nth-child(2) .rank {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+tr:nth-child(3) .rank {
+    background-color: #fff7ed;
+    color: #9a3412;
+}
 /* Modal Styles */
 .modal-overlay {
     position: fixed;

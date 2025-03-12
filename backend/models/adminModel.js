@@ -203,11 +203,25 @@ class Admin {
                 WHERE stock_quantity <= 10
                 ORDER BY stock_quantity ASC
             `);
+            const [topStaff] = await db.execute(`
+                SELECT 
+                    u.username,
+                    COUNT(DISTINCT o.order_id) as orders_handled,
+                    COALESCE(SUM(o.total_amount), 0) as total_sales
+                FROM users u
+                LEFT JOIN orders o ON u.id = o.accepted_by
+                WHERE u.role = 'staff'
+                AND o.status IN ('ready for pickup', 'paid')
+                GROUP BY u.id, u.username
+                ORDER BY orders_handled DESC, total_sales DESC
+                LIMIT 5
+            `);
     
             return {
                 ...salesStats[0],
                 topProducts: topProducts || [],
-                lowStock: lowStock || []
+                lowStock: lowStock || [],
+                topStaff: topStaff || []
             };
         } catch (error) {
             console.error('Error in getDashboardStats:', error);

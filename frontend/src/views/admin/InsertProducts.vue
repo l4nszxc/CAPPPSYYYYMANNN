@@ -156,7 +156,6 @@ export default {
 
 .insert-products-content {
     padding: 2rem;
-    max-width: 800px;
     margin: 0 auto;
 }
 
