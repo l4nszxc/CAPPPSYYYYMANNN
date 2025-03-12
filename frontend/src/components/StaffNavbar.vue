@@ -13,7 +13,7 @@
             
             <router-link to="/staff/accepted-orders" class="menu-item" exact-active-class="active">
                 <i class="fas fa-tasks"></i>
-                <span>My Accepted Orders</span>
+                <span>Accepted Orders</span>
             </router-link>
         </div>
 

@@ -2,7 +2,7 @@
     <div class="staff-container">
         <StaffNavbar :username="username" @logout="showLogoutModal = true" />
         <div class="staff-content">
-            <h1><i class="fas fa-tasks"></i> My Accepted Orders</h1>
+            <h1><i class="fas fa-tasks"></i>Accepted Orders</h1>
 
             <div class="orders-section">
                 <div class="table-container">
