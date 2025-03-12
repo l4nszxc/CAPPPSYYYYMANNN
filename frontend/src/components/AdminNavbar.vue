@@ -10,7 +10,12 @@
         <i class="fas fa-chart-line"></i>
         <span>Dashboard</span>
       </router-link>
-      
+
+      <router-link to="/admin/orders" class="menu-item" exact-active-class="active">
+        <i class="fas fa-shopping-cart"></i>
+        <span>All Orders</span>
+      </router-link>
+
       <router-link to="/admin/users" class="menu-item" active-class="active">
         <i class="fas fa-users"></i>
         <span>Users</span>

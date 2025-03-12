@@ -83,3 +83,28 @@ exports.deleteStaff = async (req, res) => {
         res.status(500).json({ message: 'Error deleting staff' });
     }
 };
+exports.getAllOrders = async (req, res) => {
+    try {
+        const orders = await Admin.getAllOrders();
+        res.json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ message: 'Error fetching orders' });
+    }
+};
+
+exports.getOrderDetails = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const orderDetails = await Admin.getOrderDetails(orderId);
+        
+        if (!orderDetails) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        res.json(orderDetails);
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).json({ message: 'Error fetching order details' });
+    }
+};

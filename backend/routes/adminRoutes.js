@@ -13,4 +13,6 @@ router.get('/dashboard-stats', authenticate, isAdmin, adminController.getDashboa
 router.put('/products/:id', authenticate, isAdmin, productController.updateProduct);
 router.put('/staff/:id', authenticate, isAdmin, adminController.updateStaff);
 router.delete('/staff/:id', authenticate, isAdmin, adminController.deleteStaff);
+router.get('/orders', authenticate, isAdmin, adminController.getAllOrders);
+router.get('/orders/:orderId', authenticate, isAdmin, adminController.getOrderDetails);
 module.exports = router;
