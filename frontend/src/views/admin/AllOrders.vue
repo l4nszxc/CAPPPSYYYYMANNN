@@ -3,19 +3,17 @@
         <AdminNavbar :username="username" @logout="showLogoutModal = true" />
         
         <div class="admin-content">
-            <h1><i class="fas fa-shopping-cart"></i> All Orders</h1>
-            
-            <div class="filters-container">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input 
-                        type="text" 
-                        v-model="searchQuery" 
-                        placeholder="Search by order ID or customer name..."
-                    >
-                </div>
-                <div class="status-filter">
-                    <select v-model="selectedStatus">
+            <div class="header">
+                <h2>ALL ORDERS</h2>
+                <div class="filters">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            v-model="searchQuery" 
+                            placeholder="Search by order ID or customer name..."
+                        >
+                    </div>
+                    <select v-model="selectedStatus" class="status-filter">
                         <option value="">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="preparing">Preparing</option>
@@ -26,45 +24,46 @@
                 </div>
             </div>
 
-            <div class="orders-section">
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Status</th>
-                                <th>Total Amount</th>
-                                <th>Order Date</th>
-                                <th>Staff Assigned</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="order in filteredOrders" :key="order.order_id">
-                                <td>{{ order.order_id }}</td>
-                                <td>{{ order.customer_name }}</td>
-                                <td>
-                                    <span :class="['status-badge', order.status]">
-                                        {{ order.status }}
-                                    </span>
-                                </td>
-                                <td>₱{{ formatPrice(order.total_amount) }}</td>
-                                <td>{{ formatDate(order.created_at) }}</td>
-                                <td>
-                                    <span v-if="order.staff_name" class="staff-badge">
-                                        <i class="fas fa-user"></i> {{ order.staff_name }}
-                                    </span>
-                                    <span v-else>-</span>
-                                </td>
-                                <td>
-                                    <button @click="viewOrderDetails(order)" class="view-btn">
-                                        <i class="fas fa-eye"></i> View Details
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Total Amount</th>
+                            <th>Order Date</th>
+                            <th>Staff Assigned</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="order in filteredOrders" :key="order.order_id">
+                            <td>{{ order.order_id }}</td>
+                            <td>{{ order.customer_name }}</td>
+                            <td>
+                                <span :class="['status-badge', order.status.replace(' ', '-')]">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                            <td>₱{{ formatPrice(order.total_amount) }}</td>
+                            <td>{{ formatDate(order.created_at) }}</td>
+                            <td>
+                                <span v-if="order.staff_name" class="staff-badge">
+                                    <i class="fas fa-user"></i> {{ order.staff_name }}
+                                </span>
+                                <span v-else>-</span>
+                            </td>
+                            <td>
+                                <button @click="viewOrderDetails(order)" class="view-btn">
+                                    <i class="fas fa-eye"></i> View Details
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-if="filteredOrders.length === 0" class="no-results">
+                    No orders found matching your search criteria
                 </div>
             </div>
         </div>
@@ -77,13 +76,16 @@
                     <p><strong>Order ID:</strong> {{ selectedOrder.order_id }}</p>
                     <p><strong>Customer:</strong> {{ selectedOrder.customer_name }}</p>
                     <p><strong>Status:</strong> 
-                        <span :class="['status-badge', selectedOrder.status]">
+                        <span :class="['status-badge', selectedOrder.status.replace(' ', '-')]">
                             {{ selectedOrder.status }}
                         </span>
                     </p>
                     <p><strong>Order Date:</strong> {{ formatDate(selectedOrder.created_at) }}</p>
                     <p v-if="selectedOrder.staff_name">
-                        <strong>Staff Assigned:</strong> {{ selectedOrder.staff_name }}
+                        <strong>Staff Assigned:</strong> 
+                        <span class="staff-badge">
+                            <i class="fas fa-user"></i> {{ selectedOrder.staff_name }}
+                        </span>
                     </p>
                     <p v-if="selectedOrder.status === 'cancelled'">
                         <strong>Cancellation Reason:</strong> {{ selectedOrder.cancel_reason }}
@@ -134,6 +136,7 @@
             </div>
         </div>
 
+        <!-- Logout Modal -->
         <LogoutModal 
             :show="showLogoutModal"
             @confirm="handleLogout"
@@ -251,6 +254,7 @@ export default {
 </script>
 
 <style scoped>
+/* Replace entire style section with this updated version */
 .admin-container {
     font-family: Arial, sans-serif;
     min-height: 100vh;
@@ -264,84 +268,105 @@ export default {
     margin: 0 auto;
 }
 
-h1 {
-    color: #1e293b;
+/* Header and Filters */
+.header {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
 }
 
-.filters-container {
+.header h2 {
+    color: #2c3e50;
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+}
+
+.filters {
     display: flex;
     gap: 1rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
+    align-items: center;
 }
 
-.search-bar {
+.search-box {
     flex: 1;
-    min-width: 300px;
-    position: relative;
 }
 
-.search-bar i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #64748b;
-}
-
-.search-bar input {
-    width: 100%;
-    padding: 0.75rem 1rem 0.75rem 2.5rem;
+.search-box input {
+    width: 98%;
+    padding: 0.75rem 1rem;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 0.95rem;
+    transition: all 0.3s ease;
 }
 
-.status-filter select {
-    padding: 0.75rem 2.5rem 0.75rem 1rem;
+.search-box input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.status-filter {
+    width: 20%;
+    padding: 0.75rem 1rem;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 0.95rem;
     background-color: white;
     cursor: pointer;
-    min-width: 200px;
 }
 
-.orders-section {
+/* Table Styles */
+.table-container {
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-.table-container {
-    overflow-x: auto;
+    overflow: auto;
+    max-height: calc(100vh - 200px);
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
-th, td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
 }
 
 th {
     background-color: #f8fafc;
     font-weight: 600;
-    color: #64748b;
+    color: #475569;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
 }
 
+td {
+    padding: 1rem;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.95rem;
+}
+
+tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Status Badges */
 .status-badge {
     display: inline-block;
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 1rem;
     border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 500;
@@ -383,24 +408,7 @@ th {
     font-size: 0.875rem;
 }
 
-.view-btn {
-    padding: 0.5rem 1rem;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    transition: all 0.2s;
-}
-
-.view-btn:hover {
-    background-color: #2563eb;
-}
-
+/* Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -441,20 +449,23 @@ th {
     border-radius: 8px;
 }
 
-.total-label {
-    text-align: right;
-    font-weight: 600;
-}
-
-.total-amount {
-    font-weight: 600;
-    color: #1e293b;
-}
-
-.modal-actions {
-    margin-top: 2rem;
+/* Buttons */
+.view-btn {
+    padding: 0.5rem 1rem;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.view-btn:hover {
+    background-color: #2563eb;
 }
 
 .close-btn {
@@ -474,26 +485,103 @@ th {
     background-color: #4b5563;
 }
 
-@media (max-width: 768px) {
-    .admin-container {
-        padding-left: 0;
-    }
+/* No Results Message */
+.no-results {
+    padding: 3rem;
+    text-align: center;
+    color: #6b7280;
+    font-size: 1rem;
+}
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
 
+.close-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background-color: #4b5563;
+}
+/* Responsive Styles */
+@media (max-width: 1200px) {
     .admin-content {
-        padding: 1rem;
+        padding: 1.5rem;
     }
+    
+    td, th {
+        padding: 0.75rem;
+    }
+}
 
-    .filters-container {
+@media (max-width: 1024px) {
+    .filters {
         flex-direction: column;
     }
 
-    .search-bar, .status-filter select {
-        min-width: 100%;
+    .search-box,
+    .status-filter {
+        width: 100%;
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 900px;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-container {
+        padding-left: 60px;
+    }
+
+    .header {
+        padding: 1rem;
+    }
+
+    .header h2 {
+        font-size: 1.25rem;
     }
 
     .modal-content {
         width: 95%;
         padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-content {
+        padding: 1rem;
+    }
+
+    .header {
+        margin-bottom: 1rem;
+    }
+
+    .table-container {
+        border-radius: 8px;
+    }
+
+    th {
+        font-size: 0.8rem;
+    }
+
+    td {
+        font-size: 0.85rem;
     }
 }
 </style>
