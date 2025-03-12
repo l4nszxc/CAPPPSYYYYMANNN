@@ -42,7 +42,10 @@
                             <td>{{ order.order_id }}</td>
                             <td>{{ order.customer_name }}</td>
                             <td>
-                                <span :class="['status-badge', order.status.replace(' ', '-')]">
+                                <span :class="['status-badge', order.status.toLowerCase().replace(/ /g, '-')]">
+                                    <template v-if="order.status === 'paid'">
+                                        <i class="fas fa-check-circle"></i>
+                                    </template>
                                     {{ order.status }}
                                 </span>
                             </td>
@@ -292,7 +295,56 @@ export default {
 .search-box {
     flex: 1;
 }
+.products-table {
+    margin-top: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow-x: auto;
+    max-height: 400px; /* Fixed height for scrolling */
+    overflow-y: auto;
+}
 
+.products-table table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.products-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
+}
+
+.products-table th {
+    background-color: #f8fafc;
+    padding: 1rem;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.products-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+.ready-for-pickup {
+    background-color: #d4edda;
+    color: #155724;
+}
+.products-table tfoot {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    border-top: 2px solid #e2e8f0;
+}
+
+.products-table tfoot td {
+    padding: 1rem;
+    background: white;
+}
 .search-box input {
     width: 98%;
     padding: 0.75rem 1rem;
@@ -382,14 +434,16 @@ tbody tr:hover {
     color: #004085;
 }
 
-.ready {
-    background-color: #d4edda;
-    color: #155724;
-}
-
 .paid {
     background-color: #d1e7dd;
     color: #0f5132;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.paid i {
+    font-size: 0.875rem;
 }
 
 .cancelled {

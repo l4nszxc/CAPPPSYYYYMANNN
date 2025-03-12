@@ -32,6 +32,9 @@
                             <div class="order-primary-info">
         <h3>Order #{{ order.order_id }}</h3>
         <span :class="['status-badge', order.status.toLowerCase()]">
+            <template v-if="order.status === 'paid'">
+                <i class="fas fa-check-circle"></i>
+            </template>
             {{ order.status }}
         </span>
         <!-- Updated staff info display -->
@@ -394,10 +397,17 @@
   }
   
   .paid {
-      background-color: #d1e7dd;
-      color: #0f5132;
-      border: 1px solid #badbcc;
-  }
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.paid i {
+    font-size: 0.875rem;
+}
   .cancelled {
     background-color: #f8d7da;
     color: #842029;
