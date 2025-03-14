@@ -49,7 +49,7 @@
                         <tr v-for="product in filteredProducts" :key="product.products_id">
                             <td>
                                 <img 
-                                    :src="product.image ? `http://localhost:7904/uploads/${product.image}` : '/img/placeholder.jpg'"
+                                    :src="product.image || '/img/placeholder.jpg'"
                                     :alt="product.name"
                                     class="product-image"
                                     @error="handleImageError"
@@ -244,14 +244,22 @@ export default {
         },
         async fetchProducts() {
             try {
-                const response = await fetch('http://localhost:7904/api/products');
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:7904/api/products', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
                 if (response.ok) {
                     const data = await response.json();
                     this.products = data.map(product => ({
                         ...product,
                         total_sold: parseInt(product.total_sold) || 0
                     }));
-                    console.log('Products with sales:', this.products); // Debug log
+                } else {
+                    console.error('Failed to fetch products:', response.status);
                 }
             } catch (error) {
                 console.error('Error fetching products:', error);
@@ -263,20 +271,6 @@ export default {
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg';
         },
-        async fetchProducts() {
-        try {
-            const response = await fetch('http://localhost:7904/api/products');
-            if (response.ok) {
-                const data = await response.json();
-                this.products = data.map(product => ({
-                    ...product,
-                    total_sold: parseInt(product.total_sold) || 0
-                }));
-            }
-        } catch (error) {
-            console.error('Error fetching products:', error);
-        }
-    },
         showEditModal(product) {
             this.editingProduct = { ...product };
             this.showModal = true;
@@ -334,11 +328,19 @@ export default {
     },
     mounted() {
         const token = localStorage.getItem('token');
-        if (token) {
+        if (!token) {
+            this.$router.push('/login');
+            return;
+        }
+
+        try {
             const decoded = JSON.parse(atob(token.split('.')[1]));
             this.username = decoded.username || 'Admin';
+            this.fetchProducts(); // Fetch products after confirming authentication
+        } catch (error) {
+            console.error('Token validation error:', error);
+            this.$router.push('/login');
         }
-        this.fetchProducts();
     }
 };
 </script>

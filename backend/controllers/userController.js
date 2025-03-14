@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const otpGenerator = require('otp-generator');
 const emailService = require('../services/emailService.js');
+const { uploadToImgBB } = require('../services/imgbbService');
 
 exports.register = async (req, res) => {
     try {
@@ -366,7 +367,10 @@ exports.uploadProfilePicture = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        const imageUrl = `/uploads/profile-pictures/${req.file.filename}`;
+        // Upload to ImgBB
+        const imageUrl = await uploadToImgBB(req.file.buffer);
+        
+        // Update user profile with ImgBB URL
         await User.updateProfilePicture(userId, imageUrl);
 
         res.status(200).json({ 

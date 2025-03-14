@@ -86,6 +86,9 @@ export default {
     methods: {
         async handleSubmit() {
             try {
+                this.error = '';
+                this.success = '';
+
                 const formData = new FormData();
                 formData.append('name', this.product.name);
                 formData.append('description', this.product.description);
@@ -96,25 +99,34 @@ export default {
                     formData.append('image', this.image);
                 }
 
-                const response = await fetch('http://localhost:7904/api/admin/products', {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:7904/api/products', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${token}`
                     },
                     body: formData
                 });
 
+                const data = await response.json();
+
                 if (response.ok) {
                     this.success = 'Product added successfully!';
-                    this.product = { name: '', description: '', price: null, stock_quantity: null, category: '' }; // Reset form
+                    this.product = { 
+                        name: '', 
+                        description: '', 
+                        price: null, 
+                        stock_quantity: null, 
+                        category: '' 
+                    };
                     this.image = null;
-                    document.getElementById('image').value = ''; // Clear the file input
+                    document.getElementById('image').value = '';
                 } else {
-                    const data = await response.json();
                     throw new Error(data.message || 'Failed to add product');
                 }
             } catch (error) {
                 this.error = error.message;
+                console.error('Error:', error);
             }
         },
         handleImageUpload(event) {

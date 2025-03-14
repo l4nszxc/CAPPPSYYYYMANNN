@@ -8,7 +8,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const path = require('path');
-
+require('dotenv').config();
 
 const app = express();
 
@@ -36,13 +36,14 @@ app.use(session({
 
 // Routes
 app.use('/api/users', userRoutes);
-app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes); 
-app.use('/api/staff', staffRoutes);
-app.use('/api', productRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/staff', staffRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 const PORT = 7904;
 app.listen(PORT, () => {

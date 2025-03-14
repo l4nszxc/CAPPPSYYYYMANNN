@@ -1,7 +1,7 @@
 <template>
     <div class="product-container">
         <Navbar :username="username" @logout="showLogoutModal = true" />
-
+        
         <div class="product-content">
 
             <div class="filters-container">
@@ -43,8 +43,9 @@
             <div v-else class="products-grid">
                 <div v-for="product in filteredProducts" :key="product.products_id" class="product-card">
                     <div class="product-image-container">
-                        <img :src="product.image ? `http://localhost:7904/uploads/${product.image}` : 'placeholder-image.jpg'"
-                            alt="Product Image" 
+                        <img 
+                            :src="product.image || '/img/placeholder.jpg'"
+                            :alt="product.name" 
                             class="product-image"
                             @error="handleImageError"
                         >
@@ -148,6 +149,9 @@ export default {
         }
     },
     methods: {
+        handleImageError(e) {
+        e.target.src = '/img/placeholder.jpg'
+        },
         formatPrice(price) {
         return Number(price).toFixed(2);
         },

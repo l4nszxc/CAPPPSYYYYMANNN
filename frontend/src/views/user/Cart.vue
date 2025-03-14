@@ -30,10 +30,12 @@
                         @change="toggleItemCheck(item.product_id)"
                     >
                 </div>
-                    <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : 'placeholder-image.jpg'"
-                        :alt="item.name" 
+                    <img 
+                        :src="item.image || '/img/placeholder.jpg'"
+                        :alt="item.name"
                         class="cart-item-image"
-                        @error="handleImageError">
+                        @error="handleImageError"
+                     >
                     <div class="cart-item-details">
                         <h3><i class="fas fa-box"></i> {{ item.name }}</h3>
                         <p class="price"><i class="fas fa-tag"></i> Price: ₱{{ (item.price || 0).toFixed(2) }}</p>

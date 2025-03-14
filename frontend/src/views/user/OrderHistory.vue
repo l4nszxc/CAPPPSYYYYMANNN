@@ -30,22 +30,22 @@
                     <div v-for="order in filteredOrders" :key="order.order_id" class="order-card">
                         <div class="order-summary">
                             <div class="order-primary-info">
-        <h3>Order #{{ order.order_id }}</h3>
-        <span :class="['status-badge', order.status.toLowerCase()]">
-            <template v-if="order.status === 'paid'">
-                <i class="fas fa-check-circle"></i>
-            </template>
-            {{ order.status }}
-        </span>
-        <!-- Updated staff info display -->
-        <span v-if="order.status === 'preparing' && order.staff_name" class="staff-info">
-            <i class="fas fa-user"></i> 
-            <span class="staff-details">
-                Being prepared by: {{ order.staff_name }}
-                <small>{{ formatDate(order.accepted_at) }}</small>
-            </span>
-        </span>
-    </div>
+                                <h3>Order #{{ order.order_id }}</h3>
+                                <span :class="['status-badge', order.status.toLowerCase()]">
+                                    <template v-if="order.status === 'paid'">
+                                        <i class="fas fa-check-circle"></i>
+                                    </template>
+                                    {{ order.status }}
+                                </span>
+                                <!-- Updated staff info display -->
+                                <span v-if="order.status === 'preparing' && order.staff_name" class="staff-info">
+                                    <i class="fas fa-user"></i> 
+                                    <span class="staff-details">
+                                        Being prepared by: {{ order.staff_name }}
+                                        <small>{{ formatDate(order.accepted_at) }}</small>
+                                    </span>
+                                </span>
+                            </div>
                             <div class="order-secondary-info">
                                 <p class="order-date">{{ formatDate(order.created_at) }}</p>
                                 <p class="order-amount">Total: ₱{{ formatPrice(order.total_amount) }}</p>
@@ -62,10 +62,12 @@
                         <div v-show="expandedOrders.has(order.order_id)" class="order-details">
                             <div class="order-items">
                                 <div v-for="item in order.items" :key="item.product_id" class="order-item">
-                                    <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : 'placeholder-image.jpg'"
-                                         :alt="item.name" 
-                                         class="item-image"
-                                         @error="handleImageError">
+                                    <img 
+                                        :src="item.image || '/img/placeholder.jpg'"
+                                        :alt="item.name"
+                                        class="item-image"
+                                        @error="handleImageError"
+                                    >
                                     <div class="item-details">
                                         <h4>{{ item.name }}</h4>
                                         <p class="item-price">₱{{ item.price }} x {{ item.quantity }}</p>
