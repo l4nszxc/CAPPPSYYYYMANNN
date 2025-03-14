@@ -145,3 +145,13 @@ exports.processPayment = async (req, res) => {
         res.status(500).json({ message: 'Error processing payment' });
     }
 };
+exports.deleteProduct = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        await Admin.deleteProduct(productId);
+        res.json({ message: 'Product deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ message: 'Error deleting product' });
+    }
+};

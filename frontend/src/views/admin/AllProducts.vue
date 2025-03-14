@@ -72,6 +72,9 @@
                                 <button @click="showEditModal(product)" class="edit-btn">
                                     <i class="fas fa-edit"></i> Edit
                                 </button>
+                                <button @click="showDeleteConfirmation(product)" class="delete-btn">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </td>
                         </tr>
                     </tbody>
@@ -146,6 +149,20 @@
             @confirm="handleLogout"
             @cancel="showLogoutModal = false"
         />
+        <div v-if="showDeleteModal" class="modal-overlay">
+            <div class="modal-content delete-modal">
+                <h2>Delete Product</h2>
+                <p>Are you sure you want to delete "{{ productToDelete?.name }}"?</p>
+                <div class="modal-buttons">
+                    <button @click="confirmDelete" class="confirm-delete-btn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button @click="closeDeleteModal" class="cancel-btn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -168,7 +185,9 @@ export default {
             editingProduct: null,
             newImage: null,
             searchQuery: '', 
-            selectedCategory: '' 
+            selectedCategory: '' ,
+            showDeleteModal: false,
+            productToDelete: null,
         };
     },
     computed: {
@@ -184,6 +203,41 @@ export default {
         }
     },
     methods: {
+        showDeleteConfirmation(product) {
+            this.productToDelete = product;
+            this.showDeleteModal = true;
+        },
+
+        closeDeleteModal() {
+            this.showDeleteModal = false;
+            this.productToDelete = null;
+        },
+
+        async confirmDelete() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:7904/api/admin/products/${this.productToDelete.products_id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete product');
+                }
+
+                // Remove product from local array
+                this.products = this.products.filter(p => p.products_id !== this.productToDelete.products_id);
+                
+                // Close modal and clear selection
+                this.closeDeleteModal();
+
+            } catch (error) {
+                console.error('Error deleting product:', error);
+                // You could add error notification here
+            }
+        },
         resetFilters() {
             this.searchQuery = '';
             this.selectedCategory = '';
@@ -544,7 +598,56 @@ td > span:not(.highlight-sales):not(.critical-stock) {
     color: #6b7280;
     font-size: 1rem;
 }
+.delete-btn {
+    padding: 0.5rem 1rem;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    margin-left: 0.5rem;
+}
 
+.delete-btn:hover {
+    background-color: #dc2626;
+}
+
+.delete-modal {
+    max-width: 400px;
+    text-align: center;
+}
+
+.delete-modal h2 {
+    color: #dc2626;
+    margin-bottom: 1rem;
+}
+
+.delete-modal p {
+    margin-bottom: 1.5rem;
+    color: #4b5563;
+}
+
+.confirm-delete-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    border: none;
+    background-color: #ef4444;
+    color: white;
+}
+
+.confirm-delete-btn:hover {
+    background-color: #dc2626;
+}
 /* Responsive Design */
 @media (max-width: 1200px) {
     .filters {

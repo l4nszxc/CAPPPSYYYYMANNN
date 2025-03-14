@@ -1,5 +1,7 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs'); 
+const path = require('path');
+const fs = require('fs');
 
 class Admin {
     static async getUserStats() {
@@ -293,6 +295,52 @@ class Admin {
             };
         } catch (error) {
             throw error;
+        }
+    }
+    static async deleteProduct(productId) {
+        const connection = await db.getConnection();
+        try {
+            await connection.beginTransaction();
+    
+            // First get the product image name to delete the file
+            const [product] = await connection.execute(
+                'SELECT image FROM products WHERE products_id = ?',
+                [productId]
+            );
+    
+            // Delete related records from order_items table first
+            await connection.execute(
+                'DELETE FROM order_items WHERE product_id = ?',
+                [productId]
+            );
+    
+            // Delete from cart table if product exists there
+            await connection.execute(
+                'DELETE FROM cart WHERE product_id = ?',
+                [productId]
+            );
+    
+            // Then delete the product
+            await connection.execute(
+                'DELETE FROM products WHERE products_id = ?',
+                [productId]
+            );
+    
+            // If product had an image, delete it from uploads folder
+            if (product[0]?.image) {
+                const imagePath = path.join(__dirname, '../uploads', product[0].image);
+                if (fs.existsSync(imagePath)) {
+                    fs.unlinkSync(imagePath);
+                }
+            }
+    
+            await connection.commit();
+            return true;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
         }
     }
 }
