@@ -274,9 +274,12 @@ export default {
             const items = this.selectedOrder.items
                 .map(item => `
                     <tr>
-                        <td style="text-align: left">${item.name}</td>
-                        <td style="text-align: center">x${item.quantity}</td>
-                        <td style="text-align: right">₱${this.formatPrice(item.price * item.quantity)}</td>
+                        <td style="font-size: 10px; padding: 2px 0;">${item.name}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 10px; text-align: right; padding: 1px 0;">
+                            ${item.quantity} x ₱${this.formatPrice(item.price)} = ₱${this.formatPrice(item.price * item.quantity)}
+                        </td>
                     </tr>
                 `).join('');
 
@@ -289,62 +292,87 @@ export default {
                     <style>
                         @page {
                             margin: 0;
+                            width: 58mm;
                         }
                         body {
                             font-family: 'Courier New', monospace;
-                            width: 80mm;
+                            width: 58mm;
                             margin: 0;
-                            padding: 5mm;
+                            padding: 2mm;
+                            font-size: 10px;
                         }
                         .header {
                             text-align: center;
-                            margin-bottom: 10px;
+                            margin-bottom: 5px;
+                            border-bottom: 1px dashed black;
+                            padding-bottom: 5px;
+                        }
+                        .header h2 {
+                            font-size: 14px;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .header p {
+                            font-size: 10px;
+                            margin: 3px 0;
                         }
                         .details {
-                            margin-bottom: 10px;
+                            margin: 5px 0;
+                            border-bottom: 1px dashed black;
+                            padding-bottom: 5px;
+                        }
+                        .details p {
+                            margin: 2px 0;
+                            font-size: 10px;
                         }
                         table {
                             width: 100%;
                             border-collapse: collapse;
-                            margin: 10px 0;
-                        }
-                        td {
-                            padding: 3px 0;
                         }
                         .total {
                             border-top: 1px dashed black;
-                            padding-top: 10px;
-                            margin-top: 10px;
+                            padding-top: 5px;
+                            margin-top: 5px;
                             font-weight: bold;
                             text-align: right;
+                            font-size: 12px;
                         }
                         .footer {
                             text-align: center;
-                            margin-top: 20px;
-                            font-size: 12px;
+                            margin-top: 10px;
+                            font-size: 10px;
+                            border-top: 1px dashed black;
+                            padding-top: 5px;
+                        }
+                        .divider {
+                            border-bottom: 1px dashed black;
+                            margin: 5px 0;
                         }
                     </style>
                 </head>
                 <body>
                     <div class="header">
-                        <h2 style="margin:0;">JM Garis Store</h2>
-                        <p style="margin:5px 0;">Official Receipt</p>
+                        <h2>JM Garis Store</h2>
+                        <p>Official Receipt</p>
                     </div>
                     <div class="details">
-                        <p style="margin:3px 0;">Order #: ${this.selectedOrder.order_id}</p>
-                        <p style="margin:3px 0;">Date: ${date}</p>
-                        <p style="margin:3px 0;">Customer: ${this.selectedOrder.customer_name}</p>
+                        <p>Order #: ${this.selectedOrder.order_id}</p>
+                        <p>Date: ${date}</p>
+                        <p>Customer: ${this.selectedOrder.customer_name}</p>
                     </div>
+                    <div class="divider"></div>
                     <table>
                         <tbody>
                             ${items}
                         </tbody>
                     </table>
+                    <div class="divider"></div>
                     <div class="total">
-                        Total Amount: ₱${this.formatPrice(this.selectedOrder.total_amount)}
+                        Total: ₱${this.formatPrice(this.selectedOrder.total_amount)}
                     </div>
                     <div class="footer">
                         <p>Thank you for your purchase!</p>
+                        <p>Please come again!</p>
                     </div>
                 </body>
                 </html>
