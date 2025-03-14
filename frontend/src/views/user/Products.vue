@@ -3,7 +3,6 @@
         <Navbar :username="username" @logout="showLogoutModal = true" />
 
         <div class="product-content">
-            <h1>Our Products</h1>
 
             <div class="filters-container">
                 <div class="search-filter">
@@ -302,7 +301,6 @@ export default {
     background-color: #f5f5f5;
 }
 .product-content {
-    max-width: 2000px;
     margin: 0 auto;
     padding: 2rem;
 }
