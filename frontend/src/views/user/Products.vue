@@ -259,12 +259,19 @@ export default {
         async fetchProducts() {
             this.loading = true;
             try {
+                const token = localStorage.getItem('token');
                 let url = 'http://localhost:7904/api/products';
                 if (this.selectedCategory) {
                     url = `http://localhost:7904/api/products/category/${this.selectedCategory}`;
                 }
 
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
                 if (response.ok) {
                     const data = await response.json();
                     this.products = data.map(product => ({
@@ -272,6 +279,10 @@ export default {
                         total_sold: parseInt(product.total_sold) || 0
                     }));
                 } else {
+                    if (response.status === 401) {
+                        // Handle unauthorized access
+                        this.$router.push('/login');
+                    }
                     this.products = [];
                 }
             } catch (error) {
@@ -290,10 +301,23 @@ export default {
         }
     },
     async mounted() {
-        await this.getUserData();
-        await this.fetchProducts();
-        await this.fetchCart(); // Fetch cart on mount
-    },
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.$router.push('/login');
+            return;
+        }
+        
+        try {
+            await this.getUserData();
+            await this.fetchProducts();
+            await this.fetchCart();
+        } catch (error) {
+            console.error('Error in mounted:', error);
+            if (error.response?.status === 401) {
+                this.$router.push('/login');
+            }
+        }
+    }
 };
 </script>
 

@@ -6,9 +6,12 @@
             <div class="scrollable-content">
                 <div class="order-items">
                     <div v-for="item in localItems" :key="item.product_id" class="order-item">
-                        <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : 'placeholder-image.jpg'"
-                             :alt="item.name" 
-                             class="order-item-image">
+                        <img 
+                            :src="item.image || '/img/placeholder.jpg'"
+                            :alt="item.name"
+                            class="order-item-image"
+                            @error="handleImageError"
+                        >
                         <div class="order-item-details">
                             <h4>{{ item.name }}</h4>
                             <p class="item-price">Price: ₱{{ item.price }}</p>
@@ -23,6 +26,7 @@
                                 <span class="quantity-value">{{ item.quantity }}</span>
                                 <button 
                                     @click="updateQuantity(item.product_id, item.quantity + 1)"
+                                    :disabled="item.quantity >= item.stock_quantity"
                                     class="quantity-btn"
                                 >
                                     <i class="fas fa-plus"></i>
@@ -41,7 +45,6 @@
                 <div class="order-total">
                     <h4>Total Amount: ₱{{ calculateTotal.toFixed(2) }}</h4>
                 </div>
-
                 <div class="modal-buttons">
                     <button 
                         @click="confirmOrder" 
@@ -87,11 +90,12 @@ export default {
         }
     },
     methods: {
+        handleImageError(e) {
+            e.target.src = '/img/placeholder.jpg';
+        },
         updateQuantity(productId, newQuantity) {
-            if (newQuantity < 1) return;
-            
             const item = this.localItems.find(item => item.product_id === productId);
-            if (item) {
+            if (item && newQuantity >= 1 && newQuantity <= item.stock_quantity) {
                 item.quantity = newQuantity;
             }
         },
@@ -160,7 +164,8 @@ export default {
     width: 80px;
     height: 80px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .order-item-details {

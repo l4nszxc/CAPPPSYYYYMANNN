@@ -40,13 +40,14 @@
                             </div>
                         </div>
 
-                        <!-- Order items section -->
                         <div v-show="expandedOrders.has(order.order_id)" class="order-items">
                             <div v-for="item in order.items" :key="item.product_id" class="order-item">
-                                <img :src="item.image ? `http://localhost:7904/uploads/${item.image}` : '/img/placeholder.jpg'"
-                                     :alt="item.name" 
-                                     class="item-image"
-                                     @error="handleImageError">
+                                <img 
+                                    :src="item.image || '/img/placeholder.jpg'"
+                                    :alt="item.name"
+                                    class="item-image"
+                                    @error="handleImageError"
+                                >
                                 <div class="item-details">
                                     <h4>{{ item.name }}</h4>
                                     <p class="item-price">₱{{ Number(item.price).toFixed(2) }} x {{ item.quantity }}</p>
@@ -325,19 +326,13 @@ export default {
     margin: 0;
 }
 
-.order-items {
-    border-top: 1px solid #eee;
-    margin-top: 1rem;
-    padding-top: 1rem;
-}
-
-
 .order-item {
     display: flex;
     gap: 1.5rem;
     padding: 1rem;
     background: #f8f9fa;
     border-radius: 8px;
+    align-items: center;
 }
 
 .item-image {
@@ -345,6 +340,7 @@ export default {
     height: 100px;
     object-fit: cover;
     border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .item-details {

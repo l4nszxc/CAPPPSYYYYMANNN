@@ -35,7 +35,7 @@
                         :alt="item.name"
                         class="cart-item-image"
                         @error="handleImageError"
-                     >
+                        >
                     <div class="cart-item-details">
                         <h3><i class="fas fa-box"></i> {{ item.name }}</h3>
                         <p class="price"><i class="fas fa-tag"></i> Price: ₱{{ (item.price || 0).toFixed(2) }}</p>
