@@ -44,24 +44,9 @@
                                 <td>{{ order.order_id }}</td>
                                 <td>{{ order.customer_name }}</td>
                                 <td>
-                                    <select 
-                                        v-model="order.status"
-                                        @change="updateOrderStatus(order.order_id, order.status)"
-                                        :class="['status-select', order.status]"
-                                        :disabled="isStatusSelectDisabled(order)"
-                                    >
-                                        <option value="pending" disabled>Pending</option>
-                                        <option 
-                                            value="preparing" 
-                                            :disabled="isOptionDisabled(order.status, 'preparing')"
-                                        >Preparing</option>
-                                        <option 
-                                            value="ready for pickup" 
-                                            :disabled="isOptionDisabled(order.status, 'ready for pickup')"
-                                        >Ready for Pickup</option>
-                                        <option value="paid" disabled>Paid</option>
-                                        <option value="cancelled" disabled>Cancelled</option>
-                                    </select>
+                                    <span :class="['status-badge', order.status.toLowerCase().replace(/\s+/g, '-')]">
+                                        {{ order.status }}
+                                    </span>
                                     <div v-if="order.staff_name" class="staff-info">
                                         <small>Accepted by: {{ order.staff_name }}</small>
                                     </div>
@@ -194,36 +179,6 @@ export default {
         }
     },
     methods: {
-        isStatusSelectDisabled(order) {
-            const token = localStorage.getItem('token');
-            if (!token) return true;
-            
-            const decoded = JSON.parse(atob(token.split('.')[1]));
-            const currentStaffId = decoded.userId;
-            
-            // Disable if order is cancelled or if current staff is not the one who accepted
-            return order.status === 'cancelled' || 
-                (order.accepted_by && order.accepted_by !== currentStaffId);
-        },
-        isOptionDisabled(currentStatus, optionValue) {
-            // Prevent ready for pickup selection when status is preparing
-            if (currentStatus === 'preparing' && optionValue === 'ready for pickup') {
-                return true;
-            }
-
-            // Allow moving back from "ready for pickup" to "preparing"
-            if (currentStatus === 'ready for pickup' && optionValue === 'preparing') {
-                return false;
-            }
-
-            // Status progression mapping
-            const statusOrder = ['pending', 'preparing', 'ready for pickup', 'paid', 'cancelled'];
-            const currentIndex = statusOrder.indexOf(currentStatus);
-            const optionIndex = statusOrder.indexOf(optionValue);
-
-            // Disable if option is before current status or more than one step ahead
-            return optionIndex < currentIndex || optionIndex > currentIndex + 1;
-        },
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg';
         },
@@ -274,41 +229,6 @@ export default {
                 console.error('Error fetching orders:', error);
             }
         },
-        async updateOrderStatus(orderId, newStatus) {
-            try {
-                const order = this.orders.find(o => o.order_id === orderId);
-                
-                if (order.status === 'cancelled') {
-                    console.warn('Cannot update status of cancelled orders');
-                    this.fetchOrders();
-                    return;
-                }
-
-                const token = localStorage.getItem('token');
-                const decoded = JSON.parse(atob(token.split('.')[1]));
-                if (order.accepted_by && order.accepted_by !== decoded.userId) {
-                    console.warn('Only the staff who accepted can update the status');
-                    this.fetchOrders();
-                    return;
-                }
-
-                const response = await fetch(`http://localhost:7904/api/staff/orders/${orderId}/status`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to update order status');
-                }
-            } catch (error) {
-                console.error('Error updating order status:', error);
-                this.fetchOrders();
-            }
-        },
         async viewOrderDetails(order) {
             try {
                 const token = localStorage.getItem('token');
@@ -351,72 +271,19 @@ export default {
         this.fetchOrders();
     }
 }
-</script>
-<style scoped>
+</script><style scoped>
 .staff-container {
     font-family: Arial, sans-serif;
     min-height: 100vh;
     background-color: #f5f5f5;
-    padding-left: 250px; /* Match sidebar width */
-}
-.staff-info {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 4px;
-}
-/* Navbar Styles */
-.staff-navbar {
-    background-color: #3498db;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding-left: 250px;
 }
 
-.nav-brand h1 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.staff-name {
-    font-weight: 500;
-}
-@media (max-width: 768px) {
-    .staff-container {
-        padding-left: 60px; /* Match collapsed sidebar width */
-    }
-}
-.logout-btn {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.3s;
-}
-
-.logout-btn:hover {
-    background-color: #c0392b;
-}
-
-/* Content Area Styles */
 .staff-content {
     padding: 2rem;
-    max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Orders Section Styles */
 .orders-section {
     background: white;
     padding: 2rem;
@@ -424,6 +291,175 @@ export default {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-top: 2rem;
 }
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.search-box input,
+.status-filter {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.search-box input {
+    width: 300px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.staff-info {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.status-badge.preparing {
+    background-color: #cce5ff;
+    color: #004085;
+    border: 1px solid #b8daff;
+}
+
+.status-badge.ready-for-pickup {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-badge.paid {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+.status-badge.cancelled {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+.view-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.view-btn:hover {
+    background-color: #45a049;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content.order-details {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.order-details h2 {
+    color: #2c3e50;
+    margin: 0 0 1.5rem 0;
+    font-size: 1.75rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 1rem;
+}
+
+.order-details .order-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.order-details .order-info p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+    color: #2c3e50;
+}
+
+.order-details .products-table {
+    margin: 1.5rem 0;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.product-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.total-label {
+    text-align: right;
+    font-weight: bold;
+}
+
+.total-amount {
+    font-weight: bold;
+}
+
 .accept-btn {
     background-color: #4CAF50;
     color: white;
@@ -446,108 +482,31 @@ export default {
 }
 
 .modal-actions {
-    display: flex;
-    justify-content: flex-end;
     margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 1px solid #dee2e6;
-}
-.filters {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    justify-content: flex-end;
 }
 
-.search-box input,
-.status-filter {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.search-box input {
-    width: 300px;
-}
-
-/* Table Styles */
-.table-container {
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
-
-th, td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-}
-
-th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-}
-
-/* Status Select Styles */
-.status-select {
-    padding: 0.4rem;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-    font-size: 0.9rem;
-}
-
-.status-select.pending {
-    background-color: #fff3cd;
-    color: #856404;
-}
-
-.status-select.preparing {
-    background-color: #cce5ff;
-    color: #004085;
-}
-
-.status-select.ready {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.status-select.paid {
-    background-color: #d1e7dd;
-    color: #0f5132;
-}
-
-.view-btn {
-    background-color: #4CAF50;
+.close-btn {
+    background-color: #6c757d;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.2s;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-.view-btn:hover {
-    background-color: #45a049;
+.close-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
 }
 
-/* Modal Base Styles */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
+/* Logout Modal Styles */
 .logout-modal {
     background: white;
     padding: 2rem;
@@ -599,97 +558,7 @@ th {
 .cancel-btn:hover {
     background-color: #5a6268;
 }
-/* Order Details Modal Styles */
-.modal-content.order-details {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    width: 90%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
 
-.order-details h2 {
-    color: #2c3e50;
-    margin: 0 0 1.5rem 0;
-    font-size: 1.75rem;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 1rem;
-}
-
-.order-details .order-info {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-}
-
-.order-details .order-info p {
-    margin: 0.5rem 0;
-    font-size: 1rem;
-    color: #2c3e50;
-}
-
-.order-details .products-table {
-    margin: 1.5rem 0;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    max-height: 380px; /* Set a fixed height for scrolling */
-    overflow-y: auto; /* Enable vertical scrolling */
-}
-
-.products-table {
-    margin: 1.5rem 0;
-    overflow-x: auto;
-    max-height: 400px;
-}
-
-.product-image {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.total-label {
-    text-align: right;
-    font-weight: bold;
-}
-
-.total-amount {
-    font-weight: bold;
-}
-
-.order-details .modal-actions {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #dee2e6;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.order-details .close-btn {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.75rem 2rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.order-details .close-btn:hover {
-    background-color: #5a6268;
-    transform: translateY(-1px);
-}
-.status-select.cancelled {
-    background-color: #f8d7da;
-    color: #842029;
-}
 .cancel-reason {
     color: #842029;
     background-color: #f8d7da;
@@ -697,11 +566,7 @@ th {
     border-radius: 4px;
     margin-top: 0.5rem;
 }
-.status-select:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    border: 1px solid #dee2e6;
-}
+
 .accepted-info {
     background-color: #e8f5e9;
     border-left: 4px solid #4caf50;
@@ -718,5 +583,24 @@ th {
 
 .accepted-info .accepted-time {
     color: #546e7a;
+}
+
+@media (max-width: 768px) {
+    .staff-container {
+        padding-left: 60px;
+    }
+    
+    .search-box input {
+        width: 100%;
+    }
+    
+    .filters {
+        flex-direction: column;
+    }
+    
+    .modal-content.order-details {
+        width: 95%;
+        padding: 1rem;
+    }
 }
 </style>
