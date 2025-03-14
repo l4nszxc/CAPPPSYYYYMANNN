@@ -15,4 +15,5 @@ router.put('/staff/:id', authenticate, isAdmin, adminController.updateStaff);
 router.delete('/staff/:id', authenticate, isAdmin, adminController.deleteStaff);
 router.get('/orders', authenticate, isAdmin, adminController.getAllOrders);
 router.get('/orders/:orderId', authenticate, isAdmin, adminController.getOrderDetails);
+router.put('/orders/:orderId/pay', authenticate, isAdmin, adminController.processPayment);
 module.exports = router;

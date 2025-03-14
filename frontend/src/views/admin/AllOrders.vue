@@ -132,10 +132,18 @@
                 </div>
 
                 <div class="modal-actions">
+                    <button 
+                        v-if="selectedOrder.status === 'ready for pickup'"
+                        @click="showPaymentConfirmation = true" 
+                        class="pay-btn"
+                    >
+                        <i class="fas fa-money-bill-wave"></i> Pay Order
+                    </button>
                     <button @click="selectedOrder = null" class="close-btn">
                         <i class="fas fa-times"></i> Close
                     </button>
                 </div>
+                
             </div>
         </div>
 
@@ -146,6 +154,33 @@
             @cancel="showLogoutModal = false"
         />
     </div>
+    <div v-if="showPaymentConfirmation" class="modal-overlay">
+    <div class="modal-content payment-modal">
+        <h2>Confirm Payment</h2>
+        <div class="payment-details">
+            <h3>Order Items:</h3>
+            <div class="payment-items">
+                <div v-for="item in selectedOrder.items" :key="item.product_id" class="payment-item">
+                    <span>{{ item.name }}</span>
+                    <span>x{{ item.quantity }}</span>
+                    <span>₱{{ formatPrice(item.price * item.quantity) }}</span>
+                </div>
+            </div>
+            <div class="payment-total">
+                <strong>Total Amount:</strong>
+                <span>₱{{ formatPrice(selectedOrder.total_amount) }}</span>
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button @click="processPayment" class="confirm-pay-btn">
+                <i class="fas fa-check"></i> Confirm Payment
+            </button>
+            <button @click="showPaymentConfirmation = false" class="cancel-btn">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+        </div>
+    </div>
+</div>
 </template>
 
 <script>
@@ -165,7 +200,8 @@ export default {
             orders: [],
             selectedOrder: null,
             searchQuery: '',
-            selectedStatus: ''
+            selectedStatus: '',
+            showPaymentConfirmation: false
         }
     },
     computed: {
@@ -182,6 +218,138 @@ export default {
         }
     },
     methods: {
+        async processPayment() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:7904/api/admin/orders/${this.selectedOrder.order_id}/pay`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    // Print first, then update UI
+                    this.printReceipt();
+                    await this.fetchOrders();
+                    this.showPaymentConfirmation = false;
+                    this.selectedOrder = null;
+                } else {
+                    throw new Error('Failed to process payment');
+                }
+            } catch (error) {
+                console.error('Error processing payment:', error);
+            }
+        },
+
+        printReceipt() {
+            try {
+                const receipt = this.generateReceiptContent();
+                const printWindow = window.open('', '_blank', 'width=300,height=600');
+                
+                if (!printWindow) {
+                    alert('Please allow popups for receipt printing');
+                    return;
+                }
+
+                printWindow.document.write(receipt);
+                printWindow.document.close();
+                
+                // Wait for resources to load before printing
+                printWindow.onload = function() {
+                    printWindow.focus(); // Focus the window
+                    printWindow.print(); // Print
+                    printWindow.onafterprint = function() {
+                        printWindow.close(); // Close after printing
+                    };
+                };
+            } catch (error) {
+                console.error('Error printing receipt:', error);
+            }
+        },
+
+        generateReceiptContent() {
+            const date = new Date().toLocaleString();
+            const items = this.selectedOrder.items
+                .map(item => `
+                    <tr>
+                        <td style="text-align: left">${item.name}</td>
+                        <td style="text-align: center">x${item.quantity}</td>
+                        <td style="text-align: right">₱${this.formatPrice(item.price * item.quantity)}</td>
+                    </tr>
+                `).join('');
+
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Receipt</title>
+                    <style>
+                        @page {
+                            margin: 0;
+                        }
+                        body {
+                            font-family: 'Courier New', monospace;
+                            width: 80mm;
+                            margin: 0;
+                            padding: 5mm;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 10px;
+                        }
+                        .details {
+                            margin-bottom: 10px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 10px 0;
+                        }
+                        td {
+                            padding: 3px 0;
+                        }
+                        .total {
+                            border-top: 1px dashed black;
+                            padding-top: 10px;
+                            margin-top: 10px;
+                            font-weight: bold;
+                            text-align: right;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 20px;
+                            font-size: 12px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2 style="margin:0;">JM Garis Store</h2>
+                        <p style="margin:5px 0;">Official Receipt</p>
+                    </div>
+                    <div class="details">
+                        <p style="margin:3px 0;">Order #: ${this.selectedOrder.order_id}</p>
+                        <p style="margin:3px 0;">Date: ${date}</p>
+                        <p style="margin:3px 0;">Customer: ${this.selectedOrder.customer_name}</p>
+                    </div>
+                    <table>
+                        <tbody>
+                            ${items}
+                        </tbody>
+                    </table>
+                    <div class="total">
+                        Total Amount: ₱${this.formatPrice(this.selectedOrder.total_amount)}
+                    </div>
+                    <div class="footer">
+                        <p>Thank you for your purchase!</p>
+                    </div>
+                </body>
+                </html>
+            `;
+        },
         formatPrice(price) {
             return Number(price).toFixed(2);
         },
@@ -563,7 +731,70 @@ tbody tr:hover {
     gap: 0.5rem;
     transition: all 0.2s;
 }
+.pay-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 1rem;
+    transition: all 0.2s;
+}
 
+.pay-btn:hover {
+    background-color: #059669;
+}
+
+.payment-modal {
+    max-width: 500px;
+}
+
+.payment-details {
+    margin: 1.5rem 0;
+}
+
+.payment-items {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 1rem 0;
+}
+
+.payment-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.payment-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #e2e8f0;
+    font-size: 1.1rem;
+}
+
+.confirm-pay-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 1rem;
+}
+
+.confirm-pay-btn:hover {
+    background-color: #059669;
+}
 .close-btn:hover {
     background-color: #4b5563;
 }

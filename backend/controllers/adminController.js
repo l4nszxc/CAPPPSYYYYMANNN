@@ -1,3 +1,4 @@
+const db = require('../config/db');
 const Admin = require('../models/adminModel');
 const Staff = require('../models/staffModel');
 const User = require('../models/userModel');
@@ -106,5 +107,41 @@ exports.getOrderDetails = async (req, res) => {
     } catch (error) {
         console.error('Error fetching order details:', error);
         res.status(500).json({ message: 'Error fetching order details' });
+    }
+};
+exports.processPayment = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        
+        // Update order status without paid_at field
+        const [result] = await db.execute(
+            'UPDATE orders SET status = ? WHERE order_id = ?',
+            ['paid', orderId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Get updated order details
+        const [updatedOrder] = await db.execute(
+            `SELECT 
+                o.*, 
+                u.username as customer_name,
+                s.username as staff_name
+             FROM orders o
+             JOIN users u ON o.user_id = u.id
+             LEFT JOIN users s ON o.accepted_by = s.id
+             WHERE o.order_id = ?`,
+            [orderId]
+        );
+
+        res.json({ 
+            message: 'Payment processed successfully',
+            order: updatedOrder[0]
+        });
+    } catch (error) {
+        console.error('Error processing payment:', error);
+        res.status(500).json({ message: 'Error processing payment' });
     }
 };
