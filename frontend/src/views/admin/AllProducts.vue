@@ -3,21 +3,17 @@
         <AdminNavbar :username="username" @logout="showLogoutModal = true" />
         
         <div class="admin-content">
-            <h1><i class="fas fa-box"></i> Manage Products</h1>
-            <div class="filters-container">
-                <div class="search-filter">
-                    <label for="search"><i class="fas fa-search"></i> Search:</label>
-                    <input 
-                        type="text" 
-                        id="search" 
-                        v-model="searchQuery" 
-                        placeholder="Search by product name..."
-                    >
-                </div>
-                
-                <div class="category-filter">
-                    <label for="category"><i class="fas fa-filter"></i> Category:</label>
-                    <select id="category" v-model="selectedCategory">
+            <div class="header">
+                <h2>MANAGE  PRODUCTS</h2>
+                <div class="filters">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            v-model="searchQuery" 
+                            placeholder="Search by product name..."
+                        >
+                    </div>
+                    <select v-model="selectedCategory" class="status-filter">
                         <option value="">All Categories</option>
                         <option value="Fruits & Vegetables">Fruits & Vegetables</option>
                         <option value="Dairy & Eggs">Dairy & Eggs</option>
@@ -30,61 +26,59 @@
                         <option value="Condiments & Sauces">Condiments & Sauces</option>
                         <option value="Spices & Seasonings">Spices & Seasonings</option>
                     </select>
+                    <button @click="resetFilters" class="reset-btn">
+                        <i class="fas fa-undo"></i> Reset Filters
+                    </button>
                 </div>
-
-                <button @click="resetFilters" class="reset-btn">
-                    <i class="fas fa-undo"></i> Reset
-                </button>
             </div>
-            
-            <div class="products-section">
-                <div class="table-container">
-                    <table v-if="products.length">
-                        <thead>
-                            <tr>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Total Sold</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="product in filteredProducts" :key="product.products_id">                                <td>
-                                    <img 
-                                        :src="product.image ? `http://localhost:7904/uploads/${product.image}` : '/img/placeholder.jpg'"
-                                        :alt="product.name"
-                                        class="product-image"
-                                        @error="handleImageError"
-                                    >
-                                </td>
-                                <td>{{ product.name }}</td>
-                                <td>{{ product.category }}</td>
-                                <td>₱{{ formatPrice(product.price) }}</td>
-                                <td>
-                                    <span :class="{'critical-stock': product.stock_quantity <= 5}">
-                                        {{ product.stock_quantity }}
-                                    </span>
-                                </td>
-                                    <td>
-                                        <span :class="{'highlight-sales': product.total_sold > 0}">
-                                            {{ product.total_sold || 0 }}
-                                        </span>
-                                    </td>                                
-                                <td>
-                                    <button @click="showEditModal(product)" class="edit-btn">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div v-else class="no-data">
-                        <i class="fas fa-box-open"></i>
-                        <p>No products found</p>
-                    </div>
+
+            <div class="table-container">
+                <table v-if="filteredProducts.length">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Total Sold</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="product in filteredProducts" :key="product.products_id">
+                            <td>
+                                <img 
+                                    :src="product.image ? `http://localhost:7904/uploads/${product.image}` : '/img/placeholder.jpg'"
+                                    :alt="product.name"
+                                    class="product-image"
+                                    @error="handleImageError"
+                                >
+                            </td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.category }}</td>
+                            <td>₱{{ formatPrice(product.price) }}</td>
+                            <td>
+                                <span :class="{'critical-stock': product.stock_quantity <= 5}">
+                                    {{ product.stock_quantity }}
+                                </span>
+                            </td>
+                            <td>
+                                <span :class="{'highlight-sales': product.total_sold > 0}">
+                                    {{ product.total_sold || 0 }}
+                                </span>
+                            </td>
+                            <td>
+                                <button @click="showEditModal(product)" class="edit-btn">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-else class="no-results">
+                    <i class="fas fa-box-open"></i>
+                    No products found
                 </div>
             </div>
         </div>
@@ -301,101 +295,171 @@ export default {
     min-height: 100vh;
     background-color: #f5f5f5;
     padding-left: 250px;
-}.highlight-sales {
-    color: #047857;
-    font-weight: 600;
-    background-color: #ecfdf5;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    display: inline-block;
 }
 
-.highlight-sales:hover {
-    background-color: #d1fae5;
-}
 .admin-content {
     padding: 2rem;
     margin: 0 auto;
 }
 
-h1 {
-    color: #1e293b;
-    font-size: 1.8rem;
+/* Header and Filters */
+.header {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
 }
 
+.header h2 {
+    color: #2c3e50;
+    margin: 0 0 1rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-box input {
+    width: 98%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.status-filter {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    min-width: 200px;
+}
+
+.reset-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.reset-btn:hover {
+    background-color: #dc2626;
+}
+
+/* Table Styles */
 .table-container {
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: auto;
+    max-height: calc(100vh - 200px);
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
-th, td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
 }
 
 th {
     background-color: #f8fafc;
-    color: #64748b;
     font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
     text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+    padding: 1rem;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.95rem;
+}
+
+tbody tr:hover {
+    background-color: #f8fafc;
 }
 
 .product-image {
     width: 60px;
     height: 60px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: 8px;
 }
 
 .critical-stock {
     color: #dc2626;
-    font-weight: 600;
     background-color: #fee2e2;
-    padding: 0.25rem 0.75rem;
+    padding: 0.4rem 1rem;
     border-radius: 20px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
+.highlight-sales {
+    color: #047857;
+    background-color: #ecfdf5;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+td > span:not(.highlight-sales):not(.critical-stock) {
+    padding: 0.4rem 1rem;
+}
 .edit-btn {
+    padding: 0.5rem 1rem;
     background-color: #3b82f6;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
     border-radius: 6px;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     transition: all 0.2s;
 }
 
 .edit-btn:hover {
     background-color: #2563eb;
-    transform: translateY(-1px);
 }
 
+/* Modal Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0,0,0,0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -404,10 +468,12 @@ th {
 
 .modal-content {
     background: white;
+    border-radius: 12px;
     padding: 2rem;
-    border-radius: 8px;
     width: 90%;
     max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .edit-form {
@@ -432,7 +498,7 @@ th {
 .form-group select {
     padding: 0.75rem;
     border: 1px solid #e2e8f0;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 0.95rem;
 }
 
@@ -459,97 +525,79 @@ th {
     color: white;
 }
 
+.save-btn:hover {
+    background-color: #059669;
+}
+
 .cancel-btn {
     background-color: #ef4444;
     color: white;
 }
 
-.no-data {
+.cancel-btn:hover {
+    background-color: #dc2626;
+}
+
+.no-results {
     text-align: center;
     padding: 3rem;
-    color: #64748b;
+    color: #6b7280;
+    font-size: 1rem;
 }
 
-.no-data i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-}
-.filters-container {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    flex-wrap: wrap;
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .filters {
+        flex-wrap: wrap;
+    }
+    
+    .search-box {
+        width: 100%;
+        min-width: 100%;
+    }
 }
 
-.search-filter, .category-filter {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex: 1;
-    min-width: 200px;
-}
-
-.search-filter input, .category-filter select {
-    padding: 0.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    flex: 1;
-}
-
-.search-filter label, .category-filter label {
-    color: #64748b;
-    font-weight: 600;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.reset-btn {
-    background-color: #ef4444;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-}
-
-.reset-btn:hover {
-    background-color: #dc2626;
-    transform: translateY(-1px);
-}
 @media (max-width: 768px) {
     .admin-container {
-        padding-left: 0;
+        padding-left: 60px;
     }
-
+    
     .admin-content {
         padding: 1rem;
     }
-
+    
+    .header {
+        padding: 1rem;
+    }
+    
+    .header h2 {
+        font-size: 1.25rem;
+    }
+    
+    td, th {
+        padding: 0.75rem;
+    }
+    
     .modal-content {
+        width: 95%;
         margin: 1rem;
-        padding: 1.5rem;
+        padding: 1rem;
     }
-    .filters-container {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 1rem;
-    }
+}
 
-    .search-filter, .category-filter {
+@media (max-width: 480px) {
+    .filters {
+        gap: 0.5rem;
+    }
+    
+    .status-filter {
         width: 100%;
+        min-width: 100%;
+    }
+    
+    .reset-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 </style>
