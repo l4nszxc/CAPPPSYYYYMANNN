@@ -87,17 +87,14 @@ exports.updateProduct = async (req, res) => {
             imageUrl = await uploadToImgBB(req.file.buffer);
         }
 
-        const updates = {
-            name,
-            description,
-            price,
-            stock_quantity,
-            category
-        };
-
-        if (imageUrl) {
-            updates.image = imageUrl;
-        }
+        // Only include defined values in updates
+        const updates = {};
+        if (name) updates.name = name;
+        if (description) updates.description = description;
+        if (price) updates.price = price;
+        if (stock_quantity !== undefined) updates.stock_quantity = stock_quantity;
+        if (category) updates.category = category;
+        if (imageUrl) updates.image = imageUrl;
 
         await Product.update(id, updates);
         res.json({ 
@@ -106,7 +103,10 @@ exports.updateProduct = async (req, res) => {
         });
     } catch (error) {
         console.error('Error updating product:', error);
-        res.status(500).json({ message: 'Error updating product' });
+        res.status(500).json({ 
+            message: 'Error updating product',
+            error: error.message 
+        });
     }
 };
 

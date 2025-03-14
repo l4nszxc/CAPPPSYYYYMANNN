@@ -58,13 +58,27 @@
               <tr v-for="product in stats.lowStock" :key="product.products_id">
                 <td>{{ product.name }}</td>
                 <td>
-                  <span :class="{'critical-stock': product.stock_quantity <= 5}">
+                  <div v-if="editingId === product.products_id" class="stock-edit">
+                    <input 
+                      type="number" 
+                      v-model="editingStock"
+                      min="0"
+                      @keyup.enter="saveStock(product)"
+                      @keyup.esc="cancelEdit()"
+                      :ref="el => { if (el) stockInput = el }"
+                      class="stock-input"
+                    >
+                  </div>
+                  <span v-else :class="{'critical-stock': product.stock_quantity <= 5}">
                     {{ product.stock_quantity }}
                   </span>
                 </td>
                 <td>₱{{ formatPrice(product.price) }}</td>
                 <td>
-                  <button @click="editProduct(product)" class="edit-btn">
+                  <button v-if="editingId === product.products_id" class="save-btn" @click="saveStock(product)">
+                    <i class="fas fa-save"></i> Save
+                  </button>
+                  <button v-else @click="startEdit(product)" class="edit-btn">
                     <i class="fas fa-edit"></i> Edit Stock
                   </button>
                 </td>
@@ -119,198 +133,150 @@
           </p>
         </div>
       </div>
-      
-    <div class="dashboard-section">
-      <h2>
+
+      <!-- Top Performing Staff Section -->
+      <div class="dashboard-section">
+        <h2>
           <i class="fas fa-star"></i>
           Top Performing Staff
-      </h2>
-      <div class="table-container">
+        </h2>
+        <div class="table-container">
           <table v-if="stats.topStaff && stats.topStaff.length">
-              <thead>
-                  <tr>
-                      <th>Rank</th>
-                      <th>Staff Name</th>
-                      <th>Orders Handled</th>
-                      <th>Total Sales</th>
-                      <th>Performance</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  <tr v-for="(staff, index) in stats.topStaff" :key="staff.id">
-                      <td>
-                          <span class="rank">{{ index + 1 }}</span>
-                      </td>
-                      <td>{{ staff.username }}</td>
-                      <td>{{ staff.orders_handled }}</td>
-                      <td>₱{{ formatPrice(staff.total_sales) }}</td>
-                      <td>
-                          <div class="performance-indicator">
-                              <i class="fas fa-trophy" v-if="index === 0"></i>
-                              <i class="fas fa-medal" v-else-if="index === 1"></i>
-                              <i class="fas fa-award" v-else-if="index === 2"></i>
-                              {{ getPerformanceLabel(staff.orders_handled) }}
-                          </div>
-                      </td>
-                  </tr>
-              </tbody>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Staff Name</th>
+                <th>Orders Handled</th>
+                <th>Total Sales</th>
+                <th>Performance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(staff, index) in stats.topStaff" :key="staff.id">
+                <td>
+                  <span class="rank">{{ index + 1 }}</span>
+                </td>
+                <td>{{ staff.username }}</td>
+                <td>{{ staff.orders_handled }}</td>
+                <td>₱{{ formatPrice(staff.total_sales) }}</td>
+                <td>
+                  <div class="performance-indicator">
+                    <i class="fas fa-trophy" v-if="index === 0"></i>
+                    <i class="fas fa-medal" v-else-if="index === 1"></i>
+                    <i class="fas fa-award" v-else-if="index === 2"></i>
+                    {{ getPerformanceLabel(staff.orders_handled) }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
           </table>
           <p v-else class="no-data">
-              <i class="fas fa-users"></i>
-              No staff performance data available yet
+            <i class="fas fa-users"></i>
+            No staff performance data available yet
           </p>
-      </div>
-  </div>
-    </div>
-
-    <!-- Edit Product Modal -->
-    <div v-if="showEditModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2>Edit Product</h2>
-            <form @submit.prevent="handleEditSubmit" class="edit-form">
-                <div class="form-group">
-                    <label for="name">Product Name</label>
-                    <input type="text" id="name" v-model="editingProduct.name" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea id="description" v-model="editingProduct.description" required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="price">Price</label>
-                    <input type="number" id="price" v-model="editingProduct.price" step="0.01" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="stock">Stock Quantity</label>
-                    <input type="number" id="stock" v-model="editingProduct.stock_quantity" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="category">Category</label>
-                    <select id="category" v-model="editingProduct.category" required>
-                        <option value="Fruits & Vegetables">Fruits & Vegetables</option>
-                        <option value="Dairy & Eggs">Dairy & Eggs</option>
-                        <option value="Meat & Seafood">Meat & Seafood</option>
-                        <option value="Beverages">Beverages</option>
-                        <option value="Bakery & Snacks">Bakery & Snacks</option>
-                        <option value="Canned & Packaged Goods">Canned & Packaged Goods</option>
-                        <option value="Frozen Foods">Frozen Foods</option>
-                        <option value="Grains & Pasta">Grains & Pasta</option>
-                        <option value="Condiments & Sauces">Condiments & Sauces</option>
-                        <option value="Spices & Seasonings">Spices & Seasonings</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="newImage">New Image (optional)</label>
-                    <input type="file" id="newImage" @change="handleImageUpload" accept="image/*">
-                </div>
-
-                <div class="modal-buttons">
-                    <button type="submit" class="save-btn">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                    <button type="button" @click="closeModal" class="cancel-btn">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                </div>
-            </form>
         </div>
+      </div>
     </div>
 
-    <!-- Logout Confirmation Modal -->
     <LogoutModal 
-    :show="showLogoutModal"
-    @confirm="handleLogout"
-    @cancel="showLogoutModal = false"
-/>
+      :show="showLogoutModal"
+      @confirm="handleLogout"
+      @cancel="showLogoutModal = false"
+    />
   </div>
 </template>
-  
-  <script>
-  import AdminNavbar from '../../components/AdminNavbar.vue' 
-  import LogoutModal from '../../components/LogoutModal.vue'  
-  export default {
-    name: 'AdminHome',
-    components: {
-      AdminNavbar,
-      LogoutModal
-    },
-      data() {
-        return {
-            username: '',
-            showLogoutModal: false,
-            showEditModal: false, 
-            editingProduct: null, 
-            newImage: null, 
-            stats: {
-                totalSales: 0,
-                totalProducts: 0,
-                totalOrders: 0,
-                totalStock: 0,
-                lowStock: [],
-                topProducts: []
-            }
+
+<script>
+import AdminNavbar from '../../components/AdminNavbar.vue'
+import LogoutModal from '../../components/LogoutModal.vue'
+
+export default {
+  name: 'AdminHome',
+  components: {
+    AdminNavbar,
+    LogoutModal
+  },
+  data() {
+    return {
+      username: '',
+      showLogoutModal: false,
+      editingId: null,
+      editingStock: null,
+      stockInput: null, 
+      stats: {
+        totalSales: 0,
+        totalProducts: 0,
+        totalOrders: 0,
+        totalStock: 0,
+        lowStock: [],
+        topProducts: [],
+        topStaff: []
+      }
+    }
+  },
+  methods: {
+    startEdit(product) {
+      this.editingId = product.products_id;
+      this.editingStock = product.stock_quantity;
+      this.$nextTick(() => {
+        if (this.stockInput) {
+          this.stockInput.focus();
         }
-    },
-    methods: {
-      getPerformanceLabel(ordersHandled) {
-        if (ordersHandled >= 50) return 'Outstanding';
-        if (ordersHandled >= 30) return 'Excellent';
-        if (ordersHandled >= 20) return 'Great';
-        if (ordersHandled >= 10) return 'Good';
-        return 'New';
-    },
-      editProduct(product) {
-        this.editingProduct = { ...product };
-        this.showEditModal = true;
+      });
     },
 
-    closeModal() {
-        this.showEditModal = false;
-        this.editingProduct = null;
-        this.newImage = null;
+    cancelEdit() {
+      this.editingId = null;
+      this.editingStock = null;
     },
 
-    handleImageUpload(event) {
-        this.newImage = event.target.files[0];
-    },
-      formatPrice(price) {
-          const num = Number(price);
-          if (num >= 1000) {
-              return `${(num / 1000).toFixed(1)}k`;
+    async saveStock(product) {
+      try {
+          if (!this.editingStock && this.editingStock !== 0) {
+              console.error('Invalid stock quantity');
+              return;
           }
-          return num.toFixed(2);
+
+          const token = localStorage.getItem('token');
+          const response = await fetch(`http://localhost:7904/api/products/${product.products_id}`, {
+              method: 'PUT',
+              headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                  stock_quantity: parseInt(this.editingStock)
+              })
+          });
+
+          if (response.ok) {
+              product.stock_quantity = parseInt(this.editingStock);
+              this.editingId = null;
+              this.editingStock = null;
+              await this.fetchDashboardStats();
+          } else {
+              const error = await response.json();
+              throw new Error(error.message || 'Failed to update stock');
+          }
+      } catch (error) {
+          console.error('Error updating stock:', error);
+      }
+  },
+
+    formatPrice(price) {
+      const num = Number(price);
+      if (num >= 1000) {
+        return `${(num / 1000).toFixed(1)}k`;
+      }
+      return num.toFixed(2);
     },
-    async handleEditSubmit() {
-        try {
-            const formData = new FormData();
-            Object.keys(this.editingProduct).forEach(key => {
-                formData.append(key, this.editingProduct[key]);
-            });
-            if (this.newImage) {
-                formData.append('image', this.newImage);
-            }
 
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:7904/api/admin/products/${this.editingProduct.products_id}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData
-            });
-
-            if (response.ok) {
-                this.closeModal();
-                await this.fetchDashboardStats(); // Refresh the dashboard data
-            }
-        } catch (error) {
-            console.error('Error updating product:', error);
-        }
+    getPerformanceLabel(ordersHandled) {
+      if (ordersHandled >= 50) return 'Outstanding';
+      if (ordersHandled >= 30) return 'Excellent';
+      if (ordersHandled >= 20) return 'Great';
+      if (ordersHandled >= 10) return 'Good';
+      return 'New';
     },
 
     async fetchDashboardStats() {
@@ -330,53 +296,35 @@
         console.error('Error fetching dashboard stats:', error);
       }
     },
-      async handleLogout() {
-        try {
-          const response = await fetch('http://localhost:7904/api/users/logout', {
-            method: 'POST',
-            credentials: 'include'
-          });
-  
-          if (response.ok) {
-            localStorage.removeItem('token');
-            this.$router.push('/login');
-          }
-        } catch (error) {
-          console.error('Logout failed:', error);
+
+    async handleLogout() {
+      try {
+        const response = await fetch('http://localhost:7904/api/users/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          localStorage.removeItem('token');
+          this.$router.push('/login');
         }
-      },
-      async fetchStats() {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch('http://localhost:7904/api/admin/stats', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            this.stats = {
-              totalUsers: data.totalUsers || 0,
-              verifiedUsers: data.verifiedUsers || 0
-            };
-          }
-        } catch (error) {
-          console.error('Error fetching stats:', error);
-        }
+      } catch (error) {
+        console.error('Logout failed:', error);
       }
-    },
-    async mounted() {
+    }
+  },
+  async mounted() {
     const token = localStorage.getItem('token');
     if (token) {
-        const decoded = JSON.parse(atob(token.split('.')[1]));
-        this.username = decoded.username || 'Admin';
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      this.username = decoded.username || 'Admin';
+      await this.fetchDashboardStats();
     }
-    await this.fetchStats();
-    await this.fetchDashboardStats();
-}
   }
-  </script>
+}
+</script>
+
+
   <style scoped>
   /* Base Layout */
   .admin-container {
@@ -647,6 +595,39 @@ tr:nth-child(3) .rank {
   }
   
   
+.stock-input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 2px solid #3b82f6;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.stock-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.save-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.save-btn:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
   /* Responsive Design */
   @media (max-width: 768px) {
     .admin-container {
