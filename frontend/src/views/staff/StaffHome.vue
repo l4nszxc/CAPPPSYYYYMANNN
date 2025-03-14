@@ -44,22 +44,28 @@
                                 <td>{{ order.order_id }}</td>
                                 <td>{{ order.customer_name }}</td>
                                 <td>
-                <select 
-                    v-model="order.status"
-                    @change="updateOrderStatus(order.order_id, order.status)"
-                    :class="['status-select', order.status]"
-                    :disabled="order.status === 'cancelled'"
-                >
-                    <option value="pending">Pending</option>
-                    <option value="preparing">Preparing</option>
-                    <option value="ready for pickup">Ready for Pickup</option>
-                    <option value="paid">Paid</option>
-                    <option value="cancelled">Cancelled</option>
-                </select>
-                <div v-if="order.status === 'preparing' && order.staff_name" class="staff-info">
-                    <small>Accepted by: {{ order.staff_name }}</small>
-                </div>
-            </td>
+                                    <select 
+                                        v-model="order.status"
+                                        @change="updateOrderStatus(order.order_id, order.status)"
+                                        :class="['status-select', order.status]"
+                                        :disabled="isStatusSelectDisabled(order)"
+                                    >
+                                        <option value="pending" disabled>Pending</option>
+                                        <option 
+                                            value="preparing" 
+                                            :disabled="isOptionDisabled(order.status, 'preparing')"
+                                        >Preparing</option>
+                                        <option 
+                                            value="ready for pickup" 
+                                            :disabled="isOptionDisabled(order.status, 'ready for pickup')"
+                                        >Ready for Pickup</option>
+                                        <option value="paid" disabled>Paid</option>
+                                        <option value="cancelled" disabled>Cancelled</option>
+                                    </select>
+                                    <div v-if="order.staff_name" class="staff-info">
+                                        <small>Accepted by: {{ order.staff_name }}</small>
+                                    </div>
+                                </td>
                                 <td>₱{{ formatPrice(order.total_amount) }}</td>
                                 <td>{{ formatDate(order.created_at) }}</td>
                                 <td>
@@ -188,6 +194,36 @@ export default {
         }
     },
     methods: {
+        isStatusSelectDisabled(order) {
+            const token = localStorage.getItem('token');
+            if (!token) return true;
+            
+            const decoded = JSON.parse(atob(token.split('.')[1]));
+            const currentStaffId = decoded.userId;
+            
+            // Disable if order is cancelled or if current staff is not the one who accepted
+            return order.status === 'cancelled' || 
+                (order.accepted_by && order.accepted_by !== currentStaffId);
+        },
+        isOptionDisabled(currentStatus, optionValue) {
+            // Prevent ready for pickup selection when status is preparing
+            if (currentStatus === 'preparing' && optionValue === 'ready for pickup') {
+                return true;
+            }
+
+            // Allow moving back from "ready for pickup" to "preparing"
+            if (currentStatus === 'ready for pickup' && optionValue === 'preparing') {
+                return false;
+            }
+
+            // Status progression mapping
+            const statusOrder = ['pending', 'preparing', 'ready for pickup', 'paid', 'cancelled'];
+            const currentIndex = statusOrder.indexOf(currentStatus);
+            const optionIndex = statusOrder.indexOf(optionValue);
+
+            // Disable if option is before current status or more than one step ahead
+            return optionIndex < currentIndex || optionIndex > currentIndex + 1;
+        },
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg';
         },
@@ -240,17 +276,22 @@ export default {
         },
         async updateOrderStatus(orderId, newStatus) {
             try {
-                // Get the current order
                 const order = this.orders.find(o => o.order_id === orderId);
                 
-                // Prevent updating if order is cancelled
                 if (order.status === 'cancelled') {
                     console.warn('Cannot update status of cancelled orders');
-                    this.fetchOrders(); // Refresh orders to revert any UI changes
+                    this.fetchOrders();
                     return;
                 }
 
                 const token = localStorage.getItem('token');
+                const decoded = JSON.parse(atob(token.split('.')[1]));
+                if (order.accepted_by && order.accepted_by !== decoded.userId) {
+                    console.warn('Only the staff who accepted can update the status');
+                    this.fetchOrders();
+                    return;
+                }
+
                 const response = await fetch(`http://localhost:7904/api/staff/orders/${orderId}/status`, {
                     method: 'PUT',
                     headers: {

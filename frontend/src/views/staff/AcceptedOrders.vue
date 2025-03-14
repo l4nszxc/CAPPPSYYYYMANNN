@@ -28,9 +28,16 @@
                                         @change="updateOrderStatus(order.order_id, order.status)"
                                         :class="['status-select', order.status]"
                                     >
-                                        <option value="preparing">Preparing</option>
-                                        <option value="ready for pickup">Ready for Pickup</option>
-                                        <option value="paid">Paid</option>
+                                        <option value="pending" disabled>Pending</option>
+                                        <option 
+                                            value="preparing" 
+                                            :disabled="isOptionDisabled(order.status, 'preparing')"
+                                        >Preparing</option>
+                                        <option 
+                                            value="ready for pickup" 
+                                            :disabled="isOptionDisabled(order.status, 'ready for pickup')"
+                                        >Ready for Pickup</option>
+                                        <option value="paid" disabled>Paid</option>
                                     </select>
                                 </td>
                                 <td>₱{{ formatPrice(order.total_amount) }}</td>
@@ -75,6 +82,13 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>
+                                    <input 
+                                        type="checkbox" 
+                                        v-model="allChecked"
+                                        @change="toggleAllProducts"
+                                    >
+                                </th>
                                 <th>Product</th>
                                 <th>Image</th>
                                 <th>Price</th>
@@ -84,6 +98,13 @@
                         </thead>
                         <tbody>
                             <tr v-for="item in selectedOrder.items" :key="item.product_id">
+                                <td>
+                                    <input 
+                                        type="checkbox" 
+                                        v-model="checkedProducts"
+                                        :value="item.product_id"
+                                    >
+                                </td>
                                 <td>{{ item.name }}</td>
                                 <td>
                                     <img 
@@ -98,15 +119,16 @@
                                 <td>₱{{ formatPrice(item.price * item.quantity) }}</td>
                             </tr>
                         </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="4" class="total-label">Total Amount:</td>
-                                <td class="total-amount">₱{{ formatPrice(selectedOrder.total_amount) }}</td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
-                <div class="modal-actions">
+                    <div class="modal-actions">
+                    <button 
+                        @click="markAsReady" 
+                        class="ready-btn"
+                        :disabled="!isAllChecked || selectedOrder.status === 'ready for pickup' || selectedOrder.status === 'paid'"
+                    >
+                        <i class="fas fa-check"></i> Mark as Ready
+                    </button>
                     <button @click="selectedOrder = null" class="close-btn">
                         <i class="fas fa-times"></i> Close
                     </button>
@@ -139,10 +161,68 @@ export default {
             username: '',
             showLogoutModal: false,
             acceptedOrders: [],
-            selectedOrder: null
+            selectedOrder: null,
+            checkedProducts: []
+        }
+    },
+    computed: {
+        allChecked: {
+            get() {
+                return this.selectedOrder && 
+                    this.checkedProducts.length === this.selectedOrder.items.length;
+            },
+            set(value) {
+                this.checkedProducts = value ? 
+                    this.selectedOrder.items.map(item => item.product_id) : [];
+            }
+        },
+        isAllChecked() {
+            return this.allChecked;
         }
     },
     methods: {
+        toggleAllProducts(e) {
+        this.allChecked = e.target.checked;
+        },
+        
+        async markAsReady() {
+            if (!this.isAllChecked) return;
+            
+            try {
+                await this.updateOrderStatus(this.selectedOrder.order_id, 'ready for pickup');
+                this.selectedOrder = null;
+                this.checkedProducts = [];
+            } catch (error) {
+                console.error('Error marking order as ready:', error);
+            }
+        },
+        async viewOrderDetails(order) {
+            try {
+                // ...existing viewOrderDetails code...
+                this.checkedProducts = []; // Reset checkboxes
+            } catch (error) {
+                console.error('Error fetching order details:', error);
+            }
+        },
+        isOptionDisabled(currentStatus, optionValue) {
+            // Prevent ready for pickup selection when status is preparing
+            if (currentStatus === 'preparing' && optionValue === 'ready for pickup') {
+                return true;
+            }
+
+            // Allow moving back from "ready for pickup" to "preparing"
+            if (currentStatus === 'ready for pickup' && optionValue === 'preparing') {
+                return false;
+            }
+
+            // Status progression mapping
+            const statusOrder = ['pending', 'preparing', 'ready for pickup', 'paid'];
+            const currentIndex = statusOrder.indexOf(currentStatus);
+            const optionIndex = statusOrder.indexOf(optionValue);
+
+            // Disable if option is before current status or more than one step ahead
+            return optionIndex < currentIndex || optionIndex > currentIndex + 1;
+        },
         async handleLogout() {
             try {
                 const response = await fetch('http://localhost:7904/api/users/logout', {
@@ -286,7 +366,7 @@ export default {
             this.username = decoded.username;
         }
         this.fetchAcceptedOrders();
-    }
+    },
 }
 </script>
 
@@ -540,6 +620,41 @@ th {
 
 .cancel-btn:hover {
     background-color: #5a6268;
+}
+.ready-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    margin-right: 1rem;
+    transition: all 0.3s ease;
+}
+
+.ready-btn:hover {
+    background-color: #45a049;
+}
+
+.ready-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
 }
 @media (max-width: 768px) {
     .staff-container {
