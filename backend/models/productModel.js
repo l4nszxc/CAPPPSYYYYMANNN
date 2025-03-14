@@ -66,27 +66,29 @@ class Product {
     }
     static async update(id, updates) {
         try {
-            // Filter out undefined values
+            // Filter out undefined and null values
             const validUpdates = Object.entries(updates)
-                .filter(([_, value]) => value !== undefined)
+                .filter(([_, value]) => value !== undefined && value !== null)
                 .reduce((acc, [key, value]) => {
                     acc[key] = value;
                     return acc;
                 }, {});
-
+    
             if (Object.keys(validUpdates).length === 0) {
                 throw new Error('No valid updates provided');
             }
-
+    
             const setClause = Object.keys(validUpdates)
                 .map(key => `${key} = ?`)
                 .join(', ');
             const values = [...Object.values(validUpdates), id];
             
-            await db.execute(
+            const [result] = await db.execute(
                 `UPDATE products SET ${setClause} WHERE products_id = ?`,
                 values
             );
+    
+            return result;
         } catch (error) {
             console.error('Database error:', error);
             throw error;

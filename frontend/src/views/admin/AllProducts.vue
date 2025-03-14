@@ -285,16 +285,22 @@ export default {
         },
         async handleEditSubmit() {
             try {
+                const token = localStorage.getItem('token');
+                
+                // Create FormData for the request
                 const formData = new FormData();
-                Object.keys(this.editingProduct).forEach(key => {
-                    formData.append(key, this.editingProduct[key]);
-                });
+                formData.append('name', this.editingProduct.name);
+                formData.append('description', this.editingProduct.description);
+                formData.append('price', parseFloat(this.editingProduct.price));
+                formData.append('stock_quantity', parseInt(this.editingProduct.stock_quantity));
+                formData.append('category', this.editingProduct.category);
+
+                // Add image if there's a new one
                 if (this.newImage) {
                     formData.append('image', this.newImage);
                 }
 
-                const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:7904/api/admin/products/${this.editingProduct.products_id}`, {
+                const response = await fetch(`http://localhost:7904/api/products/${this.editingProduct.products_id}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -302,12 +308,16 @@ export default {
                     body: formData
                 });
 
-                if (response.ok) {
-                    this.closeModal();
-                    await this.fetchProducts();
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to update product');
                 }
+
+                await this.fetchProducts(); // Refresh products list
+                this.closeModal();
             } catch (error) {
                 console.error('Error updating product:', error);
+                // Add error handling UI feedback here if needed
             }
         },
         async handleLogout() {

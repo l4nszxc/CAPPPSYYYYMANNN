@@ -87,16 +87,18 @@ exports.updateProduct = async (req, res) => {
             imageUrl = await uploadToImgBB(req.file.buffer);
         }
 
-        // Only include defined values in updates
+        // Create updates object with only defined values
         const updates = {};
         if (name) updates.name = name;
         if (description) updates.description = description;
-        if (price) updates.price = price;
-        if (stock_quantity !== undefined) updates.stock_quantity = stock_quantity;
+        if (price) updates.price = parseFloat(price);
+        if (stock_quantity) updates.stock_quantity = parseInt(stock_quantity);
         if (category) updates.category = category;
         if (imageUrl) updates.image = imageUrl;
 
+        // Update the product
         await Product.update(id, updates);
+
         res.json({ 
             message: 'Product updated successfully',
             imageUrl: imageUrl || undefined
