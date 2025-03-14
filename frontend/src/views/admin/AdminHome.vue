@@ -25,16 +25,10 @@
           <p class="number">{{ stats.totalProducts || 0 }}</p>
         </router-link>
 
-        <div class="card">
+        <router-link to="/admin/orders" class="card clickable">
           <i class="fas fa-shopping-cart"></i>
           <h3>Total Orders</h3>
           <p class="number">{{ stats.totalOrders || 0 }}</p>
-        </div>
-        
-        <router-link to="/admin/orders" class="card clickable">
-            <i class="fas fa-clipboard-list"></i>
-            <h3>View Orders</h3>
-            <p class="number">{{ stats.totalOrders || 0 }}</p>
         </router-link>
 
         <router-link to="/admin/products" class="card clickable">
@@ -400,8 +394,8 @@
   /* Dashboard Cards */
   .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* Change to 5 equal columns */
-  gap: 1rem; /* Reduced gap to fit all cards */
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
   margin-bottom: 2rem;
 }
   
