@@ -400,8 +400,6 @@ generateReceiptContent() {
                 <p>Please come again!</p>
             </div>
             
-            <div class="spacing"></div>
-            
             <div class="cut-line">
                 --------------------------------
             </div>
