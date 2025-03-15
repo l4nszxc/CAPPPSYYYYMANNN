@@ -114,7 +114,11 @@ export default {
             }
         },
         validateQuantity() {
-            this.quantity = Math.min(Math.max(1, this.quantity), this.getMaxStock());
+            if (isNaN(this.quantity) || this.quantity < 1) {
+                this.quantity = 1;
+            } else {
+                this.quantity = Math.min(Math.max(1, this.quantity), this.getMaxStock());
+            }
         },
         confirm() {
             if (this.isValidQuantity) {
@@ -122,22 +126,17 @@ export default {
                     quantity: this.quantity,
                     choice: this.selectedChoice
                 });
-                this.resetForm();
             }
         },
         cancel() {
             this.$emit('cancel');
-            this.resetForm();
-        },
-        resetForm() {
-            this.quantity = 1;
-            this.selectedChoice = null;
         }
     },
     watch: {
         show(newVal) {
             if (newVal) {
-                this.resetForm();
+                this.quantity = 1;
+                this.selectedChoice = null;
             }
         }
     }

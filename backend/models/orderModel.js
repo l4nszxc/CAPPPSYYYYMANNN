@@ -17,27 +17,45 @@ class Order {
                 'INSERT INTO orders (order_id, user_id, total_amount) VALUES (?, ?, ?)',
                 [orderId, userId, totalAmount]
             );
-
+    
             // Create order items
             for (const item of items) {
+                // Make sure price is a valid number
+                const price = parseFloat(item.price || 0);
+                
                 await connection.execute(
-                    'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
-                    [orderId, item.product_id, item.quantity, item.price]
+                    'INSERT INTO order_items (order_id, product_id, quantity, price, choice_id) VALUES (?, ?, ?, ?, ?)',
+                    [
+                        orderId, 
+                        item.product_id, 
+                        item.quantity, 
+                        price,
+                        item.choice_id || null
+                    ]
                 );
-
-                // Update product stock
-                await connection.execute(
-                    'UPDATE products SET stock_quantity = stock_quantity - ? WHERE products_id = ?',
-                    [item.quantity, item.product_id]
-                );
+    
+                // Handle stock reduction appropriately
+                if (item.choice_id) {
+                    // Reduce choice stock if it's a choice item
+                    await connection.execute(
+                        'UPDATE product_choices SET stock = stock - ? WHERE choice_id = ?',
+                        [item.quantity, item.choice_id]
+                    );
+                } else {
+                    // Reduce main product stock if it's not a choice
+                    await connection.execute(
+                        'UPDATE products SET stock_quantity = stock_quantity - ? WHERE products_id = ?',
+                        [item.quantity, item.product_id]
+                    );
+                }
             }
-
+    
             // Clear cart items
             await connection.execute(
                 'DELETE FROM cart WHERE user_id = ?',
                 [userId]
             );
-
+    
             await connection.commit();
             return orderId;
         } catch (error) {

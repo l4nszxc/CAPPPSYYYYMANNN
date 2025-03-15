@@ -227,6 +227,10 @@ export default {
             
             try {
                 const token = localStorage.getItem('token');
+                
+                // Get the appropriate price
+                let price = this.selectedProduct.price;
+                
                 const payload = {
                     productId: this.selectedProduct.products_id,
                     quantity: data.quantity
@@ -235,6 +239,7 @@ export default {
                 // Add choice_id if a choice was selected
                 if (data.choice && data.choice.choice_id) {
                     payload.choiceId = data.choice.choice_id;
+                    price = data.choice.price; // Use the choice price
                 }
                 
                 const response = await fetch('http://localhost:7904/api/cart', {

@@ -20,12 +20,12 @@ exports.addToCart = async (req, res) => {
             return res.status(401).json({ message: 'User not authenticated' });
         }
 
-        const { productId, quantity } = req.body;
+        const { productId, quantity, choiceId } = req.body;
         if (!productId || !quantity) {
             return res.status(400).json({ message: 'Product ID and quantity are required' });
         }
 
-        await Cart.addToCart(req.user.id, productId, quantity);
+        await Cart.addToCart(req.user.id, productId, quantity, choiceId || null);
         res.status(201).json({ message: 'Product added to cart' });
     } catch (error) {
         console.error('Error adding to cart:', error);
@@ -39,14 +39,14 @@ exports.updateQuantity = async (req, res) => {
             return res.status(401).json({ message: 'User not authenticated' });
         }
 
-        const { productId } = req.params;
+        const { cartId } = req.params;
         const { quantity } = req.body;
         
-        if (!productId || !quantity) {
-            return res.status(400).json({ message: 'Product ID and quantity are required' });
+        if (!cartId || !quantity) {
+            return res.status(400).json({ message: 'Cart ID and quantity are required' });
         }
 
-        await Cart.updateQuantity(req.user.id, productId, quantity);
+        await Cart.updateQuantity(req.user.id, cartId, quantity);
         res.json({ message: 'Cart updated successfully' });
     } catch (error) {
         console.error('Error updating cart:', error);
@@ -60,12 +60,12 @@ exports.removeFromCart = async (req, res) => {
             return res.status(401).json({ message: 'User not authenticated' });
         }
 
-        const { productId } = req.params;
-        if (!productId) {
-            return res.status(400).json({ message: 'Product ID is required' });
+        const { cartId } = req.params;
+        if (!cartId) {
+            return res.status(400).json({ message: 'Cart ID is required' });
         }
 
-        await Cart.removeFromCart(req.user.id, productId);
+        await Cart.removeFromCart(req.user.id, cartId);
         res.json({ message: 'Product removed from cart' });
     } catch (error) {
         console.error('Error removing from cart:', error);

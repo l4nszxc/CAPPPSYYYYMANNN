@@ -22,38 +22,41 @@
                 </div>
             </div>
             <div v-if="cart.length > 0" class="cart-items">
-                <div v-for="item in cart" :key="item.product_id" class="cart-item">
+                <div v-for="item in cart" :key="item.id" class="cart-item">
                     <div class="cart-item-checkbox">
-                    <input 
-                        type="checkbox" 
-                        :checked="checkedItems.has(item.product_id)"
-                        @change="toggleItemCheck(item.product_id)"
-                    >
-                </div>
+                        <input 
+                            type="checkbox" 
+                            :checked="checkedItems.has(item.id)"
+                            @change="toggleItemCheck(item.id)"
+                        >
+                    </div>
                     <img 
                         :src="item.image || '/img/placeholder.jpg'"
                         :alt="item.name"
                         class="cart-item-image"
                         @error="handleImageError"
-                        >
+                    >
                     <div class="cart-item-details">
                         <h3><i class="fas fa-box"></i> {{ item.name }}</h3>
+                        <p v-if="item.choice_name" class="choice-info">
+                            <i class="fas fa-tag"></i> Option: {{ item.choice_name }}
+                        </p>
                         <p class="price"><i class="fas fa-tag"></i> Price: ₱{{ (item.price || 0).toFixed(2) }}</p>
                         <div class="quantity-controls">
                             <span class="quantity-label"><i class="fas fa-cubes"></i> Quantity:</span>
-                            <button @click="updateQuantity(item.product_id, item.quantity - 1)" 
+                            <button @click="updateQuantity(item.id, item.quantity - 1)" 
                                     :disabled="item.quantity <= 1"
                                     class="quantity-btn">
                                 <i class="fas fa-minus"></i>
                             </button>
                             <span class="quantity-value">{{ item.quantity }}</span>
-                            <button @click="updateQuantity(item.product_id, item.quantity + 1)"
+                            <button @click="updateQuantity(item.id, item.quantity + 1)"
                                     class="quantity-btn">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                         <p class="subtotal"><i class="fas fa-calculator"></i> Subtotal: ₱{{ ((item.price || 0) * item.quantity).toFixed(2) }}</p>
-                        <button class="remove-btn" @click="removeFromCart(item.product_id)">
+                        <button class="remove-btn" @click="removeFromCart(item.id)">
                             <i class="fas fa-trash"></i> Remove
                         </button>
                     </div>
@@ -129,11 +132,11 @@ export default {
             return this.cart.length > 0 && this.checkedItems.size === this.cart.length;
         },
         selectedItems() {
-            return this.cart.filter(item => this.checkedItems.has(item.product_id));
+            return this.cart.filter(item => this.checkedItems.has(item.id));
         },
         cartTotal() {
             return this.cart.reduce((total, item) => {
-                if (this.checkedItems.has(item.product_id)) {
+                if (this.checkedItems.has(item.id)) {
                     const price = parseFloat(item.price) || 0;
                     return total + (price * item.quantity);
                 }
@@ -150,22 +153,31 @@ export default {
                 // If all items are selected, unselect all
                 this.checkedItems.clear();
             } else {
-                // Select all items
+                // Select all items - use item.id for consistency
                 this.cart.forEach(item => {
-                    this.checkedItems.add(item.product_id);
+                    this.checkedItems.add(item.id);
                 });
             }
         },
-        toggleItemCheck(productId) {
-            if (this.checkedItems.has(productId)) {
-                this.checkedItems.delete(productId);
+        toggleItemCheck(itemId) {
+            if (this.checkedItems.has(itemId)) {
+                this.checkedItems.delete(itemId);
             } else {
-                this.checkedItems.add(productId);
+                this.checkedItems.add(itemId);
             }
-        },  
+        },
         async handlePlaceOrder(updatedItems) {
             try {
                 const token = localStorage.getItem('token');
+                
+                // Format items for the backend - ensure we're sending product_id, choice_id, and price
+                const itemsForBackend = updatedItems.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    choice_id: item.choice_id || null,
+                    price: parseFloat(item.price) || 0
+                }));
+                
                 const response = await fetch('http://localhost:7904/api/orders', {
                     method: 'POST',
                     headers: {
@@ -173,8 +185,10 @@ export default {
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        items: updatedItems,
-                        totalAmount: updatedItems.reduce((total, item) => total + (item.price * item.quantity), 0)
+                        items: itemsForBackend,
+                        totalAmount: updatedItems.reduce((total, item) => {
+                            return total + (parseFloat(item.price) * item.quantity);
+                        }, 0)
                     })
                 });
 
@@ -256,46 +270,50 @@ export default {
             this.cart = [];
         }
     },
-    async removeFromCart(productId) {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:7904/api/cart/${productId}`, { // Updated endpoint
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
+    async removeFromCart(itemId) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:7904/api/cart/${itemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    // Remove from checked items if it was checked
+                    if (this.checkedItems.has(itemId)) {
+                        this.checkedItems.delete(itemId);
+                    }
+                    await this.fetchCart();
                 }
-            });
-            if (response.ok) {
-                await this.fetchCart();
+            } catch (error) {
+                console.error('Error removing item from cart:', error);
             }
-        } catch (error) {
-            console.error('Error removing item from cart:', error);
-        }
-    },
+        },
 
-    async updateQuantity(productId, newQuantity) {
-        if (newQuantity < 1) return;
-        
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:7904/api/cart/${productId}`, { // Updated endpoint
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    quantity: newQuantity
-                })
-            });
+        async updateQuantity(itemId, newQuantity) {
+            if (newQuantity < 1) return;
             
-            if (response.ok) {
-                await this.fetchCart();
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:7904/api/cart/${itemId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        quantity: newQuantity
+                    })
+                });
+                
+                if (response.ok) {
+                    await this.fetchCart();
+                }
+            } catch (error) {
+                console.error('Error updating quantity:', error);
             }
-        } catch (error) {
-            console.error('Error updating quantity:', error);
         }
-    }
     },
     async mounted() {
         await this.getUserData();
@@ -635,5 +653,16 @@ export default {
         justify-content: center;
     }
 }
-
+.choice-info {
+    font-size: 0.95rem;
+    color: #3498db;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #eef6fd;
+    padding: 0.5rem;
+    border-radius: 4px;
+    width: fit-content;
+}
 </style>

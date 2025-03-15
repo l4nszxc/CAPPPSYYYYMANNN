@@ -4,8 +4,8 @@
             <h3><i class="fas fa-clipboard-list"></i> Order Summary</h3>
             
             <div class="scrollable-content">
-                <div class="order-items">
-                    <div v-for="item in localItems" :key="item.product_id" class="order-item">
+                <div v-if="localItems.length > 0" class="order-items">
+                    <div v-for="item in localItems" :key="item.id" class="order-item">
                         <img 
                             :src="item.image || '/img/placeholder.jpg'"
                             :alt="item.name"
@@ -14,10 +14,13 @@
                         >
                         <div class="order-item-details">
                             <h4>{{ item.name }}</h4>
-                            <p class="item-price">Price: ₱{{ item.price }}</p>
+                            <p v-if="item.choice_name" class="choice-info">
+                                <i class="fas fa-tag"></i> Option: {{ item.choice_name }}
+                            </p>
+                            <p class="item-price">Price: ₱{{ formatPrice(item.price) }}</p>
                             <div class="quantity-controls">
                                 <button 
-                                    @click="updateQuantity(item.product_id, item.quantity - 1)"
+                                    @click="updateQuantity(item.id, item.quantity - 1)"
                                     :disabled="item.quantity <= 1"
                                     class="quantity-btn"
                                 >
@@ -25,25 +28,27 @@
                                 </button>
                                 <span class="quantity-value">{{ item.quantity }}</span>
                                 <button 
-                                    @click="updateQuantity(item.product_id, item.quantity + 1)"
-                                    :disabled="item.quantity >= item.stock_quantity"
+                                    @click="updateQuantity(item.id, item.quantity + 1)"
                                     class="quantity-btn"
                                 >
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
-                            <p class="item-subtotal">Subtotal: ₱{{ (item.price * item.quantity).toFixed(2) }}</p>
-                            <button class="remove-btn" @click="removeItem(item.product_id)">
+                            <p class="item-subtotal">Subtotal: ₱{{ formatPrice(item.price * item.quantity) }}</p>
+                            <button class="remove-btn" @click="removeItem(item.id)">
                                 <i class="fas fa-trash"></i> Remove
                             </button>
                         </div>
                     </div>
                 </div>
+                <div v-else class="no-items">
+                    <p>No items selected</p>
+                </div>
             </div>
 
             <div class="fixed-bottom">
                 <div class="order-total">
-                    <h4>Total Amount: ₱{{ calculateTotal.toFixed(2) }}</h4>
+                    <h4>Total Amount: ₱{{ formatPrice(calculateTotal) }}</h4>
                 </div>
                 <div class="modal-buttons">
                     <button 
@@ -75,32 +80,43 @@ export default {
         }
     },
     watch: {
-        selectedItems: {
-            immediate: true,
-            handler(newItems) {
-                this.localItems = JSON.parse(JSON.stringify(newItems));
+        show(newValue) {
+            // Reset the items when modal opens
+            if (newValue && this.selectedItems) {
+                this.localItems = JSON.parse(JSON.stringify(this.selectedItems));
             }
+        },
+        selectedItems: {
+            handler(newItems) {
+                if (this.show && newItems) {
+                    this.localItems = JSON.parse(JSON.stringify(newItems));
+                }
+            },
+            immediate: true
         }
     },
     computed: {
         calculateTotal() {
             return this.localItems.reduce((total, item) => {
-                return total + (item.price * item.quantity);
+                return total + (parseFloat(item.price) * item.quantity);
             }, 0);
         }
     },
     methods: {
+        formatPrice(price) {
+            return Number(price).toFixed(2);
+        },
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg';
         },
-        updateQuantity(productId, newQuantity) {
-            const item = this.localItems.find(item => item.product_id === productId);
-            if (item && newQuantity >= 1 && newQuantity <= item.stock_quantity) {
+        updateQuantity(itemId, newQuantity) {
+            const item = this.localItems.find(item => item.id === itemId);
+            if (item && newQuantity >= 1) {
                 item.quantity = newQuantity;
             }
         },
-        removeItem(productId) {
-            this.localItems = this.localItems.filter(item => item.product_id !== productId);
+        removeItem(itemId) {
+            this.localItems = this.localItems.filter(item => item.id !== itemId);
         },
         confirmOrder() {
             this.$emit('place-order', this.localItems);
@@ -286,5 +302,23 @@ export default {
 .place-order-btn:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+}
+.choice-info {
+    font-size: 0.95rem;
+    color: #3498db;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #eef6fd;
+    padding: 0.5rem;
+    border-radius: 4px;
+    width: fit-content;
+}
+
+.no-items {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
 }
 </style>

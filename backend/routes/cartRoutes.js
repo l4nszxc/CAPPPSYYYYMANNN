@@ -8,7 +8,7 @@ router.use(authenticate);
 
 router.get('/', cartController.getCart);
 router.post('/', cartController.addToCart);
-router.put('/:productId', cartController.updateQuantity);
-router.delete('/:productId', cartController.removeFromCart);
+router.put('/:cartId', cartController.updateQuantity);
+router.delete('/:cartId', cartController.removeFromCart);
 
 module.exports = router;
