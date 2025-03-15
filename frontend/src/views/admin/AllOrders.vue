@@ -71,65 +71,69 @@
             </div>
         </div>
 
-        <!-- Order Details Modal -->
         <div v-if="selectedOrder" class="modal-overlay">
-            <div class="modal-content">
-                <h2>Order Details</h2>
-                <div class="order-info">
-                    <p><strong>Order ID:</strong> {{ selectedOrder.order_id }}</p>
-                    <p><strong>Customer:</strong> {{ selectedOrder.customer_name }}</p>
-                    <p><strong>Status:</strong> 
-                        <span :class="['status-badge', selectedOrder.status.replace(' ', '-')]">
-                            {{ selectedOrder.status }}
-                        </span>
-                    </p>
-                    <p><strong>Order Date:</strong> {{ formatDate(selectedOrder.created_at) }}</p>
-                    <p v-if="selectedOrder.staff_name">
-                        <strong>Staff Assigned:</strong> 
-                        <span class="staff-badge">
-                            <i class="fas fa-user"></i> {{ selectedOrder.staff_name }}
-                        </span>
-                    </p>
-                    <p v-if="selectedOrder.status === 'cancelled'">
-                        <strong>Cancellation Reason:</strong> {{ selectedOrder.cancel_reason }}
-                    </p>
-                </div>
+        <div class="modal-content">
+            <h2>Order Details</h2>
+            <div class="order-info">
+                <p><strong>Order ID:</strong> {{ selectedOrder.order_id }}</p>
+                <p><strong>Customer:</strong> {{ selectedOrder.customer_name }}</p>
+                <p><strong>Status:</strong> 
+                    <span :class="['status-badge', selectedOrder.status.toLowerCase().replace(/ /g, '-')]">
+                        {{ selectedOrder.status }}
+                    </span>
+                </p>
+                <p><strong>Order Date:</strong> {{ formatDate(selectedOrder.created_at) }}</p>
+                <p v-if="selectedOrder.staff_name">
+                    <strong>Staff Assigned:</strong> 
+                    <span class="staff-badge">
+                        <i class="fas fa-user"></i> {{ selectedOrder.staff_name }}
+                    </span>
+                </p>
+                <p v-if="selectedOrder.status === 'cancelled'">
+                    <strong>Cancellation Reason:</strong> {{ selectedOrder.cancel_reason }}
+                </p>
+            </div>
 
-                <div class="products-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Image</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in selectedOrder.items" :key="item.product_id">
-                                <td>{{ item.name }}</td>
-                                <td>
-                                    <img 
-                                        :src="item.image || '/img/placeholder.jpg'"
-                                        :alt="item.name"
-                                        class="product-image"
-                                        @error="handleImageError"
-                                    >
-                                </td>
-                                <td>₱{{ formatPrice(item.price) }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>₱{{ formatPrice(item.price * item.quantity) }}</td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="4" class="total-label">Total Amount:</td>
-                                <td class="total-amount">₱{{ formatPrice(selectedOrder.total_amount) }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+            <div class="products-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Image</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in selectedOrder.items" :key="item.product_id">
+                            <td>
+                                {{ item.original_name || item.name }}
+                                <div v-if="item.choice_name" class="choice-info">
+                                    <i class="fas fa-tag"></i> Option: {{ item.choice_name }}
+                                </div>
+                            </td>
+                            <td>
+                                <img 
+                                    :src="item.image || '/img/placeholder.jpg'"
+                                    :alt="item.name"
+                                    class="product-image"
+                                    @error="handleImageError"
+                                >
+                            </td>
+                            <td>₱{{ formatPrice(item.price) }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>₱{{ formatPrice(item.price * item.quantity) }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="total-label">Total Amount:</td>
+                            <td class="total-amount">₱{{ formatPrice(selectedOrder.total_amount) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
 
                 <div class="modal-actions">
                     <button 
@@ -155,32 +159,35 @@
         />
     </div>
     <div v-if="showPaymentConfirmation" class="modal-overlay">
-    <div class="modal-content payment-modal">
-        <h2>Confirm Payment</h2>
-        <div class="payment-details">
-            <h3>Order Items:</h3>
-            <div class="payment-items">
-                <div v-for="item in selectedOrder.items" :key="item.product_id" class="payment-item">
-                    <span>{{ item.name }}</span>
-                    <span>x{{ item.quantity }}</span>
-                    <span>₱{{ formatPrice(item.price * item.quantity) }}</span>
+        <div class="modal-content payment-modal">
+            <h2>Confirm Payment</h2>
+            <div class="payment-details">
+                <h3>Order Items:</h3>
+                <div class="payment-items">
+                    <div v-for="item in selectedOrder.items" :key="item.product_id" class="payment-item">
+                        <div class="payment-item-name">
+                            <span>{{ item.original_name || item.name }}</span>
+                            <small v-if="item.choice_name" class="choice-pill">{{ item.choice_name }}</small>
+                        </div>
+                        <span>x{{ item.quantity }}</span>
+                        <span>₱{{ formatPrice(item.price * item.quantity) }}</span>
+                    </div>
+                </div>
+                <div class="payment-total">
+                    <strong>Total Amount:</strong>
+                    <span>₱{{ formatPrice(selectedOrder.total_amount) }}</span>
                 </div>
             </div>
-            <div class="payment-total">
-                <strong>Total Amount:</strong>
-                <span>₱{{ formatPrice(selectedOrder.total_amount) }}</span>
+            <div class="modal-buttons">
+                <button @click="processPayment" class="confirm-pay-btn">
+                    <i class="fas fa-check"></i> Confirm Payment
+                </button>
+                <button @click="showPaymentConfirmation = false" class="cancel-btn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
             </div>
         </div>
-        <div class="modal-buttons">
-            <button @click="processPayment" class="confirm-pay-btn">
-                <i class="fas fa-check"></i> Confirm Payment
-            </button>
-            <button @click="showPaymentConfirmation = false" class="cancel-btn">
-                <i class="fas fa-times"></i> Cancel
-            </button>
-        </div>
     </div>
-</div>
 </template>
 
 <script>
@@ -269,144 +276,152 @@ export default {
 },
 
 generateReceiptContent() {
-    const date = new Date().toLocaleString();
-    const items = this.selectedOrder.items
-        .map(item => `
-            <tr>
-                <td style="font-size: 12px; padding: 2px 0;">${item.name}</td>
-            </tr>
-            <tr>
-                <td style="font-size: 12px; text-align: right; padding: 2px 0;">
-                    ${item.quantity} x ₱${this.formatPrice(item.price)} = ₱${this.formatPrice(item.price * item.quantity)}
-                </td>
-            </tr>
-        `).join('');
+            const date = new Date().toLocaleString();
+            const items = this.selectedOrder.items
+                .map(item => {
+                    // Format name with choice if available
+                    const displayName = item.choice_name 
+                        ? `${item.original_name || item.name} (${item.choice_name})`
+                        : item.name;
+                        
+                    return `
+                        <tr>
+                            <td style="font-size: 12px; padding: 2px 0;">${displayName}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 12px; text-align: right; padding: 2px 0;">
+                                ${item.quantity} x ₱${this.formatPrice(item.price)} = ₱${this.formatPrice(item.price * item.quantity)}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
 
-    return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title></title>
-            <style>
-                @media print {
-                    @page {
-                        margin: 0;
-                        size: 58mm auto;
-                    }
-                }
-                body {
-                    font-family: Arial, sans-serif;
-                    width: 58mm;
-                    margin: 0;
-                    padding: 2mm;
-                    font-size: 12px;
-                }
-                .header {
-                    text-align: center;
-                    margin-bottom: 3px;
-                    border-bottom: 1px dashed black;
-                    padding-bottom: 3px;
-                }
-                .header h2 {
-                    font-size: 16px;
-                    margin: 0;
-                    padding: 0;
-                    font-weight: bold;
-                }
-                .header p {
-                    font-size: 14px;
-                    margin: 2px 0;
-                }
-                .details {
-                    margin: 3px 0;
-                    border-bottom: 1px dashed black;
-                    padding-bottom: 3px;
-                }
-                .details p {
-                    margin: 1px 0;
-                    font-size: 12px;
-                    line-height: 1.2;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 4px 0;
-                }
-                tr {
-                    line-height: 1.2;
-                }
-                td {
-                    padding: 1px 0;
-                }
-                .items-section {
-                    border-bottom: 1px dashed black;
-                    margin-bottom: 4px;
-                    padding-bottom: 4px;
-                }
-                .total {
-                    font-weight: bold;
-                    text-align: right;
-                    font-size: 14px;
-                    margin: 4px 0;
-                    padding: 2px 0;
-                }
-                .footer {
-                    text-align: center;
-                    font-size: 12px;
-                    margin-top: 6px;
-                }
-                .footer p {
-                    margin: 2px 0;
-                }
-                .spacing {
-                    height: 48px; /* 4 lines of spacing (12px * 4) */
-                }
-                .cut-line {
-                    text-align: center;
-                    font-size: 12px;
-                    border-top: 1px dashed black;
-                    margin-top: 4px;
-                    padding-top: 4px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h2>JM Garis Store</h2>
-                <p>Official Receipt</p>
-            </div>
-            
-            <div class="details">
-                <p><strong>Order #:</strong> ${this.selectedOrder.order_id}</p>
-                <p><strong>Date:</strong> ${date}</p>
-                <p><strong>Customer:</strong> ${this.selectedOrder.customer_name}</p>
-            </div>
-            
-            <div class="items-section">
-                <table>
-                    <tbody>
-                        ${items}
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="total">
-                Total Amount: ₱${this.formatPrice(this.selectedOrder.total_amount)}
-            </div>
-            
-            <div class="footer">
-                <p>Thank you for your purchase!</p>
-                <p>Please come again!</p>
-            </div>
-            
-            <div class="cut-line">
-                --------------------------------
-            </div>
-        </body>
-        </html>
-    `;
-},
+            // Keep the rest of the receipt generation the same
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title></title>
+                    <style>
+                        @media print {
+                            @page {
+                                margin: 0;
+                                size: 58mm auto;
+                            }
+                        }
+                        body {
+                            font-family: Arial, sans-serif;
+                            width: 58mm;
+                            margin: 0;
+                            padding: 2mm;
+                            font-size: 12px;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 3px;
+                            border-bottom: 1px dashed black;
+                            padding-bottom: 3px;
+                        }
+                        .header h2 {
+                            font-size: 16px;
+                            margin: 0;
+                            padding: 0;
+                            font-weight: bold;
+                        }
+                        .header p {
+                            font-size: 14px;
+                            margin: 2px 0;
+                        }
+                        .details {
+                            margin: 3px 0;
+                            border-bottom: 1px dashed black;
+                            padding-bottom: 3px;
+                        }
+                        .details p {
+                            margin: 1px 0;
+                            font-size: 12px;
+                            line-height: 1.2;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 4px 0;
+                        }
+                        tr {
+                            line-height: 1.2;
+                        }
+                        td {
+                            padding: 1px 0;
+                        }
+                        .items-section {
+                            border-bottom: 1px dashed black;
+                            margin-bottom: 4px;
+                            padding-bottom: 4px;
+                        }
+                        .total {
+                            font-weight: bold;
+                            text-align: right;
+                            font-size: 14px;
+                            margin: 4px 0;
+                            padding: 2px 0;
+                        }
+                        .footer {
+                            text-align: center;
+                            font-size: 12px;
+                            margin-top: 6px;
+                        }
+                        .footer p {
+                            margin: 2px 0;
+                        }
+                        .spacing {
+                            height: 48px; /* 4 lines of spacing (12px * 4) */
+                        }
+                        .cut-line {
+                            text-align: center;
+                            font-size: 12px;
+                            border-top: 1px dashed black;
+                            margin-top: 4px;
+                            padding-top: 4px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h2>JM Garis Store</h2>
+                        <p>Official Receipt</p>
+                    </div>
+                    
+                    <div class="details">
+                        <p><strong>Order #:</strong> ${this.selectedOrder.order_id}</p>
+                        <p><strong>Date:</strong> ${date}</p>
+                        <p><strong>Customer:</strong> ${this.selectedOrder.customer_name}</p>
+                    </div>
+                    
+                    <div class="items-section">
+                        <table>
+                            <tbody>
+                                ${items}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="total">
+                        Total Amount: ₱${this.formatPrice(this.selectedOrder.total_amount)}
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Thank you for your purchase!</p>
+                        <p>Please come again!</p>
+                    </div>
+                    
+                    <div class="cut-line">
+                        --------------------------------
+                    </div>
+                </body>
+                </html>
+            `;
+        },
         formatPrice(price) {
             return Number(price).toFixed(2);
         },
@@ -834,8 +849,34 @@ tbody tr:hover {
     justify-content: space-between;
     padding: 0.5rem 0;
     border-bottom: 1px solid #e2e8f0;
+    align-items: center;
 }
-
+.payment-item-name {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-width: 60%;
+}
+.choice-pill {
+    background-color: #eef6fd;
+    color: #3498db;
+    padding: 0.2rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    width: fit-content;
+}
+.choice-info {
+    font-size: 0.85rem;
+    color: #3498db;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #eef6fd;
+    padding: 0.4rem 0.7rem;
+    border-radius: 4px;
+    width: fit-content;
+}
 .payment-total {
     display: flex;
     justify-content: space-between;
