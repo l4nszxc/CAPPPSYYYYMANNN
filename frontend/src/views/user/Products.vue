@@ -40,7 +40,7 @@
             <div v-if="loading" class="loading-message">
                 <i class="fas fa-spinner fa-spin"></i> Loading products...
             </div>
-            <div v-else class="products-grid">
+            <div class="products-grid">
                 <div v-for="product in filteredProducts" :key="product.products_id" class="product-card">
                     <div class="product-image-container">
                         <img 
@@ -57,10 +57,18 @@
                         <h3>{{ product.name }}</h3>
                         <p class="product-description">{{ product.description }}</p>
                         <div class="product-info">
-                            <p class="product-price">₱{{ formatPrice(product.price) }}</p>
-                            <p class="product-stock" :class="{ 'low-stock': product.stock_quantity <= 10 }">
+                            <p class="product-price">
+                                <!-- Updated price display to show range for products with choices -->
+                                <template v-if="hasChoices(product) && getPriceRange(product).min !== getPriceRange(product).max">
+                                    ₱{{ formatPrice(getPriceRange(product).min) }} - {{ formatPrice(getPriceRange(product).max) }}
+                                </template>
+                                <template v-else>
+                                    ₱{{ formatPrice(product.price) }}
+                                </template>
+                            </p>
+                            <p class="product-stock" :class="{ 'low-stock': getTotalStock(product) <= 10 }">
                                 <i class="fas fa-box"></i> 
-                                {{ product.stock_quantity }} in stock
+                                {{ getTotalStock(product) }} in stock
                             </p>
                         </div>
                         <p class="product-category">
@@ -150,11 +158,61 @@ export default {
         }
     },
     methods: {
+        hasChoices(product) {
+            return product.choices && product.choices.length > 0;
+        },
+        
+        getPriceRange(product) {
+            if (!this.hasChoices(product)) {
+                return { min: product.price, max: product.price };
+            }
+            
+            let min = Infinity;
+            let max = 0;
+            
+            // Check base product price
+            if (product.price) {
+                min = Math.min(min, parseFloat(product.price));
+                max = Math.max(max, parseFloat(product.price));
+            }
+            
+            // Check all choice prices
+            product.choices.forEach(choice => {
+                if (choice.price && parseFloat(choice.price) > 0) {
+                    min = Math.min(min, parseFloat(choice.price));
+                    max = Math.max(max, parseFloat(choice.price));
+                }
+            });
+            
+            // If no valid prices were found, default to product price
+            if (min === Infinity) min = parseFloat(product.price) || 0;
+            if (max === 0) max = parseFloat(product.price) || 0;
+            
+            return { min, max };
+        },
+        
+        getTotalStock(product) {
+            if (!this.hasChoices(product)) {
+                return product.stock_quantity;
+            }
+            
+            // Sum up stock from all choices
+            let totalStock = product.choices.reduce((sum, choice) => {
+                return sum + (parseInt(choice.stock) || 0);
+            }, 0);
+            
+            // If no choices have stock defined, fall back to product stock
+            if (totalStock === 0 && product.stock_quantity) {
+                return product.stock_quantity;
+            }
+            
+            return totalStock;
+        },
         handleImageError(e) {
         e.target.src = '/img/placeholder.jpg'
         },
         formatPrice(price) {
-        return Number(price).toFixed(2);
+            return Number(price).toFixed(2);
         },
         showQuantityModal(product) {
             this.selectedProduct = product;
@@ -449,7 +507,6 @@ export default {
     flex-direction: column;
     height: 100%;
 }
-
 .product-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
@@ -476,6 +533,8 @@ export default {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+    justify-content: space-between; /* This helps create consistent spacing */
+    min-height: 180px; /* Set minimum height for consistency */
 }
 .sold-badge {
     position: absolute;
@@ -499,26 +558,33 @@ export default {
     font-size: 0.7rem;
 }
 .product-details h3 {
-    margin: 0;
+    margin: 0 0 0.3rem 0; /* Add bottom margin */
     color: #1e293b;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
+    line-height: 1.3;
 }
 
 .product-description {
     color: #64748b;
     font-size: 0.9rem;
     line-height: 1.5;
-    margin: 0.5rem 0;
+    margin: 0.5rem 0 0.8rem 0; /* Add more bottom margin */
     flex-grow: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limit to 2 lines */
+    line-clamp: 2; /* Standard property for compatibility */
+    -webkit-box-orient: vertical;
 }
 
 .product-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 1rem 0;
+    margin: 0.7rem 0; /* Reduced margin */
 }
+
 .product-price {
     font-size: 1.25rem;
     font-weight: 600;
@@ -543,24 +609,26 @@ export default {
     justify-content: space-between;
     color: #64748b;
     font-size: 0.85rem;
-    margin: 0;
-    padding: 0.5rem 0;
+    margin: 0.5rem 0 0 0; /* Add top margin only */
+    padding: 0;
+    border-top: 1px solid #f0f0f0; /* Add a subtle separator */
+    padding-top: 0.5rem;
 }
 
 .add-to-cart-btn {
     background-color: #4CAF50;
     color: white;
     border: 2px solid transparent;
-    padding: 1rem 2rem;
-    border-radius: 25px;
+    padding: 0.8rem 1rem; /* Reduced padding */
+    border-radius: 8px; /* Changed to match card style */
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    margin: 1rem;
+    gap: 0.5rem;
+    margin: 0 1rem 1rem 1rem; /* Add top margin of 0 */
     width: calc(100% - 2rem);
     box-shadow: 0 4px 6px rgba(76, 175, 80, 0.2);
     transition: all 0.3s ease;
