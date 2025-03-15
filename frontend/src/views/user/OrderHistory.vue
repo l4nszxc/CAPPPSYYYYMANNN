@@ -70,8 +70,12 @@
                                     >
                                     <div class="item-details">
                                         <h4>{{ item.name }}</h4>
-                                        <p class="item-price">₱{{ item.price }} x {{ item.quantity }}</p>
-                                        <p class="item-subtotal">Subtotal: ₱{{ (item.price * item.quantity).toFixed(2) }}</p>
+                                        <!-- Display choice information if available -->
+                                        <p v-if="item.choice_name" class="choice-info">
+                                            <i class="fas fa-tag"></i> Option: {{ item.choice_name }}
+                                        </p>
+                                        <p class="item-price">₱{{ formatPrice(item.price) }} x {{ item.quantity }}</p>
+                                        <p class="item-subtotal">Subtotal: ₱{{ formatPrice(item.price * item.quantity) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -565,7 +569,18 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
   }
-  
+  .choice-info {
+    font-size: 0.95rem;
+    color: #3498db;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #eef6fd;
+    padding: 0.5rem;
+    border-radius: 4px;
+    width: fit-content;
+}
   @media (max-width: 768px) {
       .order-history-content {
           padding: 1rem;

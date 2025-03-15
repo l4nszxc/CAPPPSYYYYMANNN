@@ -104,12 +104,15 @@ class Order {
                             'quantity', oi.quantity,
                             'price', oi.price,
                             'name', p.name,
-                            'image', p.image
+                            'image', COALESCE(pc.image, p.image),
+                            'choice_id', oi.choice_id,
+                            'choice_name', pc.name
                         )
                     ) as items
                 FROM orders o
                 JOIN order_items oi ON o.order_id = oi.order_id
                 JOIN products p ON oi.product_id = p.products_id
+                LEFT JOIN product_choices pc ON oi.choice_id = pc.choice_id
                 LEFT JOIN users s ON o.accepted_by = s.id
                 WHERE o.user_id = ?
                 GROUP BY o.order_id, o.status, o.total_amount, o.created_at, o.cancel_reason, o.accepted_by, o.accepted_at, s.username

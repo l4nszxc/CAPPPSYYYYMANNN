@@ -71,10 +71,14 @@ class Staff {
                     oi.product_id,
                     oi.quantity,
                     oi.price,
+                    oi.choice_id,
                     p.name,
-                    p.image
+                    p.image,
+                    pc.name as choice_name,
+                    COALESCE(pc.image, p.image) as actual_image
                 FROM order_items oi
                 JOIN products p ON oi.product_id = p.products_id
+                LEFT JOIN product_choices pc ON oi.choice_id = pc.choice_id
                 WHERE oi.order_id = ?
             `, [orderId]);
     
@@ -82,9 +86,21 @@ class Staff {
                 return null;
             }
     
+            // Format items to include choice information
+            const formattedItems = orderItems.map(item => ({
+                product_id: item.product_id,
+                quantity: item.quantity,
+                price: item.price,
+                name: item.choice_name ? `${item.name} (${item.choice_name})` : item.name,
+                original_name: item.name,
+                choice_name: item.choice_name,
+                choice_id: item.choice_id,
+                image: item.actual_image || item.image
+            }));
+    
             return {
                 ...orderDetails[0],
-                items: orderItems
+                items: formattedItems
             };
         } catch (error) {
             throw error;
