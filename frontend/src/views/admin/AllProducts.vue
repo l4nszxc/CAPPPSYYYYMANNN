@@ -59,12 +59,14 @@
                             <td>{{ product.category }}</td>
                             <td>₱{{ formatPrice(product.price) }}</td>
                             <td>
-                                <span :class="{'critical-stock': product.stock_quantity <= 5}">
+                                <span 
+                                    :class="getStockStatusClass(product.stock_quantity)" 
+                                    class="stock-badge">
                                     {{ product.stock_quantity }}
                                 </span>
                             </td>
                             <td>
-                                <span :class="{'highlight-sales': product.total_sold > 0}">
+                                <span class="sales-badge" :class="getSalesStatusClass(product.total_sold)">
                                     {{ product.total_sold || 0 }}
                                 </span>
                             </td>
@@ -203,6 +205,17 @@ export default {
         }
     },
     methods: {
+        getSalesStatusClass(totalSold) {
+            if (totalSold >= 50) return 'high-sales';
+            if (totalSold >= 20) return 'good-sales';
+            if (totalSold > 0) return 'some-sales';
+            return 'no-sales';
+        },
+        getStockStatusClass(stock) {
+            if (stock <= 5) return 'critical-stock';
+            if (stock <= 10) return 'low-stock';
+            return 'normal-stock';
+        },
         showDeleteConfirmation(product) {
             this.productToDelete = product;
             this.showDeleteModal = true;
@@ -489,15 +502,49 @@ tbody tr:hover {
     border-radius: 8px;
 }
 
-.critical-stock {
-    color: #dc2626;
-    background-color: #fee2e2;
+.stock-badge, .sales-badge {
+    display: inline-block;
     padding: 0.4rem 1rem;
     border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 500;
+    text-align: center;
+    min-width: 60px;
 }
 
+.critical-stock {
+    color: #dc2626;
+    background-color: #fee2e2;
+}
+
+.low-stock {
+    color: #854d0e;
+    background-color: #fef3c7;
+}
+
+.normal-stock {
+    color: #475569;
+    background-color: #f1f5f9;
+}
+.high-sales {
+    color: #15803d;
+    background-color: #dcfce7;
+}
+
+.good-sales {
+    color: #047857;
+    background-color: #ecfdf5;
+}
+
+.some-sales {
+    color: #0369a1;
+    background-color: #e0f2fe;
+}
+
+.no-sales {
+    color: #6b7280;
+    background-color: #f3f4f6;
+}
 .highlight-sales {
     color: #047857;
     background-color: #ecfdf5;
@@ -505,9 +552,6 @@ tbody tr:hover {
     border-radius: 20px;
     font-size: 0.875rem;
     font-weight: 500;
-}
-td > span:not(.highlight-sales):not(.critical-stock) {
-    padding: 0.4rem 1rem;
 }
 .edit-btn {
     padding: 0.5rem 1rem;
