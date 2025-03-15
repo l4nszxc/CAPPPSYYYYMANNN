@@ -184,13 +184,22 @@ exports.resendOTP = async (req, res) => {
 };
 
 exports.logout = async (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error logging out' });
+    try {
+        // Clear session
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Session destruction error:', err);
+            }
+        });
+
+        // Clear cookie
+        res.clearCookie('connect.sid');
+        
+        res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ message: 'Error logging out' });
     }
-    res.clearCookie('connect.sid');
-    res.status(200).json({ message: 'Logged out successfully' });
-  });
 };
 exports.getUsername = async (req, res) => {
     try {

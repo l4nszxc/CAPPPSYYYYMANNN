@@ -10,11 +10,12 @@ exports.authenticate = (req, res, next) => {
 
         const decoded = jwt.verify(token, 'your-secret-key');
         req.user = {
-            id: decoded.userId, // Make sure this matches the payload structure when creating the token
+            id: decoded.userId,
             role: decoded.role
         };
         next();
     } catch (error) {
+        console.error('Auth error:', error);
         res.status(401).json({ message: 'Invalid token' });
     }
 };

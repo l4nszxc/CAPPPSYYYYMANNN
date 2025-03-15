@@ -214,17 +214,26 @@ export default {
         },
         async handleLogout() {
             try {
+                const token = localStorage.getItem('token');
                 const response = await fetch('http://localhost:7904/api/users/logout', {
                     method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
                     credentials: 'include'
                 });
 
                 if (response.ok) {
                     localStorage.removeItem('token');
                     this.$router.push('/login');
+                } else {
+                    throw new Error('Logout failed');
                 }
             } catch (error) {
-                console.error('Logout failed:', error);
+                console.error('Error during logout:', error);
+            } finally {
+                this.showLogoutModal = false;
             }
         },
         async getUserData() {

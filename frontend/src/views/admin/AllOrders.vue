@@ -423,20 +423,29 @@ generateReceiptContent() {
             e.target.src = '/img/placeholder.jpg';
         },
         async handleLogout() {
-            try {
-                const response = await fetch('http://localhost:7904/api/users/logout', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:7904/api/users/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
 
-                if (response.ok) {
-                    localStorage.removeItem('token');
-                    this.$router.push('/login');
-                }
-            } catch (error) {
-                console.error('Logout failed:', error);
-            }
-        },
+        if (response.ok) {
+            localStorage.removeItem('token');
+            this.$router.push('/login');
+        } else {
+            throw new Error('Logout failed');
+        }
+    } catch (error) {
+        console.error('Logout failed:', error);
+    } finally {
+        this.showLogoutModal = false;
+    }
+},
         async fetchOrders() {
             try {
                 const token = localStorage.getItem('token');
