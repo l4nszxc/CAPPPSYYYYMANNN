@@ -101,7 +101,7 @@
                                 <td>{{ item.name }}</td>
                                 <td>
                                     <img 
-                                        :src="item.image ? `http://localhost:7904/uploads/${item.image}` : '/img/placeholder.jpg'" 
+                                        :src="item.image || '/img/placeholder.jpg'" 
                                         :alt="item.name"
                                         class="product-image"
                                         @error="handleImageError"
