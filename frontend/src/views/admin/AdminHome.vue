@@ -44,7 +44,7 @@
           <i class="fas fa-exclamation-triangle"></i>
           Low Stock Alert
         </h2>
-        <div class="table-container">
+        <div class="table-container low-stock-table">
           <table v-if="stats.lowStock && stats.lowStock.length">
             <thead>
               <tr>
@@ -76,7 +76,7 @@
                       class="stock-input"
                     >
                   </div>
-                  <span v-else :class="getStockStatusClass(item.stock)">
+                  <span v-else class="stock-badge" :class="getStockStatusClass(item.stock)">
                     {{ item.stock }}
                   </span>
                 </td>
@@ -223,10 +223,9 @@ export default {
   },
   methods: {
     getStockStatusClass(stock) {
-      if (stock <= 3) return 'critical-stock';
-      if (stock <= 5) return 'very-low-stock';
-      if (stock <= 10) return 'low-stock';
-      return '';
+      if (stock <= 10) return 'critical-stock';
+      if (stock <= 20) return 'low-stock';
+      return 'normal-stock';
     },
     startEdit(item) {
       this.editingId = item.type === 'choice' ? `choice-${item.choice_id}` : item.id;
@@ -593,32 +592,32 @@ tr:nth-child(3) .rank {
     background-color: #f8fafc;
   }
   
-  .critical-stock {
-    color: white;
-    font-weight: 600;
-    background-color: #dc2626; /* Red */
-    padding: 0.25rem 0.75rem;
+  .stock-badge {
+    display: inline-block;
+    padding: 0.4rem 1rem;
     border-radius: 20px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+    min-width: 60px;
   }
   
-  .very-low-stock {
-    color: #7f1d1d; /* Dark red text */
-    font-weight: 600;
+  /* Stock status styles - keep the same */
+  .critical-stock {
+    color: #dc2626; /* Dark red text */
     background-color: #fee2e2; /* Light red background */
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
   }
   
   .low-stock {
-    color: #854d0e; /* Dark yellow text */
-    font-weight: 600;
+    color: #854d0e; /* Dark yellow/amber text */
     background-color: #fef3c7; /* Light yellow background */
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
   }
+  
+  .normal-stock {
+    color: #475569; /* Slate gray text */
+    background-color: #f1f5f9; /* Light gray background */
+  }
+  
   
   .edit-btn {
     background-color: #3b82f6;
@@ -693,7 +692,49 @@ tr:nth-child(3) .rank {
     vertical-align: middle;
     font-weight: 500;
 }
+.low-stock-table {
+  max-height: 405px; /* Enough height for approximately 5 rows + header */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+}
 
+/* Custom scrollbar for Webkit browsers (Chrome, Safari) */
+.low-stock-table::-webkit-scrollbar {
+  width: 8px;
+}
+
+.low-stock-table::-webkit-scrollbar-track {
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.low-stock-table::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 8px;
+  border: 2px solid #f8fafc;
+}
+
+.low-stock-table::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Keep fixed header in the table */
+.low-stock-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #f8fafc;
+}
+
+/* Improve border appearance with scrollbar */
+.low-stock-table table {
+  border-spacing: 0;
+}
+
+.low-stock-table th {
+  box-shadow: 0 1px 0 #e2e8f0; /* Replace border-bottom with shadow for sticky header */
+}
 .choice-badge i {
     font-size: 0.7rem;
 }

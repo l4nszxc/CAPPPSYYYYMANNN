@@ -198,8 +198,8 @@ class Admin {
                 LIMIT 5
             `);
     
-            // Updated low stock query to include both products and product choices
-            // Get low stock main products
+            // Updated low stock query to include products with stock <= 30
+            // Get products with stock <= 30
             const [lowStockProducts] = await db.execute(`
                 SELECT 
                     products_id as id,
@@ -214,10 +214,10 @@ class Admin {
                     NULL as product_name,
                     NULL as choice_name
                 FROM products
-                WHERE stock_quantity <= 10
+                WHERE stock_quantity <= 30  /* Changed from stock_quantity <= 10 */
             `);
             
-            // Get low stock choices/variants
+            // Get choices/variants with stock <= 30
             const [lowStockChoices] = await db.execute(`
                 SELECT 
                     pc.product_id as id,
@@ -233,13 +233,13 @@ class Admin {
                     pc.name as choice_name
                 FROM product_choices pc
                 JOIN products p ON pc.product_id = p.products_id
-                WHERE pc.stock <= 10
+                WHERE pc.stock <= 30  /* Changed from pc.stock <= 10 */
             `);
             
-            // Combine both low stock results
+            // Combine both results
             const lowStock = [...lowStockProducts, ...lowStockChoices].sort((a, b) => a.stock - b.stock);
     
-            // Keep existing top staff query
+            // Rest of the code remains the same
             const [topStaff] = await db.execute(`
                 SELECT 
                     u.username,
