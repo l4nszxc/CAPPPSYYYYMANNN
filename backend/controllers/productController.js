@@ -3,8 +3,9 @@ const multer = require('multer');
 const { uploadToImgBB } = require('../services/imgbbService');
 
 // Configure multer for memory storage instead of disk storage
+const storage = multer.memoryStorage();
 const upload = multer({
-    storage: multer.memoryStorage(),
+    storage: storage,
     limits: {
         fileSize: 5 * 1024 * 1024 // 5MB limit
     },
@@ -18,16 +19,39 @@ const upload = multer({
     }
 });
 
-exports.uploadMiddleware = upload.single('image');
+// This middleware will handle both the main product image and multiple choice images
+exports.uploadMiddleware = (req, res, next) => {
+    const multerFields = [
+        { name: 'image', maxCount: 1 }
+    ];
+    
+    // Add fields for choice images dynamically
+    if (req.headers['content-type'].includes('multipart/form-data')) {
+        for (let i = 0; i < 10; i++) { // Limit to 10 choices max
+            multerFields.push({ name: `choiceImage_${i}`, maxCount: 1 });
+        }
+    }
+    
+    const uploadMultiple = upload.fields(multerFields);
+    
+    uploadMultiple(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({ message: `Upload error: ${err.message}` });
+        } else if (err) {
+            return res.status(500).json({ message: `Server error: ${err.message}` });
+        }
+        next();
+    });
+};
 
 exports.insertProduct = async (req, res) => {
     try {
-        const { name, description, price, stock_quantity, category } = req.body;
+        const { name, description, price, stock_quantity, category, hasChoices, choices } = req.body;
         let imageUrl = null;
 
-        // Upload image to ImgBB if a file was provided
-        if (req.file) {
-            imageUrl = await uploadToImgBB(req.file.buffer);
+        // Upload main product image to ImgBB if provided
+        if (req.files && req.files.image && req.files.image[0]) {
+            imageUrl = await uploadToImgBB(req.files.image[0].buffer);
         }
 
         // Validate input data
@@ -35,8 +59,8 @@ exports.insertProduct = async (req, res) => {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        // Create the product with ImgBB URL
-        await Product.create({
+        // Create the product
+        const productId = await Product.create({
             name,
             description,
             price,
@@ -45,16 +69,42 @@ exports.insertProduct = async (req, res) => {
             image: imageUrl
         });
 
+        // Handle product choices if they exist
+        if (hasChoices && choices) {
+            const choicesArray = JSON.parse(choices);
+            
+            for (let i = 0; i < choicesArray.length; i++) {
+                const choice = choicesArray[i];
+                let choiceImageUrl = null;
+                
+                // Upload choice image if provided
+                if (req.files && req.files[`choiceImage_${i}`] && req.files[`choiceImage_${i}`][0]) {
+                    choiceImageUrl = await uploadToImgBB(req.files[`choiceImage_${i}`][0].buffer);
+                }
+                
+                // Create the choice
+                await Product.createChoice({
+                    productId,
+                    name: choice.name,
+                    price: choice.price,
+                    stock: choice.stock,
+                    image: choiceImageUrl
+                });
+            }
+        }
+
         res.status(201).json({ 
             message: 'Product added successfully',
+            productId,
             imageUrl
         });
     } catch (error) {
         console.error('Product insertion error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
+// Update the existing routes to fetch product choices too
 exports.getAllProducts = async (req, res) => {
     try {
         const products = await Product.getAll();
@@ -75,6 +125,7 @@ exports.getProductsByCategory = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
 
 exports.updateProduct = async (req, res) => {
     try {

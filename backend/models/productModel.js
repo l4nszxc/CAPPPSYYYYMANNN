@@ -14,16 +14,42 @@ class Product {
         }
     }
 
+    static async createChoice({ productId, name, price, stock, image }) {
+        try {
+            const [result] = await db.execute(
+                'INSERT INTO product_choices (product_id, name, price, stock, image) VALUES (?, ?, ?, ?, ?)',
+                [productId, name, price, stock, image]
+            );
+            return result.insertId;
+        } catch (error) {
+            console.error('Database error:', error);
+            throw error;
+        }
+    }
+
     static async getAll() {
         try {
-            const [rows] = await db.execute(`
+            // Get all products
+            const [products] = await db.execute(`
                 SELECT p.*, COALESCE(SUM(CASE WHEN o.status = 'paid' THEN oi.quantity ELSE 0 END), 0) as total_sold
                 FROM products p
                 LEFT JOIN order_items oi ON p.products_id = oi.product_id
                 LEFT JOIN orders o ON oi.order_id = o.order_id
                 GROUP BY p.products_id
             `);
-            return rows;
+            
+            // Get product choices for each product
+            for (const product of products) {
+                const [choices] = await db.execute(`
+                    SELECT choice_id, name, price, stock, image
+                    FROM product_choices
+                    WHERE product_id = ?
+                `, [product.products_id]);
+                
+                product.choices = choices;
+            }
+            
+            return products;
         } catch (error) {
             throw error;
         }
@@ -31,36 +57,30 @@ class Product {
 
     static async getByCategory(category) {
         try {
-            const [rows] = await db.execute('SELECT * FROM products WHERE category = ?', [category]);
-            return rows;
-        } catch (error) {
-            throw error;
-        }
-    }
-    
-    
-    
-    static async getProductsByCategory(category) {
-        try {
-            const [rows] = await db.execute(`
-                SELECT 
-                    p.*,
-                    COALESCE(SUM(oi.quantity), 0) as total_sold
+            // Get products by category
+            const [products] = await db.execute(
+                `SELECT p.*, COALESCE(SUM(CASE WHEN o.status = 'paid' THEN oi.quantity ELSE 0 END), 0) as total_sold
                 FROM products p
                 LEFT JOIN order_items oi ON p.products_id = oi.product_id
                 LEFT JOIN orders o ON oi.order_id = o.order_id
-                WHERE (o.status = 'paid' OR o.status IS NULL)
-                AND p.category = ?
-                GROUP BY p.products_id
-                ORDER BY p.created_at DESC
-            `, [category]);
-    
-            return rows.map(product => ({
-                ...product,
-                total_sold: parseInt(product.total_sold) || 0
-            }));
+                WHERE p.category = ?
+                GROUP BY p.products_id`,
+                [category]
+            );
+            
+            // Get product choices for each product
+            for (const product of products) {
+                const [choices] = await db.execute(`
+                    SELECT choice_id, name, price, stock, image
+                    FROM product_choices
+                    WHERE product_id = ?
+                `, [product.products_id]);
+                
+                product.choices = choices;
+            }
+            
+            return products;
         } catch (error) {
-            console.error('Error getting products by category:', error);
             throw error;
         }
     }

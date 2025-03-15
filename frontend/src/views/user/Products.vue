@@ -90,6 +90,7 @@
         <QuantityModal 
             :show="showModal" 
             :productStock="selectedProduct ? selectedProduct.stock_quantity : 0"
+            :product="selectedProduct"
             @confirm="confirmAddToCart" 
             @cancel="cancelAddToCart" 
         />
@@ -163,38 +164,45 @@ export default {
             this.showModal = false;
             this.selectedProduct = null;
         },
-    async confirmAddToCart(quantity) {
-        if (!this.selectedProduct) return;
-        
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:7904/api/cart', {  // Changed from /api/cart/add to /api/cart
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
+        async confirmAddToCart(data) {
+            if (!this.selectedProduct) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const payload = {
                     productId: this.selectedProduct.products_id,
-                    quantity: quantity
-                })
-            });
+                    quantity: data.quantity
+                };
+                
+                // Add choice_id if a choice was selected
+                if (data.choice && data.choice.choice_id) {
+                    payload.choiceId = data.choice.choice_id;
+                }
+                
+                const response = await fetch('http://localhost:7904/api/cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-            if (response.ok) {
-                console.log('Product added to cart successfully');
-                await this.fetchCart(); // Fetch cart before reload
-                window.location.reload();
-            } else {
-                const error = await response.json();
-                console.error('Failed to add product:', error);
+                if (response.ok) {
+                    console.log('Product added to cart successfully');
+                    await this.fetchCart();
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    console.error('Failed to add product:', error);
+                }
+            } catch (error) {
+                console.error('Error adding product to cart:', error);
+            } finally {
+                this.showModal = false;
+                this.selectedProduct = null;
             }
-        } catch (error) {
-            console.error('Error adding product to cart:', error);
-        } finally {
-            this.showModal = false;
-            this.selectedProduct = null;
-        }
-    },
+        },
     async fetchCart() {
         try {
             const token = localStorage.getItem('token');
