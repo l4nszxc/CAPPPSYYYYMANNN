@@ -114,6 +114,36 @@ class Product {
             throw error;
         }
     }
+    static async updateChoice(choiceId, updates) {
+        try {
+            // Filter out undefined and null values
+            const validUpdates = Object.entries(updates)
+                .filter(([_, value]) => value !== undefined && value !== null)
+                .reduce((acc, [key, value]) => {
+                    acc[key] = value;
+                    return acc;
+                }, {});
+    
+            if (Object.keys(validUpdates).length === 0) {
+                throw new Error('No valid updates provided');
+            }
+    
+            const setClause = Object.keys(validUpdates)
+                .map(key => `${key} = ?`)
+                .join(', ');
+            const values = [...Object.values(validUpdates), choiceId];
+            
+            const [result] = await db.execute(
+                `UPDATE product_choices SET ${setClause} WHERE choice_id = ?`,
+                values
+            );
+    
+            return result;
+        } catch (error) {
+            console.error('Database error:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = Product;

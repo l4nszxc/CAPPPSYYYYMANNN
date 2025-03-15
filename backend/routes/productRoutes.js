@@ -11,5 +11,6 @@ router.get('/category/:category', productController.getProductsByCategory);
 router.post('/', productController.uploadMiddleware, productController.insertProduct);
 router.put('/:id', productController.uploadMiddleware, productController.updateProduct);
 router.delete('/:id', productController.deleteProduct);
+router.put('/choices/:choiceId', authenticate, productController.updateProductChoice);
 
 module.exports = router;

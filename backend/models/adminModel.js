@@ -171,7 +171,7 @@ class Admin {
     }
     static async getDashboardStats() {
         try {
-            // Get main stats
+            // Keep existing stats query
             const [salesStats] = await db.execute(`
                 SELECT 
                     COUNT(DISTINCT o.order_id) as totalOrders,
@@ -183,7 +183,7 @@ class Admin {
                 WHERE o.status = 'paid'
             `);
     
-            // Get top products with consistent calculation
+            // Keep existing top products query
             const [topProducts] = await db.execute(`
                 SELECT 
                     p.name,
@@ -198,13 +198,48 @@ class Admin {
                 LIMIT 5
             `);
     
-            // Get low stock products
-            const [lowStock] = await db.execute(`
-                SELECT products_id, name, description, stock_quantity, price, category
+            // Updated low stock query to include both products and product choices
+            // Get low stock main products
+            const [lowStockProducts] = await db.execute(`
+                SELECT 
+                    products_id as id,
+                    'product' as type,
+                    name,
+                    description,
+                    stock_quantity as stock,
+                    price,
+                    category,
+                    image,
+                    NULL as choice_id,
+                    NULL as product_name,
+                    NULL as choice_name
                 FROM products
                 WHERE stock_quantity <= 10
-                ORDER BY stock_quantity ASC
             `);
+            
+            // Get low stock choices/variants
+            const [lowStockChoices] = await db.execute(`
+                SELECT 
+                    pc.product_id as id,
+                    'choice' as type,
+                    p.name as product_name,
+                    p.description,
+                    pc.stock as stock,
+                    pc.price,
+                    p.category,
+                    COALESCE(pc.image, p.image) as image,
+                    pc.choice_id,
+                    p.name as product_name,
+                    pc.name as choice_name
+                FROM product_choices pc
+                JOIN products p ON pc.product_id = p.products_id
+                WHERE pc.stock <= 10
+            `);
+            
+            // Combine both low stock results
+            const lowStock = [...lowStockProducts, ...lowStockChoices].sort((a, b) => a.stock - b.stock);
+    
+            // Keep existing top staff query
             const [topStaff] = await db.execute(`
                 SELECT 
                     u.username,

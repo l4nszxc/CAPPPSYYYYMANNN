@@ -189,3 +189,28 @@ exports.getProductById = async (req, res) => {
         res.status(500).json({ message: 'Error fetching product' });
     }
 };
+exports.updateProductChoice = async (req, res) => {
+    try {
+        const { choiceId } = req.params;
+        const { stock, price, name, image } = req.body;
+        
+        // Create updates object with only defined values
+        const updates = {};
+        if (name !== undefined) updates.name = name;
+        if (stock !== undefined) updates.stock = parseInt(stock);
+        if (price !== undefined) updates.price = parseFloat(price);
+        if (image !== undefined) updates.image = image;
+
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ message: 'No valid updates provided' });
+        }
+
+        // Update the choice
+        await Product.updateChoice(choiceId, updates);
+
+        res.json({ message: 'Product choice updated successfully' });
+    } catch (error) {
+        console.error('Error updating product choice:', error);
+        res.status(500).json({ message: 'Error updating product choice', error: error.message });
+    }
+};

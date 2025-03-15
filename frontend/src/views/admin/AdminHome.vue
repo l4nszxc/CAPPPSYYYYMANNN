@@ -55,30 +55,37 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="product in stats.lowStock" :key="product.products_id">
-                <td>{{ product.name }}</td>
+              <tr v-for="item in stats.lowStock" :key="item.type === 'choice' ? `choice-${item.choice_id}` : `product-${item.id}`">
                 <td>
-                  <div v-if="editingId === product.products_id" class="stock-edit">
+                  {{ item.type === 'choice' ? 
+                    `${item.product_name} (${item.choice_name})` : 
+                    item.name }}
+                  <span v-if="item.type === 'choice'" class="choice-badge">
+                    <i class="fas fa-tag"></i> Variant
+                  </span>
+                </td>
+                <td>
+                  <div v-if="editingId === (item.type === 'choice' ? `choice-${item.choice_id}` : item.id)" class="stock-edit">
                     <input 
                       type="number" 
                       v-model="editingStock"
                       min="0"
-                      @keyup.enter="saveStock(product)"
+                      @keyup.enter="saveStock(item)"
                       @keyup.esc="cancelEdit()"
                       :ref="el => { if (el) stockInput = el }"
                       class="stock-input"
                     >
                   </div>
-                  <span v-else :class="{'critical-stock': product.stock_quantity <= 5}">
-                    {{ product.stock_quantity }}
+                  <span v-else :class="getStockStatusClass(item.stock)">
+                    {{ item.stock }}
                   </span>
                 </td>
-                <td>₱{{ formatPrice(product.price) }}</td>
+                <td>₱{{ formatPrice(item.price) }}</td>
                 <td>
-                  <button v-if="editingId === product.products_id" class="save-btn" @click="saveStock(product)">
+                  <button v-if="editingId === (item.type === 'choice' ? `choice-${item.choice_id}` : item.id)" class="save-btn" @click="saveStock(item)">
                     <i class="fas fa-save"></i> Save
                   </button>
-                  <button v-else @click="startEdit(product)" class="edit-btn">
+                  <button v-else @click="startEdit(item)" class="edit-btn">
                     <i class="fas fa-edit"></i> Edit Stock
                   </button>
                 </td>
@@ -215,9 +222,15 @@ export default {
     }
   },
   methods: {
-    startEdit(product) {
-      this.editingId = product.products_id;
-      this.editingStock = product.stock_quantity;
+    getStockStatusClass(stock) {
+      if (stock <= 3) return 'critical-stock';
+      if (stock <= 5) return 'very-low-stock';
+      if (stock <= 10) return 'low-stock';
+      return '';
+    },
+    startEdit(item) {
+      this.editingId = item.type === 'choice' ? `choice-${item.choice_id}` : item.id;
+      this.editingStock = item.stock;
       this.$nextTick(() => {
         if (this.stockInput) {
           this.stockInput.focus();
@@ -230,38 +243,50 @@ export default {
       this.editingStock = null;
     },
 
-    async saveStock(product) {
+    async saveStock(item) {
       try {
-          if (!this.editingStock && this.editingStock !== 0) {
-              console.error('Invalid stock quantity');
-              return;
-          }
+        if (this.editingStock === null || this.editingStock === undefined) {
+          console.error('Invalid stock quantity');
+          return;
+        }
 
-          const token = localStorage.getItem('token');
-          const response = await fetch(`http://localhost:7904/api/products/${product.products_id}`, {
-              method: 'PUT',
-              headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                  stock_quantity: parseInt(this.editingStock)
-              })
-          });
+        const token = localStorage.getItem('token');
+        let endpoint, payload;
+        
+        if (item.type === 'choice') {
+          // Update choice stock
+          endpoint = `http://localhost:7904/api/products/choices/${item.choice_id}`;
+          payload = { stock: parseInt(this.editingStock) };
+        } else {
+          // Update regular product stock
+          endpoint = `http://localhost:7904/api/products/${item.id}`;
+          payload = { stock_quantity: parseInt(this.editingStock) };
+        }
 
-          if (response.ok) {
-              product.stock_quantity = parseInt(this.editingStock);
-              this.editingId = null;
-              this.editingStock = null;
-              await this.fetchDashboardStats();
-          } else {
-              const error = await response.json();
-              throw new Error(error.message || 'Failed to update stock');
-          }
+        const response = await fetch(endpoint, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          // Update the stock directly in the data
+          item.stock = parseInt(this.editingStock);
+          this.editingId = null;
+          this.editingStock = null;
+          // Refresh dashboard stats
+          await this.fetchDashboardStats();
+        } else {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to update stock');
+        }
       } catch (error) {
-          console.error('Error updating stock:', error);
+        console.error('Error updating stock:', error);
       }
-  },
+    },
 
     formatPrice(price) {
       const num = Number(price);
@@ -569,9 +594,27 @@ tr:nth-child(3) .rank {
   }
   
   .critical-stock {
-    color: #dc2626;
+    color: white;
     font-weight: 600;
-    background-color: #fee2e2;
+    background-color: #dc2626; /* Red */
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+  
+  .very-low-stock {
+    color: #7f1d1d; /* Dark red text */
+    font-weight: 600;
+    background-color: #fee2e2; /* Light red background */
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+  }
+  
+  .low-stock {
+    color: #854d0e; /* Dark yellow text */
+    font-weight: 600;
+    background-color: #fef3c7; /* Light yellow background */
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.9rem;
@@ -636,6 +679,23 @@ tr:nth-child(3) .rank {
 .save-btn:hover {
   background-color: #059669;
   transform: translateY(-1px);
+}
+.choice-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: #e0f2fe;
+    color: #0369a1;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    font-weight: 500;
+}
+
+.choice-badge i {
+    font-size: 0.7rem;
 }
   /* Responsive Design */
   @media (max-width: 768px) {
