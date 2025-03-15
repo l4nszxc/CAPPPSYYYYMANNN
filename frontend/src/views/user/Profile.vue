@@ -23,9 +23,10 @@
             <div class="profile-picture-container">
               <img 
                 :src="profilePictureUrl" 
-                alt="Profile Picture"
+                :alt="profileData.username"
                 class="profile-picture"
-              >
+                @error="handleImageError"
+            >
             </div>
             
             <div class="picture-buttons">
@@ -227,10 +228,8 @@ export default {
   },
   computed: {
     profilePictureUrl() {
-        if (this.profileData.profile_picture) {
-            return `http://localhost:7904${this.profileData.profile_picture}`;
-        }
-        return this.defaultProfilePicture;
+        // Use ImgBB URL directly if available, otherwise use fallback
+        return this.profileData.profile_picture || `https://ui-avatars.com/api/?name=${this.username}&background=random`;
     },
     formattedBirthdate: {
         get() {
@@ -243,6 +242,9 @@ export default {
     }
 },
   methods: {
+    handleImageError(e) {
+        e.target.src = `https://ui-avatars.com/api/?name=${this.username}&background=random`;
+    },
     
     showNotification(message, type = 'success') {
         this.notification = {
@@ -446,40 +448,40 @@ export default {
         this.showNotification(error.message || 'Failed to update profile. Please try again.', 'error');
     }
 },
-    async handleProfilePictureChange(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+async handleProfilePictureChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-      try {
+    try {
         const formData = new FormData();
         formData.append('profilePicture', file);
 
         const token = localStorage.getItem('token');
         const response = await fetch('http://localhost:7904/api/users/upload-profile-picture', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          this.profileData.profile_picture = data.imageUrl;
-          this.$emit('profile-updated');          
-          // Refresh the page after a short delay
-          setTimeout(() => {
-            window.location.reload();
-          }, 500);
+            this.profileData.profile_picture = data.imageUrl;
+            this.$emit('profile-updated');
+            this.showNotification('Profile picture updated successfully', 'success');
+            
+            // Refresh the navbar to show new profile picture
+            window.dispatchEvent(new Event('profile-updated'));
         } else {
-          throw new Error(data.message);
+            throw new Error(data.message);
         }
-      } catch (error) {
+    } catch (error) {
         console.error('Error uploading profile picture:', error);
         this.showNotification('Failed to upload profile picture', 'error');
-      }
     }
+}
   
   },
   mounted() {

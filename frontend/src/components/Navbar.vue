@@ -25,9 +25,10 @@
       <div class="profile-dropdown" ref="profileDropdown">
         <div class="profile-trigger" @click="toggleDropdown">
           <img
-            :src="profileImage"
-            alt="Profile"
-            class="profile-image"
+              :src="profileImage"
+              alt="Profile"
+              class="profile-image"
+              @error="handleImageError"
           >
           <span class="username">{{ username }}</span>
           <i class="fas fa-chevron-down dropdown-icon"></i>
@@ -78,13 +79,17 @@ export default {
       ).length;
     },
     profileImage() {
-      if (this.profilePicture) {
-        return `http://localhost:7904${this.profilePicture}`;
-      }
-      return `https://ui-avatars.com/api/?name=${this.username}&background=random`;
+        // Use ImgBB URL directly if available, otherwise use fallback
+        if (this.profilePicture) {
+            return this.profilePicture; // ImgBB URL
+        }
+        return `https://ui-avatars.com/api/?name=${this.username}&background=random`;
     }
   },
   methods: {
+    handleImageError(e) {
+        e.target.src = `https://ui-avatars.com/api/?name=${this.username}&background=random`;
+    },
     async fetchActiveOrders() {
       try {
         const token = localStorage.getItem('token');

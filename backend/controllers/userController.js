@@ -4,6 +4,22 @@ const User = require('../models/userModel');
 const otpGenerator = require('otp-generator');
 const emailService = require('../services/emailService.js');
 const { uploadToImgBB } = require('../services/imgbbService');
+const multer = require('multer');
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'), false);
+        }
+    }
+});
+
 
 exports.register = async (req, res) => {
     try {
@@ -353,6 +369,8 @@ exports.updateProfile = async (req, res) => {
         res.status(500).json({ message: 'Error updating profile' });
     }
 };
+exports.uploadMiddleware = upload.single('profilePicture');
+
 exports.uploadProfilePicture = async (req, res) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
