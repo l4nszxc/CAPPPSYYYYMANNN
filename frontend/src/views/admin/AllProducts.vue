@@ -1042,7 +1042,25 @@ tbody tr:hover {
     gap: 1rem;
     margin-top: 1.5rem;
 }
+.confirm-delete-btn, .cancel-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border: none;
+    min-width: 120px;
+    transition: all 0.2s ease;
+}
 
+.confirm-delete-btn {
+    background-color: #ef4444;
+    color: white;
+}
+
+.confirm-delete-btn:hover {
+    background-color: #dc2626;
+}
 .save-btn, .cancel-btn {
     padding: 0.75rem 1.5rem;
     border-radius: 6px;
@@ -1064,12 +1082,13 @@ tbody tr:hover {
 }
 
 .cancel-btn {
-    background-color: #ef4444;
-    color: white;
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
 }
 
 .cancel-btn:hover {
-    background-color: #dc2626;
+    background-color: #e2e8f0;
 }
 
 .no-results {
@@ -1100,17 +1119,26 @@ tbody tr:hover {
 
 .delete-modal {
     max-width: 400px;
-    text-align: center;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background-color: white;
 }
 
 .delete-modal h2 {
-    color: #dc2626;
+    color: #1e293b;
     margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
 }
 
 .delete-modal p {
-    margin-bottom: 1.5rem;
-    color: #4b5563;
+    margin-bottom: 1.75rem;
+    color: #64748b;
+    font-size: 0.95rem;
+    text-align: center;
+    line-height: 1.5;
 }
 
 .confirm-delete-btn {

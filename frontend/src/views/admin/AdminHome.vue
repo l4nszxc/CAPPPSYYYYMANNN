@@ -184,12 +184,35 @@
         </div>
       </div>
     </div>
+      <div v-if="showSaveConfirmation" class="modal-overlay">
+        <div class="modal-content save-confirmation-modal">
+          <h2>Confirm Stock Update</h2>
+          <p>
+            Are you sure you want to update the stock of 
+            <span class="highlighted-text">
+              {{ itemToUpdate?.type === 'choice' ? 
+                `${itemToUpdate.product_name} (${itemToUpdate.choice_name})` : 
+                itemToUpdate?.name }}
+            </span> 
+            to <span class="highlighted-text">{{ editingStock }}</span>?
+          </p>
+          <div class="modal-buttons">
+            <button @click="confirmSave" class="confirm-btn">
+              <i class="fas fa-check"></i> Yes, Update Stock
+            </button>
+            <button @click="cancelSaveConfirmation" class="cancel-btn">
+              <i class="fas fa-times"></i> Cancel
+            </button>
+          </div>
+        </div>
+      </div>
 
     <LogoutModal 
       :show="showLogoutModal"
       @confirm="handleLogout"
       @cancel="showLogoutModal = false"
     />
+    
   </div>
 </template>
 
@@ -210,6 +233,8 @@ export default {
       editingId: null,
       editingStock: null,
       stockInput: null, 
+      showSaveConfirmation: false,
+      itemToUpdate: null,
       stats: {
         totalSales: 0,
         totalProducts: 0,
@@ -222,6 +247,62 @@ export default {
     }
   },
   methods: {
+    saveStock(item) {
+      this.itemToUpdate = item;
+      this.showSaveConfirmation = true;
+    },
+    cancelSaveConfirmation() {
+      this.showSaveConfirmation = false;
+      this.itemToUpdate = null;
+    },
+    async confirmSave() {
+      try {
+        if (!this.itemToUpdate || this.editingStock === null || this.editingStock === undefined) {
+          console.error('Invalid stock quantity or item');
+          return;
+        }
+
+        const token = localStorage.getItem('token');
+        let endpoint, payload;
+        
+        if (this.itemToUpdate.type === 'choice') {
+          // Update choice stock
+          endpoint = `http://localhost:7904/api/products/choices/${this.itemToUpdate.choice_id}`;
+          payload = { stock: parseInt(this.editingStock) };
+        } else {
+          // Update regular product stock
+          endpoint = `http://localhost:7904/api/products/${this.itemToUpdate.id}`;
+          payload = { stock_quantity: parseInt(this.editingStock) };
+        }
+
+        const response = await fetch(endpoint, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          // Update the stock directly in the data
+          this.itemToUpdate.stock = parseInt(this.editingStock);
+          this.editingId = null;
+          this.editingStock = null;
+          // Refresh dashboard stats
+          await this.fetchDashboardStats();
+        } else {
+          const error = await response.json();
+          throw new Error(error.message || 'Failed to update stock');
+        }
+      } catch (error) {
+        console.error('Error updating stock:', error);
+      } finally {
+        this.showSaveConfirmation = false;
+        this.itemToUpdate = null;
+      }
+    },
+    
     getStockStatusClass(stock) {
       if (stock <= 10) return 'critical-stock';
       if (stock <= 20) return 'low-stock';
@@ -242,50 +323,6 @@ export default {
       this.editingStock = null;
     },
 
-    async saveStock(item) {
-      try {
-        if (this.editingStock === null || this.editingStock === undefined) {
-          console.error('Invalid stock quantity');
-          return;
-        }
-
-        const token = localStorage.getItem('token');
-        let endpoint, payload;
-        
-        if (item.type === 'choice') {
-          // Update choice stock
-          endpoint = `http://localhost:7904/api/products/choices/${item.choice_id}`;
-          payload = { stock: parseInt(this.editingStock) };
-        } else {
-          // Update regular product stock
-          endpoint = `http://localhost:7904/api/products/${item.id}`;
-          payload = { stock_quantity: parseInt(this.editingStock) };
-        }
-
-        const response = await fetch(endpoint, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-          // Update the stock directly in the data
-          item.stock = parseInt(this.editingStock);
-          this.editingId = null;
-          this.editingStock = null;
-          // Refresh dashboard stats
-          await this.fetchDashboardStats();
-        } else {
-          const error = await response.json();
-          throw new Error(error.message || 'Failed to update stock');
-        }
-      } catch (error) {
-        console.error('Error updating stock:', error);
-      }
-    },
 
     formatPrice(price) {
       const num = Number(price);
@@ -785,4 +822,56 @@ tr:nth-child(3) .rank {
     grid-template-columns: 1fr;
   }
   }
+  .save-confirmation-modal {
+  max-width: 400px;
+  text-align: center;
+}
+
+.save-confirmation-modal h2 {
+  color: #1e293b;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.save-confirmation-modal p {
+  margin-bottom: 1.75rem;
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.highlighted-text {
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.confirm-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 120px;
+  transition: all 0.2s ease;
+}
+
+.confirm-btn:hover {
+  background-color: #059669;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
   </style>
