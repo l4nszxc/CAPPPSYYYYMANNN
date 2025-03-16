@@ -4,7 +4,7 @@
         
         <div class="admin-content">
             <div class="header">
-                <h2>MANAGE  PRODUCTS</h2>
+                <h2>MANAGE PRODUCTS</h2>
                 <div class="filters">
                     <div class="search-box">
                         <input 
@@ -37,45 +37,108 @@
                             <th>Name</th>
                             <th>Category</th>
                             <th>Price</th>
+                            <th>Options</th>
                             <th>Stock</th>
                             <th>Total Sold</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="product in filteredProducts" :key="product.products_id">
-                            <td>
-                                <img 
-                                    :src="product.image || '/img/placeholder.jpg'"
-                                    :alt="product.name"
-                                    class="product-image"
-                                    @error="handleImageError"
-                                >
-                            </td>
-                            <td>{{ product.name }}</td>
-                            <td>{{ product.category }}</td>
-                            <td>₱{{ formatPrice(product.price) }}</td>
-                            <td>
-                                <span 
-                                    :class="getStockStatusClass(product.stock_quantity)" 
-                                    class="stock-badge">
-                                    {{ product.stock_quantity }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="sales-badge" :class="getSalesStatusClass(product.total_sold)">
-                                    {{ product.total_sold || 0 }}
-                                </span>
-                            </td>
-                            <td>
-                                <button @click="showEditModal(product)" class="edit-btn">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button @click="showDeleteConfirmation(product)" class="delete-btn">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>
+                        <template v-for="product in filteredProducts" :key="product.products_id">
+                            <!-- Main product row -->
+                            <tr :class="{'product-row': true}">
+                                <td>
+                                    <img 
+                                        :src="product.image || '/img/placeholder.jpg'"
+                                        :alt="product.name"
+                                        class="product-image"
+                                        @error="handleImageError"
+                                    >
+                                </td>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.category }}</td>
+                                <td>₱{{ formatPrice(product.price) }}</td>
+                                <td>
+                                    <div class="options-count">
+                                        <span v-if="product.choices && product.choices.length">
+                                            {{ product.choices.length }} options
+                                            <button @click="toggleChoices(product)" class="toggle-choices-btn">
+                                                <i :class="['fas', expandedProducts.has(product.products_id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+                                            </button>
+                                        </span>
+                                        <span v-else>No options</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span 
+                                        :class="getStockStatusClass(product.stock_quantity)" 
+                                        class="stock-badge">
+                                        {{ product.stock_quantity }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="sales-badge" :class="getSalesStatusClass(product.total_sold)">
+                                        {{ product.total_sold || 0 }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button @click="showEditModal(product)" class="edit-btn">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button @click="showDeleteConfirmation(product)" class="delete-btn">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                            
+                            <!-- Product choices row (conditionally rendered) -->
+                            <tr v-if="expandedProducts.has(product.products_id) && product.choices && product.choices.length > 0"
+                                :key="`choices-${product.products_id}`" 
+                                class="choices-row">
+                                <td colspan="8">
+                                    <div class="choices-container">
+                                        <h4>Product Options for {{ product.name }}</h4>
+                                        <table class="choices-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Image</th>
+                                                    <th>Option Name</th>
+                                                    <th>Price</th>
+                                                    <th>Stock</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="choice in product.choices" :key="choice.choice_id">
+                                                    <td>
+                                                        <img 
+                                                            :src="choice.image || product.image || '/img/placeholder.jpg'"
+                                                            :alt="choice.name"
+                                                            class="choice-image"
+                                                            @error="handleImageError"
+                                                        >
+                                                    </td>
+                                                    <td>{{ choice.name }}</td>
+                                                    <td>₱{{ formatPrice(choice.price) }}</td>
+                                                    <td>
+                                                        <span 
+                                                            :class="getStockStatusClass(choice.stock)" 
+                                                            class="stock-badge">
+                                                            {{ choice.stock }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <button @click="showEditChoiceModal(choice, product)" class="edit-choice-btn">
+                                                            <i class="fas fa-edit"></i> Edit
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
                     </tbody>
                 </table>
                 <div v-else class="no-results">
@@ -113,16 +176,13 @@
                     <div class="form-group">
                         <label for="category">Category</label>
                         <select id="category" v-model="editingProduct.category" required>
-                            <option value="Fruits & Vegetables">Fruits & Vegetables</option>
-                            <option value="Dairy & Eggs">Dairy & Eggs</option>
-                            <option value="Meat & Seafood">Meat & Seafood</option>
                             <option value="Beverages">Beverages</option>
-                            <option value="Bakery & Snacks">Bakery & Snacks</option>
-                            <option value="Canned & Packaged Goods">Canned & Packaged Goods</option>
-                            <option value="Frozen Foods">Frozen Foods</option>
-                            <option value="Grains & Pasta">Grains & Pasta</option>
-                            <option value="Condiments & Sauces">Condiments & Sauces</option>
-                            <option value="Spices & Seasonings">Spices & Seasonings</option>
+                            <option value="Milk and Chocolate Drink">Milk and Chocolate Drink</option>
+                            <option value="Coffee and Creamer">Coffee and Creamer</option>
+                            <option value="Condiments">Condiments</option>
+                            <option value="Canned Goods">Canned Goods</option>
+                            <option value="Biscuits">Biscuits</option>
+                            <option value="Candies and Snacks">Candies and Snacks</option>
                         </select>
                     </div>
                     
@@ -143,11 +203,50 @@
             </div>
         </div>
 
+        <!-- Edit Choice Modal -->
+        <div v-if="showChoiceModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2>Edit Product Option</h2>
+                <h3>{{ editingChoiceProductName }}</h3>
+                <form @submit.prevent="handleEditChoiceSubmit" class="edit-form">
+                    <div class="form-group">
+                        <label for="choiceName">Option Name</label>
+                        <input type="text" id="choiceName" v-model="editingChoice.name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="choicePrice">Price</label>
+                        <input type="number" id="choicePrice" v-model="editingChoice.price" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="choiceStock">Stock Quantity</label>
+                        <input type="number" id="choiceStock" v-model="editingChoice.stock" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="choiceImage">New Image (optional)</label>
+                        <input type="file" id="choiceImage" @change="handleChoiceImageUpload" accept="image/*">
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button type="submit" class="save-btn">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <button type="button" @click="closeChoiceModal" class="cancel-btn">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <LogoutModal 
             :show="showLogoutModal"
             @confirm="handleLogout"
             @cancel="showLogoutModal = false"
         />
+
         <div v-if="showDeleteModal" class="modal-overlay">
             <div class="modal-content delete-modal">
                 <h2>Delete Product</h2>
@@ -181,12 +280,17 @@ export default {
             products: [],
             showLogoutModal: false,
             showModal: false,
+            showChoiceModal: false,
             editingProduct: null,
+            editingChoice: null,
+            editingChoiceProductName: '',
             newImage: null,
+            newChoiceImage: null,
             searchQuery: '', 
-            selectedCategory: '' ,
+            selectedCategory: '',
             showDeleteModal: false,
             productToDelete: null,
+            expandedProducts: new Set()
         };
     },
     computed: {
@@ -202,17 +306,38 @@ export default {
         }
     },
     methods: {
+        toggleChoices(product) {
+            if (!product || typeof product.products_id === 'undefined') {
+                console.error('Invalid product or missing product ID', product);
+                return;
+            }
+            
+            if (this.expandedProducts.has(product.products_id)) {
+                this.expandedProducts.delete(product.products_id);
+            } else {
+                this.expandedProducts.add(product.products_id);
+            }
+        },
+        
         getSalesStatusClass(totalSold) {
+            totalSold = parseInt(totalSold) || 0;
             if (totalSold >= 50) return 'high-sales';
             if (totalSold >= 20) return 'good-sales';
             if (totalSold > 0) return 'some-sales';
             return 'no-sales';
         },
+        
         getStockStatusClass(stock) {
-            if (stock <= 5) return 'critical-stock';
-            if (stock <= 10) return 'low-stock';
+            stock = parseInt(stock) || 0;
+            if (stock <= 10) return 'critical-stock';
+            if (stock <= 20) return 'low-stock';
+            return 'normal-stock';
+        },tatusClass(stock) {
+            if (stock <= 10) return 'critical-stock';
+            if (stock <= 20) return 'low-stock';
             return 'normal-stock';
         },
+        
         showDeleteConfirmation(product) {
             this.productToDelete = product;
             this.showDeleteModal = true;
@@ -226,7 +351,7 @@ export default {
         async confirmDelete() {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`http://localhost:7904/api/admin/products/${this.productToDelete.products_id}`, {
+                const response = await fetch(`http://localhost:7904/api/products/${this.productToDelete.products_id}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -248,13 +373,20 @@ export default {
                 // You could add error notification here
             }
         },
+        
         resetFilters() {
             this.searchQuery = '';
             this.selectedCategory = '';
         },
+        
         async fetchProducts() {
             try {
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    this.$router.push('/login');
+                    return;
+                }
+                
                 const response = await fetch('http://localhost:7904/api/products', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -266,8 +398,11 @@ export default {
                     const data = await response.json();
                     this.products = data.map(product => ({
                         ...product,
-                        total_sold: parseInt(product.total_sold) || 0
+                        total_sold: parseInt(product.total_sold) || 0,
+                        choices: Array.isArray(product.choices) ? product.choices : []
                     }));
+                    // Debug log to verify data
+                    console.log("Fetched products:", this.products);
                 } else {
                     console.error('Failed to fetch products:', response.status);
                 }
@@ -275,27 +410,64 @@ export default {
                 console.error('Error fetching products:', error);
             }
         },
+        
         formatPrice(price) {
             return Number(price).toFixed(2);
         },
+        
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg';
         },
+        
         showEditModal(product) {
             this.editingProduct = { ...product };
             this.showModal = true;
         },
+        
         closeModal() {
             this.showModal = false;
             this.editingProduct = null;
             this.newImage = null;
         },
-        handleImageUpload(event) {
-            this.newImage = event.target.files[0];
+        
+        showEditChoiceModal(choice, product) {
+            if (!choice || !product) {
+                console.error('Invalid choice or product', { choice, product });
+                return;
+            }
+            
+            this.editingChoice = { ...choice };
+            this.editingChoiceProductName = product.name || 'Unknown Product';
+            this.showChoiceModal = true;
         },
+        
+        closeChoiceModal() {
+            this.showChoiceModal = false;
+            this.editingChoice = null;
+            this.editingChoiceProductName = '';
+            this.newChoiceImage = null;
+        },
+        
+        handleImageUpload(event) {
+            if (event.target.files && event.target.files[0]) {
+                this.newImage = event.target.files[0];
+                console.log('Main product image selected:', this.newImage.name);
+            }
+        },
+
+        handleChoiceImageUpload(event) {
+            if (event.target.files && event.target.files[0]) {
+                this.newChoiceImage = event.target.files[0];
+                console.log('Choice image selected:', this.newChoiceImage.name);
+            }
+        },
+        
         async handleEditSubmit() {
             try {
                 const token = localStorage.getItem('token');
+                
+                console.log('Editing product:', this.editingProduct);
+                console.log('Has new image?', this.newImage ? 'Yes' : 'No');
                 
                 // Create FormData for the request
                 const formData = new FormData();
@@ -307,29 +479,125 @@ export default {
 
                 // Add image if there's a new one
                 if (this.newImage) {
+                    console.log('Attaching image file:', this.newImage.name);
                     formData.append('image', this.newImage);
+                }
+                
+                // Debug log - print all form data being sent
+                console.log('Sending form data with these fields:');
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + (pair[0] === 'image' ? 'File: ' + pair[1].name : pair[1]));
                 }
 
                 const response = await fetch(`http://localhost:7904/api/products/${this.editingProduct.products_id}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`
+                        // Do NOT set Content-Type here - the browser will set it with the proper multipart boundary
                     },
                     body: formData
                 });
 
+                // Parse the response to get the updated image URL
+                const responseData = await response.json();
+                
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Failed to update product');
+                    throw new Error(responseData.message || 'Failed to update product');
                 }
-
-                await this.fetchProducts(); // Refresh products list
+                
+                console.log('Product update response:', responseData);
+                
+                // Instead of using this.$set, directly modify a copy of the products array
+                const updatedProducts = [...this.products];
+                const productIndex = updatedProducts.findIndex(p => p.products_id === this.editingProduct.products_id);
+                
+                if (productIndex !== -1) {
+                    // Create updated product with all edited fields
+                    const updatedProduct = { 
+                        ...updatedProducts[productIndex],
+                        name: this.editingProduct.name,
+                        description: this.editingProduct.description,
+                        price: parseFloat(this.editingProduct.price),
+                        stock_quantity: parseInt(this.editingProduct.stock_quantity),
+                        category: this.editingProduct.category
+                    };
+                    
+                    // If we have a new image URL in the response, update that too
+                    if (responseData.imageUrl) {
+                        updatedProduct.image = responseData.imageUrl;
+                        console.log('Updated product image to:', responseData.imageUrl);
+                    }
+                    
+                    // Replace the product in the array
+                    updatedProducts[productIndex] = updatedProduct;
+                    
+                    // Update the products array
+                    this.products = updatedProducts;
+                    console.log('Updated product in local array');
+                }
+                
                 this.closeModal();
             } catch (error) {
                 console.error('Error updating product:', error);
                 // Add error handling UI feedback here if needed
             }
         },
+        
+        async handleEditChoiceSubmit() {
+            try {
+                if (!this.editingChoice || !this.editingChoice.choice_id) {
+                    console.error('Invalid choice data', this.editingChoice);
+                    return;
+                }
+                
+                const token = localStorage.getItem('token');
+                
+                // Create FormData for the request
+                const formData = new FormData();
+                
+                // Add all form fields
+                formData.append('name', this.editingChoice.name);
+                formData.append('price', parseFloat(this.editingChoice.price));
+                formData.append('stock', parseInt(this.editingChoice.stock));
+
+                // Add image if there's a new one - fixed field name to match the controller
+                if (this.newChoiceImage) {
+                    console.log('Attaching image file:', this.newChoiceImage.name);
+                    formData.append('image', this.newChoiceImage);
+                }
+
+                // Debug log - should see name, price, stock and image if available
+                console.log('Sending form data with these fields:');
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + (pair[0] === 'image' ? 'File: ' + pair[1].name : pair[1]));
+                }
+                
+                const response = await fetch(`http://localhost:7904/api/products/choices/${this.editingChoice.choice_id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                        // Do NOT set Content-Type here - the browser will set it with the proper multipart boundary
+                    },
+                    body: formData
+                });
+
+                const responseData = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(responseData.message || 'Failed to update product option');
+                }
+
+                console.log('Product choice update successful:', responseData);
+                
+                // Refresh products list to show updated data
+                await this.fetchProducts();
+                this.closeChoiceModal();
+            } catch (error) {
+                console.error('Error updating product choice:', error);
+                // Add error notification here if you have one
+            }
+        },
+        
         async handleLogout() {
             try {
                 const token = localStorage.getItem('token');
@@ -523,6 +791,7 @@ tbody tr:hover {
     color: #475569;
     background-color: #f1f5f9;
 }
+
 .high-sales {
     color: #15803d;
     background-color: #dcfce7;
@@ -542,6 +811,7 @@ tbody tr:hover {
     color: #6b7280;
     background-color: #f3f4f6;
 }
+
 .highlight-sales {
     color: #047857;
     background-color: #ecfdf5;
@@ -550,6 +820,7 @@ tbody tr:hover {
     font-size: 0.875rem;
     font-weight: 500;
 }
+
 .edit-btn {
     padding: 0.5rem 1rem;
     background-color: #3b82f6;
@@ -565,6 +836,86 @@ tbody tr:hover {
 }
 
 .edit-btn:hover {
+    background-color: #2563eb;
+}
+
+/* Product Choices Styles */
+.options-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toggle-choices-btn {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.toggle-choices-btn:hover {
+    color: #2563eb;
+}
+
+.choices-row {
+    background-color: #f8fafc;
+}
+
+.choices-container {
+    padding: 1rem;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+}
+
+.choices-container h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #1e293b;
+    font-size: 1rem;
+}
+
+.choices-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.choices-table th {
+    background-color: #e2e8f0;
+    font-size: 0.875rem;
+    padding: 0.75rem;
+}
+
+.choices-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.choice-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.edit-choice-btn {
+    padding: 0.4rem 0.75rem;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+}
+
+.edit-choice-btn:hover {
     background-color: #2563eb;
 }
 
@@ -590,6 +941,13 @@ tbody tr:hover {
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+}
+
+.modal-content h3 {
+    color: #6b7280;
+    font-size: 1rem;
+    margin-top: -1rem;
+    margin-bottom: 1.5rem;
 }
 
 .edit-form {
@@ -660,6 +1018,7 @@ tbody tr:hover {
     color: #6b7280;
     font-size: 1rem;
 }
+
 .delete-btn {
     padding: 0.5rem 1rem;
     background-color: #ef4444;

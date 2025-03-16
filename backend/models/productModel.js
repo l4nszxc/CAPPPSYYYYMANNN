@@ -116,6 +116,9 @@ class Product {
     }
     static async updateChoice(choiceId, updates) {
         try {
+            console.log('Updating choice with ID:', choiceId);
+            console.log('Updates:', updates);
+    
             // Filter out undefined and null values
             const validUpdates = Object.entries(updates)
                 .filter(([_, value]) => value !== undefined && value !== null)
@@ -124,6 +127,8 @@ class Product {
                     return acc;
                 }, {});
     
+            console.log('Valid updates after filtering:', validUpdates);
+            
             if (Object.keys(validUpdates).length === 0) {
                 throw new Error('No valid updates provided');
             }
@@ -133,11 +138,16 @@ class Product {
                 .join(', ');
             const values = [...Object.values(validUpdates), choiceId];
             
+            console.log('SQL Set clause:', setClause);
+            console.log('SQL Values:', values);
+            
             const [result] = await db.execute(
                 `UPDATE product_choices SET ${setClause} WHERE choice_id = ?`,
                 values
             );
-    
+            
+            console.log('Update result:', result);
+            
             return result;
         } catch (error) {
             console.error('Database error:', error);
