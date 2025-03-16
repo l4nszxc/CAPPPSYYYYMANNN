@@ -7,6 +7,7 @@ const productRoutes = require('./routes/productRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const staffRoutes = require('./routes/staffRoutes');
+const rewardRoutes = require('./routes/rewardRoutes');
 const path = require('path');
 require('dotenv').config();
 
@@ -43,6 +44,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/rewards', rewardRoutes);
 
 
 const PORT = 7904;

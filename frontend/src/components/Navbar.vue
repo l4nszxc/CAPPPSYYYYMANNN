@@ -10,6 +10,9 @@
     <div class="navbar-menu">
       <router-link to="/home" class="nav-link">Home</router-link>
       <router-link to="/products" class="nav-link">Products</router-link>
+      <router-link to="/rewards" class="nav-link">
+        <i class="fas fa-gift"></i> Rewards
+      </router-link>
     </div>
 
     <div class="navbar-end">

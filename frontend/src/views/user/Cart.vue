@@ -170,12 +170,13 @@ export default {
             try {
                 const token = localStorage.getItem('token');
                 
-                // Format items for the backend - ensure we're sending product_id, choice_id, and price
+                // Format items for the backend
                 const itemsForBackend = updatedItems.map(item => ({
                     product_id: item.product_id,
                     quantity: item.quantity,
                     choice_id: item.choice_id || null,
-                    price: parseFloat(item.price) || 0
+                    price: parseFloat(item.price) || 0,
+                    id: item.id // Make sure to include the cart item ID
                 }));
                 
                 const response = await fetch('http://localhost:7904/api/orders', {
@@ -194,13 +195,29 @@ export default {
 
                 if (response.ok) {
                     const { orderId } = await response.json();
-                    this.showOrdersModal = false;
+                    
+                    // Clear checked items from cart
+                    for (const item of updatedItems) {
+                        if (item.id) {
+                            await this.removeFromCart(item.id);
+                        }
+                    }
+
+                    // Clear local selections
                     this.checkedItems.clear();
+                    
+                    // Refresh cart data
                     await this.fetchCart();
+                    
+                    // Close modal and redirect
+                    this.showOrdersModal = false;
                     this.$router.push('/order-history');
+                } else {
+                    throw new Error('Failed to place order');
                 }
             } catch (error) {
                 console.error('Error placing order:', error);
+                alert('Failed to place order. Please try again.');
             }
         },
         

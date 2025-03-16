@@ -41,6 +41,11 @@
         <i class="fas fa-user-plus"></i>
         <span>Recruit Staff</span>
       </router-link>
+      
+      <router-link to="/admin/rewards" class="menu-item" active-class="active">
+        <i class="fas fa-gift"></i>
+        <span>Rewards Management</span>
+      </router-link>
     </div>
 
     <!-- Rest of the template remains the same -->

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 16, 2025 at 09:24 AM
+-- Generation Time: Mar 16, 2025 at 02:20 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -62,6 +62,8 @@ INSERT INTO `orders` (`order_id`, `user_id`, `total_amount`, `status`, `created_
 ('1657370', 58, 1040.00, 'paid', '2025-03-15 08:21:08', '2025-03-15 08:40:51', NULL, 23, '2025-03-15 16:27:20'),
 ('2361909', 58, 999.00, 'paid', '2025-03-14 12:54:39', '2025-03-15 02:19:49', NULL, 23, '2025-03-15 10:19:31'),
 ('2767784', 58, 224.00, 'pending', '2025-03-15 03:29:35', '2025-03-15 03:29:35', NULL, NULL, NULL),
+('5220016', 58, 110.00, 'paid', '2025-03-16 12:29:58', '2025-03-16 14:15:56', NULL, 23, '2025-03-16 22:15:40'),
+('5586476', 58, 12547.00, 'paid', '2025-03-16 09:30:24', '2025-03-16 09:31:36', NULL, 23, '2025-03-16 17:30:39'),
 ('6881139', 58, 98000.00, 'paid', '2025-03-15 08:42:53', '2025-03-15 08:43:27', NULL, 23, '2025-03-15 16:43:08'),
 ('8224349', 58, 520.00, 'pending', '2025-03-15 07:46:08', '2025-03-15 07:46:08', NULL, NULL, NULL),
 ('9265881', 58, 32.00, 'paid', '2025-03-15 03:13:14', '2025-03-15 03:31:24', NULL, 60, '2025-03-15 11:21:52');
@@ -92,7 +94,10 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`, 
 (98, '8224349', 26, 13, 40.00, NULL),
 (99, '1657370', 25, 1, 40.00, NULL),
 (100, '1657370', 26, 5, 200.00, 4),
-(101, '6881139', 26, 490, 200.00, 4);
+(101, '6881139', 26, 490, 200.00, 4),
+(102, '5586476', 27, 4, 3131.00, 6),
+(103, '5586476', 27, 1, 23.00, 5),
+(104, '5220016', 22, 5, 22.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -117,13 +122,14 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`products_id`, `name`, `description`, `price`, `stock_quantity`, `category`, `image`, `created_at`, `updated_at`) VALUES
-(10, 'ffdfdff', 'hello world zxc', 333.00, 9, 'Beverages', 'https://i.ibb.co/Kck1MWYL/4f38c21520ba.jpg', '2025-03-14 12:13:24', '2025-03-15 13:32:55'),
-(19, 'Lans sa Lorence', 'sa', 32.00, 29, 'Condiments & Sauces', 'https://i.ibb.co/xKr7PR7H/5ad3d88f58f7.png', '2025-03-14 11:02:14', '2025-03-15 13:43:16'),
-(22, 'alfonso', 'asdads', 22.00, 11, 'Beverages', 'https://i.ibb.co/JWpGrGCZ/3d7369fc63fc.jpg', '2025-03-15 03:44:48', '2025-03-15 13:41:16'),
+(10, 'zxczxczxczxczxcxzcxzczxcxz', 'hello world zxc', 333.00, 9, 'Beverages', 'https://i.ibb.co/Kck1MWYL/4f38c21520ba.jpg', '2025-03-14 12:13:24', '2025-03-16 09:48:39'),
+(19, 'Lans sa Lorence', 'sa', 32.00, 29, 'Condiments', 'https://i.ibb.co/xKr7PR7H/5ad3d88f58f7.png', '2025-03-14 11:02:14', '2025-03-16 09:27:41'),
+(22, 'alfonso', 'asdads', 22.00, 6, 'Beverages', 'https://i.ibb.co/TDxYJwhr/bf62ee51614b.jpg', '2025-03-15 03:44:48', '2025-03-16 12:29:58'),
 (23, 'alfonso', 'dasdsa', 100.00, 500, 'Beverages', 'https://i.ibb.co/VWsng8Jw/3caa5a7fcce3.jpg', '2025-03-15 03:55:49', '2025-03-15 03:55:49'),
 (24, 'try test', 'try', 40.00, 40, 'Beverages', 'https://i.ibb.co/nNw52CdX/3a3b95a83d4b.jpg', '2025-03-15 04:07:22', '2025-03-15 04:07:22'),
-(25, 'zxczxczxc', 'zxc', 40.00, 10, 'Dairy & Eggs', 'https://i.ibb.co/4nXCrF40/62f05f8bab90.jpg', '2025-03-15 04:09:20', '2025-03-15 13:40:55'),
-(26, 'zxczxczxc try try', 'zxc try', 40.00, 10, 'Beverages', 'https://i.ibb.co/qLMbZG0M/0fd633750047.jpg', '2025-03-15 07:31:06', '2025-03-15 13:40:58');
+(25, 'zxczxczxc', 'zxc', 40.00, 10, 'Milk and Chocolate Drink', 'https://i.ibb.co/JFKdHGG6/53df8be31bd3.jpg', '2025-03-15 04:09:20', '2025-03-16 10:09:42'),
+(26, 'zxczxczxc try try', 'zxc try', 40.00, 10, 'Beverages', 'https://i.ibb.co/dJtP8hXJ/3024d5daf349.jpg', '2025-03-15 07:31:06', '2025-03-16 10:07:03'),
+(27, 'snacks try', 'zxc', 22.00, 20, 'Candies and Snacks', 'https://i.ibb.co/FLhQk98V/e8e560350aa4.jpg', '2025-03-16 09:29:06', '2025-03-16 09:29:06');
 
 -- --------------------------------------------------------
 
@@ -148,7 +154,33 @@ INSERT INTO `product_choices` (`choice_id`, `product_id`, `name`, `price`, `stoc
 (1, 26, '375ml', 200.00, 500, 'https://i.ibb.co/S4nmLC2h/fb6a46470bc1.jpg'),
 (2, 26, '750ml', 200.00, 500, 'https://i.ibb.co/W4wnXx3c/4d7c3a536e7c.jpg'),
 (3, 26, '1 Liter', 200.00, 500, 'https://i.ibb.co/FkfqmfFJ/7cba9faec069.jpg'),
-(4, 26, '1.75 Liter', 200.00, 11, 'https://i.ibb.co/XZ2WL7mw/aaf8421af121.jpg');
+(4, 26, '1.75 Liter', 200.00, 11, 'https://i.ibb.co/XZ2WL7mw/aaf8421af121.jpg'),
+(5, 27, 'Mini (15g)', 23.00, 8, 'https://i.ibb.co/9kvrSmgG/1e10af4518c1.jpg'),
+(6, 27, 'Regular (30g)', 3131.00, 39, 'https://i.ibb.co/qM8PVC64/fe09aa2dc4e1.jpg'),
+(7, 27, 'Sharing (75g)', 42.00, 44, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reward_tiers`
+--
+
+CREATE TABLE `reward_tiers` (
+  `id` int NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `points_required` int NOT NULL,
+  `discount_amount` decimal(10,2) NOT NULL,
+  `description` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `reward_tiers`
+--
+
+INSERT INTO `reward_tiers` (`id`, `name`, `points_required`, `discount_amount`, `description`) VALUES
+(1, 'Bronze Reward', 100, 50.00, '₱50 off your next purchase'),
+(2, 'Silver Reward', 200, 100.00, '₱100 off your next purchase'),
+(3, 'Gold Reward', 500, 250.00, '₱250 off your next purchase');
 
 -- --------------------------------------------------------
 
@@ -191,6 +223,28 @@ INSERT INTO `users` (`id`, `username`, `firstname`, `middlename`, `lastname`, `g
 (58, 'L4nszxc_09', 'Lans Lorence', 'Navarro', 'Hernandez', 'male', 'single', '09127649805', 'Ibaba West, Calapan City, Oriental Mindoro', '2004-07-09', 'lanslorence@gmail.com', '$2a$10$z4qsUgfnimoeNljOb83iy.ZyoesJyUPl6qLsxAo1YN03af72K.g0.', '2025-02-16 06:14:39', NULL, NULL, 1, 'user', NULL, NULL, 'https://i.ibb.co/j9Vw6DBJ/93808054dac3.jpg'),
 (59, 'norman123', 'Lansdsadsa', 'sadasd', 'Losdadsarence', 'female', 'single', '09127649805', 'Zone 3321', '2025-02-16', 'l4nsh3rn4nd3z@gmail.com', '$2a$10$AO6fKFsPsvFCfhHg9X9GxOMFmeeWkcCzFNArxLDNL/6RQXkrev6o6', '2025-02-16 13:53:55', NULL, NULL, 1, 'user', NULL, NULL, NULL),
 (60, 'saddsaddasdsa', 'sda', 'fdgd', 'fdgf', 'male', 'married', '3232432', 'dsadsa', '2025-02-26', 'sa@gmail.com', '$2a$10$rtbD7y7bDxqiyrlvtmoYROheqdfqRbI2RSIFQX/DKkj.lly8B474.', '2025-02-25 18:02:55', NULL, NULL, 1, 'staff', NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_rewards`
+--
+
+CREATE TABLE `user_rewards` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `order_id` char(7) DEFAULT NULL,
+  `points` int NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `user_rewards`
+--
+
+INSERT INTO `user_rewards` (`id`, `user_id`, `order_id`, `points`, `description`, `created_at`) VALUES
+(1, 58, '5220016', 1, 'Earned points from order #5220016', '2025-03-16 12:29:58');
 
 --
 -- Indexes for dumped tables
@@ -235,11 +289,24 @@ ALTER TABLE `product_choices`
   ADD KEY `product_id` (`product_id`);
 
 --
+-- Indexes for table `reward_tiers`
+--
+ALTER TABLE `reward_tiers`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `user_rewards`
+--
+ALTER TABLE `user_rewards`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -249,31 +316,43 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=134;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `products_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `products_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `product_choices`
 --
 ALTER TABLE `product_choices`
-  MODIFY `choice_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `choice_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT for table `reward_tiers`
+--
+ALTER TABLE `reward_tiers`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+
+--
+-- AUTO_INCREMENT for table `user_rewards`
+--
+ALTER TABLE `user_rewards`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
@@ -306,6 +385,12 @@ ALTER TABLE `order_items`
 --
 ALTER TABLE `product_choices`
   ADD CONSTRAINT `product_choices_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`products_id`);
+
+--
+-- Constraints for table `user_rewards`
+--
+ALTER TABLE `user_rewards`
+  ADD CONSTRAINT `user_rewards_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

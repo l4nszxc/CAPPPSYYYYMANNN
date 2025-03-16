@@ -14,6 +14,8 @@ import InsertProducts from '../views/admin/InsertProducts.vue'
 import Cart from '../views/user/Cart.vue'
 import OrderHistory from '../views/user/OrderHistory.vue'
 import ViewOrder from '../views/user/ViewOrder.vue'
+import Rewards from '../views/user/Rewards.vue'
+import RewardsManagement from '../views/admin/RewardsManagement.vue'
 
 const routes = [
   {
@@ -80,6 +82,12 @@ const routes = [
     component: ViewOrder,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/rewards',
+    name: 'Rewards',
+    component: Rewards,
+    meta: { requiresAuth: true }
+  },
 
 
 
@@ -113,7 +121,8 @@ const routes = [
     {
       path: '/admin/products',
       name: 'AllProducts',
-      component: () => import('../views/admin/AllProducts.vue')
+      component: () => import('../views/admin/AllProducts.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
     },
     {
       path: '/admin/staff',
@@ -125,6 +134,12 @@ const routes = [
       path: '/admin/orders',
       name: 'AllOrders',
       component: () => import('../views/admin/AllOrders.vue'),
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/rewards',
+      name: 'RewardsManagement',
+      component: RewardsManagement,
       meta: { requiresAuth: true, requiresAdmin: true }
     },
 
