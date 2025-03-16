@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 15, 2025 at 07:11 AM
+-- Generation Time: Mar 16, 2025 at 09:24 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -59,8 +59,11 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `user_id`, `total_amount`, `status`, `created_at`, `updated_at`, `cancel_reason`, `accepted_by`, `accepted_at`) VALUES
+('1657370', 58, 1040.00, 'paid', '2025-03-15 08:21:08', '2025-03-15 08:40:51', NULL, 23, '2025-03-15 16:27:20'),
 ('2361909', 58, 999.00, 'paid', '2025-03-14 12:54:39', '2025-03-15 02:19:49', NULL, 23, '2025-03-15 10:19:31'),
 ('2767784', 58, 224.00, 'pending', '2025-03-15 03:29:35', '2025-03-15 03:29:35', NULL, NULL, NULL),
+('6881139', 58, 98000.00, 'paid', '2025-03-15 08:42:53', '2025-03-15 08:43:27', NULL, 23, '2025-03-15 16:43:08'),
+('8224349', 58, 520.00, 'pending', '2025-03-15 07:46:08', '2025-03-15 07:46:08', NULL, NULL, NULL),
 ('9265881', 58, 32.00, 'paid', '2025-03-15 03:13:14', '2025-03-15 03:31:24', NULL, 60, '2025-03-15 11:21:52');
 
 -- --------------------------------------------------------
@@ -74,17 +77,22 @@ CREATE TABLE `order_items` (
   `order_id` char(7) DEFAULT NULL,
   `product_id` int DEFAULT NULL,
   `quantity` int NOT NULL,
-  `price` decimal(10,2) NOT NULL
+  `price` decimal(10,2) NOT NULL,
+  `choice_id` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `order_items`
 --
 
-INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`) VALUES
-(95, '2361909', 10, 3, 333.00),
-(96, '9265881', 19, 1, 32.00),
-(97, '2767784', 19, 7, 32.00);
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`, `choice_id`) VALUES
+(95, '2361909', 10, 3, 333.00, NULL),
+(96, '9265881', 19, 1, 32.00, NULL),
+(97, '2767784', 19, 7, 32.00, NULL),
+(98, '8224349', 26, 13, 40.00, NULL),
+(99, '1657370', 25, 1, 40.00, NULL),
+(100, '1657370', 26, 5, 200.00, 4),
+(101, '6881139', 26, 490, 200.00, 4);
 
 -- --------------------------------------------------------
 
@@ -109,12 +117,13 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`products_id`, `name`, `description`, `price`, `stock_quantity`, `category`, `image`, `created_at`, `updated_at`) VALUES
-(10, 'ffdfdff', 'hello world zxc', 333.00, 18, 'Beverages', 'https://i.ibb.co/Kck1MWYL/4f38c21520ba.jpg', '2025-03-14 12:13:24', '2025-03-15 02:21:01'),
-(19, 'Lans sa Lorence', 'sa', 32.00, 4, 'Condiments & Sauces', 'https://i.ibb.co/xKr7PR7H/5ad3d88f58f7.png', '2025-03-14 11:02:14', '2025-03-15 03:29:35'),
-(22, 'alfonso', 'asdads', 22.00, 23, 'Beverages', 'https://i.ibb.co/JWpGrGCZ/3d7369fc63fc.jpg', '2025-03-15 03:44:48', '2025-03-15 03:44:48'),
+(10, 'ffdfdff', 'hello world zxc', 333.00, 9, 'Beverages', 'https://i.ibb.co/Kck1MWYL/4f38c21520ba.jpg', '2025-03-14 12:13:24', '2025-03-15 13:32:55'),
+(19, 'Lans sa Lorence', 'sa', 32.00, 29, 'Condiments & Sauces', 'https://i.ibb.co/xKr7PR7H/5ad3d88f58f7.png', '2025-03-14 11:02:14', '2025-03-15 13:43:16'),
+(22, 'alfonso', 'asdads', 22.00, 11, 'Beverages', 'https://i.ibb.co/JWpGrGCZ/3d7369fc63fc.jpg', '2025-03-15 03:44:48', '2025-03-15 13:41:16'),
 (23, 'alfonso', 'dasdsa', 100.00, 500, 'Beverages', 'https://i.ibb.co/VWsng8Jw/3caa5a7fcce3.jpg', '2025-03-15 03:55:49', '2025-03-15 03:55:49'),
 (24, 'try test', 'try', 40.00, 40, 'Beverages', 'https://i.ibb.co/nNw52CdX/3a3b95a83d4b.jpg', '2025-03-15 04:07:22', '2025-03-15 04:07:22'),
-(25, 'zxczxczxc', 'zxc', 40.00, 40, 'Dairy & Eggs', 'https://i.ibb.co/4nXCrF40/62f05f8bab90.jpg', '2025-03-15 04:09:20', '2025-03-15 04:09:20');
+(25, 'zxczxczxc', 'zxc', 40.00, 10, 'Dairy & Eggs', 'https://i.ibb.co/4nXCrF40/62f05f8bab90.jpg', '2025-03-15 04:09:20', '2025-03-15 13:40:55'),
+(26, 'zxczxczxc try try', 'zxc try', 40.00, 10, 'Beverages', 'https://i.ibb.co/qLMbZG0M/0fd633750047.jpg', '2025-03-15 07:31:06', '2025-03-15 13:40:58');
 
 -- --------------------------------------------------------
 
@@ -127,8 +136,19 @@ CREATE TABLE `product_choices` (
   `product_id` int DEFAULT NULL,
   `name` varchar(100) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT NULL,
-  `stock` int DEFAULT NULL
+  `stock` int DEFAULT NULL,
+  `image` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `product_choices`
+--
+
+INSERT INTO `product_choices` (`choice_id`, `product_id`, `name`, `price`, `stock`, `image`) VALUES
+(1, 26, '375ml', 200.00, 500, 'https://i.ibb.co/S4nmLC2h/fb6a46470bc1.jpg'),
+(2, 26, '750ml', 200.00, 500, 'https://i.ibb.co/W4wnXx3c/4d7c3a536e7c.jpg'),
+(3, 26, '1 Liter', 200.00, 500, 'https://i.ibb.co/FkfqmfFJ/7cba9faec069.jpg'),
+(4, 26, '1.75 Liter', 200.00, 11, 'https://i.ibb.co/XZ2WL7mw/aaf8421af121.jpg');
 
 -- --------------------------------------------------------
 
@@ -229,25 +249,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=127;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `products_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `products_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `product_choices`
 --
 ALTER TABLE `product_choices`
-  MODIFY `choice_id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `choice_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`

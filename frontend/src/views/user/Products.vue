@@ -22,16 +22,13 @@
                     <label for="category"><i class="fas fa-filter"></i> Category:</label>
                     <select id="category" v-model="selectedCategory" @change="fetchProducts">
                         <option value="">All Categories</option>
-                        <option value="Fruits & Vegetables">Fruits & Vegetables</option>
-                        <option value="Dairy & Eggs">Dairy & Eggs</option>
-                        <option value="Meat & Seafood">Meat & Seafood</option>
                         <option value="Beverages">Beverages</option>
-                        <option value="Bakery & Snacks">Bakery & Snacks</option>
-                        <option value="Canned & Packaged Goods">Canned & Packaged Goods</option>
-                        <option value="Frozen Foods">Frozen Foods</option>
-                        <option value="Grains & Pasta">Grains & Pasta</option>
-                        <option value="Condiments & Sauces">Condiments & Sauces</option>
-                        <option value="Spices & Seasonings">Spices & Seasonings</option>
+                        <option value="Milk and Chocolate Drink">Milk and Chocolate Drink</option>
+                        <option value="Coffee and Creamer">Coffee and Creamer</option>
+                        <option value="Condiments">Condiments</option>
+                        <option value="Canned Goods">Canned Goods</option>
+                        <option value="Biscuits">Biscuits</option>
+                        <option value="Candies and Snacks">Candies and Snacks</option>
                     </select>
                 </div>
                 <button @click="resetFilters" class="reset-filter-btn"><i class="fas fa-undo"></i> Reset Filters</button>

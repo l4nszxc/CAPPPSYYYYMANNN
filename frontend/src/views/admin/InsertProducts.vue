@@ -28,16 +28,13 @@
                         <label for="category">Category</label>
                         <select id="category" v-model="product.category" required @change="updateSuggestedChoices">
                             <option value="" disabled>Select a category</option>
-                            <option value="Fruits & Vegetables">Fruits & Vegetables</option>
-                            <option value="Dairy & Eggs">Dairy & Eggs</option>
-                            <option value="Meat & Seafood">Meat & Seafood</option>
                             <option value="Beverages">Beverages</option>
-                            <option value="Bakery & Snacks">Bakery & Snacks</option>
-                            <option value="Canned & Packaged Goods">Canned & Packaged Goods</option>
-                            <option value="Frozen Foods">Frozen Foods</option>
-                            <option value="Grains & Pasta">Grains & Pasta</option>
-                            <option value="Condiments & Sauces">Condiments & Sauces</option>
-                            <option value="Spices & Seasonings">Spices & Seasonings</option>
+                            <option value="Milk and Chocolate Drink">Milk and Chocolate Drink</option>
+                            <option value="Coffee and Creamer">Coffee and Creamer</option>
+                            <option value="Condiments">Condiments</option>
+                            <option value="Canned Goods">Canned Goods</option>
+                            <option value="Biscuits">Biscuits</option>
+                            <option value="Candies and Snacks">Candies and Snacks</option>
                         </select>
                     </div>
 
@@ -161,156 +158,92 @@ export default {
     },
     methods: {
         updateSuggestedChoices() {
-            this.suggestedChoicesVisible = true;
-            
-            // Define suggested choices based on category
-            const categoryChoices = {
-                'Beverages': [
-                    {
-                        label: 'Drink Sizes',
-                        choices: [
-                            { name: '330ml', price: null, stock: null },
-                            { name: '500ml', price: null, stock: null },
-                            { name: '1 Liter', price: null, stock: null },
-                            { name: '1.5 Liter', price: null, stock: null },
-                            { name: '1.65 Liter', price: null, stock: null },
-                            { name: '2 Liter', price: null, stock: null }
-                        ]
-                    },
-                    {
-                        label: 'Alcohol Sizes',
-                        choices: [
-                            { name: '375ml', price: null, stock: null },
-                            { name: '750ml', price: null, stock: null },
-                            { name: '1 Liter', price: null, stock: null },
-                            { name: '1.75 Liter', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Bakery & Snacks': [
-                    {
-                        label: 'Bread Sizes',
-                        choices: [
-                            { name: 'Small', price: null, stock: null },
-                            { name: 'Medium', price: null, stock: null },
-                            { name: 'Large', price: null, stock: null }
-                        ]
-                    },
-                    {
-                        label: 'Pack Sizes',
-                        choices: [
-                            { name: 'Single', price: null, stock: null },
-                            { name: 'Pack of 3', price: null, stock: null },
-                            { name: 'Pack of 6', price: null, stock: null },
-                            { name: 'Family Size', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Dairy & Eggs': [
-                    {
-                        label: 'Milk Sizes',
-                        choices: [
-                            { name: '250ml', price: null, stock: null },
-                            { name: '500ml', price: null, stock: null },
-                            { name: '1 Liter', price: null, stock: null }
-                        ]
-                    },
-                    {
-                        label: 'Egg Packs',
-                        choices: [
-                            { name: '6-pack', price: null, stock: null },
-                            { name: '12-pack', price: null, stock: null },
-                            { name: '24-pack', price: null, stock: null },
-                            { name: '30-pack', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Meat & Seafood': [
-                    {
-                        label: 'Weight Options',
-                        choices: [
-                            { name: '250g', price: null, stock: null },
-                            { name: '500g', price: null, stock: null },
-                            { name: '1kg', price: null, stock: null }
-                        ]
-                    },
-                    {
-                        label: 'Cut Options',
-                        choices: [
-                            { name: 'Fillet', price: null, stock: null },
-                            { name: 'Whole', price: null, stock: null },
-                            { name: 'Sliced', price: null, stock: null },
-                            { name: 'Ground', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Fruits & Vegetables': [
-                    {
-                        label: 'Package Options',
-                        choices: [
-                            { name: 'Per Piece', price: null, stock: null },
-                            { name: '250g Pack', price: null, stock: null },
-                            { name: '500g Pack', price: null, stock: null },
-                            { name: '1kg Pack', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Condiments & Sauces': [
-                    {
-                        label: 'Bottle Sizes',
-                        choices: [
-                            { name: 'Small (100ml)', price: null, stock: null },
-                            { name: 'Medium (250ml)', price: null, stock: null },
-                            { name: 'Large (500ml)', price: null, stock: null },
-                            { name: 'Family Size (1L)', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Frozen Foods': [
-                    {
-                        label: 'Package Sizes',
-                        choices: [
-                            { name: 'Single Serve', price: null, stock: null },
-                            { name: 'Family Size', price: null, stock: null },
-                            { name: 'Party Size', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Grains & Pasta': [
-                    {
-                        label: 'Package Weights',
-                        choices: [
-                            { name: '500g', price: null, stock: null },
-                            { name: '1kg', price: null, stock: null },
-                            { name: '2kg', price: null, stock: null },
-                            { name: '5kg', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Canned & Packaged Goods': [
-                    {
-                        label: 'Can Sizes',
-                        choices: [
-                            { name: 'Small (150g)', price: null, stock: null },
-                            { name: 'Medium (400g)', price: null, stock: null },
-                            { name: 'Large (800g)', price: null, stock: null }
-                        ]
-                    }
-                ],
-                'Spices & Seasonings': [
-                    {
-                        label: 'Container Sizes',
-                        choices: [
-                            { name: 'Small (50g)', price: null, stock: null },
-                            { name: 'Medium (100g)', price: null, stock: null },
-                            { name: 'Large (250g)', price: null, stock: null }
-                        ]
-                    }
+    this.suggestedChoicesVisible = true;
+    
+    // Define suggested choices based on category
+    const categoryChoices = {
+        'Beverages': [
+            {
+                label: 'Drink Sizes',
+                choices: [
+                    { name: '330ml', price: null, stock: null },
+                    { name: '500ml', price: null, stock: null },
+                    { name: '1 Liter', price: null, stock: null },
+                    { name: '1.5 Liter', price: null, stock: null },
+                    { name: '1.65 Liter', price: null, stock: null },
+                    { name: '2 Liter', price: null, stock: null }
                 ]
-            };
-            
-            this.suggestedChoices = categoryChoices[this.product.category] || [];
-        },
+            }
+        ],
+        'Milk and Chocolate Drink': [
+            {
+                label: 'Package Options',
+                choices: [
+                    { name: 'Single Sachet', price: null, stock: null },
+                    { name: 'Small Pack', price: null, stock: null },
+                    { name: 'Medium Pack', price: null, stock: null },
+                    { name: 'Large Pack', price: null, stock: null }
+                ]
+            }
+        ],
+        'Coffee and Creamer': [
+            {
+                label: 'Package Options',
+                choices: [
+                    { name: 'Single Sachet', price: null, stock: null },
+                    { name: 'Small Pack (5 sachets)', price: null, stock: null },
+                    { name: 'Medium Pack (10 sachets)', price: null, stock: null },
+                    { name: 'Large Pack (30 sachets)', price: null, stock: null }
+                ]
+            }
+        ],
+        'Condiments': [
+            {
+                label: 'Bottle Sizes',
+                choices: [
+                    { name: 'Small (100ml)', price: null, stock: null },
+                    { name: 'Medium (250ml)', price: null, stock: null },
+                    { name: 'Large (500ml)', price: null, stock: null },
+                    { name: 'Family Size (1L)', price: null, stock: null }
+                ]
+            }
+        ],
+        'Canned Goods': [
+            {
+                label: 'Can Sizes',
+                choices: [
+                    { name: 'Small (155g)', price: null, stock: null },
+                    { name: 'Medium (380g)', price: null, stock: null },
+                    { name: 'Large (480g)', price: null, stock: null }
+                ]
+            }
+        ],
+        'Biscuits': [
+            {
+                label: 'Package Options',
+                choices: [
+                    { name: 'Single Pack', price: null, stock: null },
+                    { name: 'Pack of 3', price: null, stock: null },
+                    { name: 'Pack of 6', price: null, stock: null },
+                    { name: 'Family Size', price: null, stock: null }
+                ]
+            }
+        ],
+        'Candies and Snacks': [
+            {
+                label: 'Package Options',
+                choices: [
+                    { name: 'Mini (15g)', price: null, stock: null },
+                    { name: 'Regular (30g)', price: null, stock: null },
+                    { name: 'Sharing (75g)', price: null, stock: null },
+                    { name: 'Jumbo (150g)', price: null, stock: null }
+                ]
+            }
+        ]
+    };
+    
+    this.suggestedChoices = categoryChoices[this.product.category] || [];
+},
         
         applyChoices(suggestion) {
             this.choices = JSON.parse(JSON.stringify(suggestion.choices));
