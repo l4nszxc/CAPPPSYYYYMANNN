@@ -248,3 +248,20 @@ exports.updateProductChoice = async (req, res) => {
         res.status(500).json({ message: 'Error updating product choice', error: error.message });
     }
 };
+exports.deleteProductChoice = async (req, res) => {
+    try {
+        const { choiceId } = req.params;
+        
+        if (!choiceId) {
+            return res.status(400).json({ message: 'Choice ID is required' });
+        }
+
+        // Delete the choice
+        await Product.deleteChoice(choiceId);
+
+        res.json({ message: 'Product choice deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting product choice:', error);
+        res.status(500).json({ message: 'Error deleting product choice', error: error.message });
+    }
+};

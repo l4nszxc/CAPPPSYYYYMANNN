@@ -131,6 +131,9 @@
                                                         <button @click="showEditChoiceModal(choice, product)" class="edit-choice-btn">
                                                             <i class="fas fa-edit"></i> Edit
                                                         </button>
+                                                        <button @click="showDeleteChoiceConfirmation(choice, product)" class="delete-choice-btn">
+                                                            <i class="fas fa-trash"></i> Delete
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -261,6 +264,20 @@
                 </div>
             </div>
         </div>
+        <div v-if="showDeleteChoiceModal" class="modal-overlay">
+            <div class="modal-content delete-modal">
+                <h2>Delete Product Option</h2>
+                <p>Are you sure you want to delete "{{ choiceToDelete?.name }}" from "{{ choiceProductName }}"?</p>
+                <div class="modal-buttons">
+                    <button @click="confirmDeleteChoice" class="confirm-delete-btn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button @click="closeDeleteChoiceModal" class="cancel-btn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -290,7 +307,10 @@ export default {
             selectedCategory: '',
             showDeleteModal: false,
             productToDelete: null,
-            expandedProducts: new Set()
+            expandedProducts: new Set(),
+            showDeleteChoiceModal: false,
+            choiceToDelete: null,
+            choiceProductName: '',
         };
     },
     computed: {
@@ -306,6 +326,46 @@ export default {
         }
     },
     methods: {
+        showDeleteChoiceConfirmation(choice, product) {
+            this.choiceToDelete = choice;
+            this.choiceProductName = product.name;
+            this.showDeleteChoiceModal = true;
+        },
+        
+        closeDeleteChoiceModal() {
+            this.showDeleteChoiceModal = false;
+            this.choiceToDelete = null;
+            this.choiceProductName = '';
+        },
+        
+        async confirmDeleteChoice() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token || !this.choiceToDelete || !this.choiceToDelete.choice_id) {
+                    console.error('Missing required data for deletion');
+                    return;
+                }
+                
+                const response = await fetch(`http://localhost:7904/api/products/choices/${this.choiceToDelete.choice_id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to delete product option');
+                }
+                
+                // Refresh products to get updated data
+                await this.fetchProducts();
+                this.closeDeleteChoiceModal();
+            } catch (error) {
+                console.error('Error deleting product choice:', error);
+                // You could add error notification here
+            }
+        },
         toggleChoices(product) {
             if (!product || typeof product.products_id === 'undefined') {
                 console.error('Invalid product or missing product ID', product);
@@ -1067,6 +1127,23 @@ tbody tr:hover {
 }
 
 .confirm-delete-btn:hover {
+    background-color: #dc2626;
+}
+.delete-choice-btn {
+    padding: 0.4rem 0.75rem;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+.delete-choice-btn:hover {
     background-color: #dc2626;
 }
 /* Responsive Design */

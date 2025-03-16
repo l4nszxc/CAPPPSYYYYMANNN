@@ -154,6 +154,18 @@ class Product {
             throw error;
         }
     }
+    static async deleteChoice(choiceId) {
+        try {
+            const [result] = await db.execute(
+                'DELETE FROM product_choices WHERE choice_id = ?',
+                [choiceId]
+            );
+            return result;
+        } catch (error) {
+            console.error('Database error:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = Product;

@@ -8,9 +8,9 @@ router.use(authenticate);
 // Product routes
 router.get('/', productController.getAllProducts);
 router.get('/category/:category', productController.getProductsByCategory);
-
-// Fix: Apply proper middleware for the choices route - use single upload for choice images
+// Put specific routes like 'choices' before parameterized routes like ':id'
 router.put('/choices/:choiceId', productController.uploadMiddleware, productController.updateProductChoice);
+router.delete('/choices/:choiceId', productController.deleteProductChoice); // Add this line
 router.post('/', productController.uploadMiddleware, productController.insertProduct);
 router.put('/:id', productController.uploadMiddleware, productController.updateProduct);
 router.delete('/:id', productController.deleteProduct);
