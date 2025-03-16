@@ -3,6 +3,19 @@
         <div class="modal-content">
             <h3><i class="fas fa-clipboard-list"></i> Order Summary</h3>
             
+            <!-- Add discount selection -->
+            <div v-if="availableDiscounts.length" class="discount-section">
+                <h4>Available Discounts</h4>
+                <select v-model="selectedDiscountId" class="discount-select">
+                    <option value="">No discount</option>
+                    <option v-for="discount in availableDiscounts" 
+                            :key="discount.id" 
+                            :value="discount.id">
+                        ₱{{ discount.amount }} off
+                    </option>
+                </select>
+            </div>
+
             <div class="scrollable-content">
                 <div v-if="localItems.length > 0" class="order-items">
                     <div v-for="item in localItems" :key="item.id" class="order-item">
@@ -72,11 +85,16 @@ export default {
     name: 'ViewOrdersModal',
     props: {
         show: Boolean,
-        selectedItems: Array
+        selectedItems: Array,
+        availableDiscounts: {
+            type: Array,
+            default: () => []
+        }
     },
     data() {
         return {
-            localItems: []
+            localItems: [],
+            selectedDiscountId: null
         }
     },
     watch: {
@@ -97,9 +115,19 @@ export default {
     },
     computed: {
         calculateTotal() {
-            return this.localItems.reduce((total, item) => {
-                return total + (parseFloat(item.price) * item.quantity);
+            let total = this.localItems.reduce((sum, item) => {
+                return sum + (parseFloat(item.price) * item.quantity);
             }, 0);
+
+            // Apply selected discount if any
+            if (this.selectedDiscountId && this.availableDiscounts?.length > 0) {
+                const selectedDiscount = this.availableDiscounts.find(d => d.id === this.selectedDiscountId);
+                if (selectedDiscount) {
+                    total = Math.max(0, total - selectedDiscount.amount);
+                }
+            }
+
+            return total;
         }
     },
     methods: {
@@ -119,7 +147,10 @@ export default {
             this.localItems = this.localItems.filter(item => item.id !== itemId);
         },
         confirmOrder() {
-            this.$emit('place-order', this.localItems);
+            this.$emit('place-order', {
+                items: this.localItems,
+                discountId: this.selectedDiscountId
+            });
         }
     }
 }
@@ -320,5 +351,22 @@ export default {
     text-align: center;
     padding: 2rem;
     color: #6c757d;
+}
+.discount-section {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.discount-section h4 {
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.discount-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
 }
 </style>

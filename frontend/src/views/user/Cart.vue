@@ -1,14 +1,13 @@
 <template>
     <div class="cart-container">
-        <Navbar :username="username" :cart="cart" @logout="showLogoutModal = true"/>
+        <Navbar :username="username" @logout="showLogoutModal = true"/>
         
         <div class="cart-content">
             <div class="cart-header">
                 <h1><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
             </div>
             
-            <!-- Keep only this select all container -->
-            <div v-if="cart.length > 0" class="select-all-container">
+            <div v-if="cartItems.length > 0" class="select-all-container">
                 <div class="select-all-checkbox">
                     <label>
                         <input 
@@ -21,8 +20,9 @@
                     </label>
                 </div>
             </div>
-            <div v-if="cart.length > 0" class="cart-items">
-                <div v-for="item in cart" :key="item.id" class="cart-item">
+
+            <div v-if="cartItems.length > 0" class="cart-items">
+                <div v-for="item in cartItems" :key="item.id" class="cart-item">
                     <div class="cart-item-checkbox">
                         <input 
                             type="checkbox" 
@@ -72,17 +72,26 @@
                         </p>
                     </div>
                     <div class="cart-actions">
-                   
-                    <button 
-                        class="checkout-btn" 
-                        @click="showOrdersModal = true" 
-                        :disabled="checkedItemsCount === 0"
-                    >
-                        <i class="fas fa-credit-card"></i> Place Order
-                    </button>
+                        <div v-if="availableDiscounts.length" class="discount-section mb-4">
+                            <h3 class="text-lg font-semibold mb-2">Available Discounts</h3>
+                            <select v-model="selectedDiscountId" class="w-full p-2 border rounded">
+                                <option value="">No discount</option>
+                                <option v-for="discount in availableDiscounts" 
+                                        :key="discount.id" 
+                                        :value="discount.id">
+                                    ₱{{ discount.amount }} off
+                                </option>
+                            </select>
+                        </div>
+                        <button 
+                            class="checkout-btn" 
+                            @click="showOrdersModal = true" 
+                            :disabled="checkedItemsCount === 0"
+                        >
+                            <i class="fas fa-credit-card"></i> Place Order
+                        </button>
+                    </div>
                 </div>
-                </div>
-                
             </div>
             <div v-else class="empty-cart">
                 <i class="fas fa-shopping-cart empty-cart-icon"></i>
@@ -92,14 +101,17 @@
                 </button>
             </div>
         </div>
+
         <LogoutModal 
             :show="showLogoutModal" 
             @confirm="handleLogout" 
             @cancel="showLogoutModal = false" 
         />
+
         <ViewOrdersModal 
             :show="showOrdersModal"
             :selectedItems="selectedItems"
+            :availableDiscounts="availableDiscounts"
             @close="showOrdersModal = false"
             @place-order="handlePlaceOrder"
         />
@@ -119,45 +131,76 @@ export default {
         ViewOrdersModal
     },
     data() {
-    return {
-        username: '',
-        showLogoutModal: false,
-        showOrdersModal: false,
-        cart: [],
-        checkedItems: new Set()
-    };
+        return {
+            username: '',
+            showLogoutModal: false,
+            showOrdersModal: false,
+            cartItems: [],
+            checkedItems: new Set(),
+            availableDiscounts: [],
+            selectedDiscountId: null,
+            loading: false,
+            error: null
+        };
     },
     computed: {
         allItemsSelected() {
-            return this.cart.length > 0 && this.checkedItems.size === this.cart.length;
+            return this.cartItems.length > 0 && this.checkedItems.size === this.cartItems.length;
         },
         selectedItems() {
-            return this.cart.filter(item => this.checkedItems.has(item.id));
+            return this.cartItems.filter(item => this.checkedItems.has(item.id));
         },
         cartTotal() {
-            return this.cart.reduce((total, item) => {
+            let total = this.cartItems.reduce((sum, item) => {
                 if (this.checkedItems.has(item.id)) {
-                    const price = parseFloat(item.price) || 0;
-                    return total + (price * item.quantity);
+                    return sum + (parseFloat(item.price) * item.quantity);
                 }
-                return total;
+                return sum;
             }, 0);
+
+            // Apply selected discount if any
+            if (this.selectedDiscountId && this.availableDiscounts.length > 0) {
+                const selectedDiscount = this.availableDiscounts.find(d => d.id === this.selectedDiscountId);
+                if (selectedDiscount) {
+                    total = Math.max(0, total - selectedDiscount.amount);
+                }
+            }
+
+            return total;
         },
         checkedItemsCount() {
             return this.checkedItems.size;
         }
     },
     methods: {
+        async fetchAvailableDiscounts() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:7904/api/rewards/available-discounts', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    this.availableDiscounts = data;
+                }
+            } catch (error) {
+                console.error('Error fetching discounts:', error);
+            }
+        },
         toggleSelectAll() {
             if (this.allItemsSelected) {
-                // If all items are selected, unselect all
                 this.checkedItems.clear();
             } else {
-                // Select all items - use item.id for consistency
-                this.cart.forEach(item => {
+                this.cartItems.forEach(item => {
                     this.checkedItems.add(item.id);
                 });
             }
+        },
+        handleCartUpdate() {
+            this.fetchCart(); // Refresh cart when updated
         },
         toggleItemCheck(itemId) {
             if (this.checkedItems.has(itemId)) {
@@ -166,58 +209,48 @@ export default {
                 this.checkedItems.add(itemId);
             }
         },
-        async handlePlaceOrder(updatedItems) {
+        async handlePlaceOrder({ items, discountId }) {
             try {
                 const token = localStorage.getItem('token');
                 
-                // Format items for the backend
-                const itemsForBackend = updatedItems.map(item => ({
-                    product_id: item.product_id,
-                    quantity: item.quantity,
-                    choice_id: item.choice_id || null,
-                    price: parseFloat(item.price) || 0,
-                    id: item.id // Make sure to include the cart item ID
-                }));
-                
+                const requestBody = {
+                    items: items,
+                    totalAmount: items.reduce((sum, item) => 
+                        sum + (parseFloat(item.price) * item.quantity), 0
+                    ),
+                    discountId: discountId
+                };
+
                 const response = await fetch('http://localhost:7904/api/orders', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({
-                        items: itemsForBackend,
-                        totalAmount: updatedItems.reduce((total, item) => {
-                            return total + (parseFloat(item.price) * item.quantity);
-                        }, 0)
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
-                if (response.ok) {
-                    const { orderId } = await response.json();
-                    
-                    // Clear checked items from cart
-                    for (const item of updatedItems) {
-                        if (item.id) {
-                            await this.removeFromCart(item.id);
-                        }
-                    }
-
-                    // Clear local selections
-                    this.checkedItems.clear();
-                    
-                    // Refresh cart data
-                    await this.fetchCart();
-                    
-                    // Close modal and redirect
-                    this.showOrdersModal = false;
-                    this.$router.push('/order-history');
-                } else {
+                if (!response.ok) {
                     throw new Error('Failed to place order');
                 }
+
+                const { orderId, finalAmount, appliedDiscount, pointsEarned } = await response.json();
+
+                // Clear selected items
+                for (const item of items) {
+                    await this.removeFromCart(item.id);
+                }
+
+                this.checkedItems.clear();
+                await this.fetchCart();
+                await this.fetchAvailableDiscounts();
+
+                this.showOrdersModal = false;
+                this.$router.push('/view-orders');
+
             } catch (error) {
                 console.error('Error placing order:', error);
-                alert('Failed to place order. Please try again.');
+                alert('Failed to place order');
             }
         },
         
@@ -272,22 +305,32 @@ export default {
             }
         },
         async fetchCart() {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:7904/api/cart', { // Updated endpoint
-                headers: {
-                    'Authorization': `Bearer ${token}`
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    this.$router.push('/login');
+                    return;
                 }
-            });
-            if (response.ok) {
-                this.cart = await response.json();
+
+                const response = await fetch('http://localhost:7904/api/cart', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch cart');
+                }
+
+                const data = await response.json();
+                this.cartItems = data;
+            } catch (error) {
+                console.error('Error fetching cart:', error);
+                this.cartItems = [];
             }
-        } catch (error) {
-            console.error('Error fetching cart:', error);
-            this.cart = [];
-        }
-    },
-    async removeFromCart(itemId) {
+        },
+        async removeFromCart(itemId) {
             try {
                 const token = localStorage.getItem('token');
                 const response = await fetch(`http://localhost:7904/api/cart/${itemId}`, {
@@ -296,12 +339,11 @@ export default {
                         'Authorization': `Bearer ${token}`
                     }
                 });
+
                 if (response.ok) {
-                    // Remove from checked items if it was checked
-                    if (this.checkedItems.has(itemId)) {
-                        this.checkedItems.delete(itemId);
-                    }
-                    await this.fetchCart();
+                    this.cartItems = this.cartItems.filter(item => item.id !== itemId);
+                    this.checkedItems.delete(itemId);
+                    window.dispatchEvent(new CustomEvent('cart-updated'));
                 }
             } catch (error) {
                 console.error('Error removing item from cart:', error);
@@ -319,13 +361,12 @@ export default {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({
-                        quantity: newQuantity
-                    })
+                    body: JSON.stringify({ quantity: newQuantity })
                 });
                 
                 if (response.ok) {
-                    await this.fetchCart();
+                    await this.fetchCart(); // Refresh cart after update
+                    window.dispatchEvent(new CustomEvent('cart-updated'));
                 }
             } catch (error) {
                 console.error('Error updating quantity:', error);
@@ -335,6 +376,7 @@ export default {
     async mounted() {
         await this.getUserData();
         await this.fetchCart();
+        await this.fetchAvailableDiscounts();
     }
 };
 </script>

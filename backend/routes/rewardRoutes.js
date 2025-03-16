@@ -11,5 +11,5 @@ router.get('/points', rewardController.getUserPoints);
 router.get('/history', rewardController.getRewardHistory);
 router.get('/available', rewardController.getAvailableRewards);
 router.post('/redeem', rewardController.redeemReward);
-
+router.get('/available-discounts', authenticate, rewardController.getAvailableDiscounts);
 module.exports = router;

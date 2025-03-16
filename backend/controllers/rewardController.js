@@ -52,3 +52,13 @@ exports.redeemReward = async (req, res) => {
         res.status(500).json({ message: error.message || 'Error redeeming reward' });
     }
 };
+exports.getAvailableDiscounts = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const discounts = await Reward.getAvailableDiscounts(userId);
+        res.json(discounts);
+    } catch (error) {
+        console.error('Error getting available discounts:', error);
+        res.status(500).json({ message: 'Error getting available discounts' });
+    }
+};
