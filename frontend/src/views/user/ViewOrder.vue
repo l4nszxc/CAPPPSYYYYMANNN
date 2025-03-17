@@ -43,10 +43,19 @@
                                         <i class="fas fa-peso-sign"></i> Total: ₱{{ formatPrice(order.total_amount) }}
                                     </p>
                                 </div>
-                                <button class="toggle-btn" @click="toggleOrderDetails(order.order_id)">
-                                    <i :class="['fas', expandedOrders.has(order.order_id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
-                                    {{ expandedOrders.has(order.order_id) ? 'Hide Details' : 'Show Details' }}
-                                </button>
+                                <div class="button-group">
+                                    <button class="toggle-btn" @click="toggleOrderDetails(order.order_id)">
+                                        <i :class="['fas', expandedOrders.has(order.order_id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
+                                        {{ expandedOrders.has(order.order_id) ? 'Hide Details' : 'Show Details' }}
+                                    </button>
+                                    <button 
+                                        v-if="order.status.toLowerCase() === 'pending'" 
+                                        @click="showCancelModal(order)" 
+                                        class="cancel-btn"
+                                    >
+                                        <i class="fas fa-times-circle"></i> Cancel Order
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -86,6 +95,7 @@
             <div class="modal-content">
                 <h3>Cancel Order</h3>
                 <p>Are you sure you want to cancel this order?</p>
+                
                 <div class="cancel-reason">
                     <label for="cancelReason">Please provide a reason:</label>
                     <select v-model="cancelReason" id="cancelReason" required>
@@ -95,6 +105,7 @@
                         <option value="Found better price elsewhere">Found better price elsewhere</option>
                         <option value="Other">Other</option>
                     </select>
+                    
                     <textarea 
                         v-if="cancelReason === 'Other'"
                         v-model="otherReason"
@@ -102,16 +113,17 @@
                         rows="3"
                     ></textarea>
                 </div>
+
                 <div class="modal-buttons">
                     <button 
                         @click="confirmCancelOrder" 
                         class="confirm-btn"
                         :disabled="!cancelReason"
                     >
-                        Confirm Cancel
+                        <i class="fas fa-check"></i> Confirm Cancel
                     </button>
                     <button @click="closeCancelModal" class="close-btn">
-                        Close
+                        <i class="fas fa-times"></i> Close
                     </button>
                 </div>
             </div>
@@ -425,23 +437,37 @@ export default {
     align-items: center;
     gap: 0.5rem;
 }
+.button-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.order-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    width: 100%;
+}
 
 .cancel-btn {
+    height: 42px;
+    padding: 0 1.5rem;
     background-color: #dc3545;
     color: white;
     border: none;
-    padding: 0.75rem 1.5rem;
     border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     transition: all 0.3s ease;
+    font-size: 0.95rem;
 }
 
 .cancel-btn:hover {
     background-color: #c82333;
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
 }
 
 .modal-overlay {
@@ -464,7 +490,11 @@ export default {
     width: 90%;
     max-width: 500px;
 }
-
+.modal-content h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
 .cancel-reason {
     margin: 1.5rem 0;
 }
@@ -481,6 +511,8 @@ export default {
     border: 1px solid #ddd;
     border-radius: 6px;
     margin-bottom: 1rem;
+    font-size: 0.95rem;
+    color: #2c3e50;
 }
 
 .cancel-reason textarea {
@@ -489,6 +521,9 @@ export default {
     border: 1px solid #ddd;
     border-radius: 6px;
     resize: vertical;
+    font-size: 0.95rem;
+    min-height: 100px;
+    color: #2c3e50;
 }
 
 .modal-buttons {
@@ -513,8 +548,11 @@ export default {
 }
 
 .confirm-btn:disabled {
-    background-color: #ddd;
+    background-color: #e9ecef;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    color: #6c757d;
 }
 
 .close-btn {
@@ -603,20 +641,23 @@ export default {
     gap: 1.5rem;
     flex-wrap: wrap;
 }
+
 .toggle-btn {
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.5rem;
     border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: #495057;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     transition: all 0.2s ease;
     font-weight: 500;
+    height: 42px;
 }
+
 .estimated-time {
     display: inline-flex;
     align-items: center;
@@ -686,5 +727,33 @@ export default {
         align-items: flex-start;
         margin: 0.5rem 0;
     }
+    .order-actions {
+        margin-top: 1rem;
+        width: 100%;
+    }
+
+    .cancel-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-buttons {
+        flex-direction: column;
+    }
+
+    .modal-buttons button {
+        width: 100%;
+    }
+    .button-group {
+        width: 100%;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .order-secondary-info {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
 }
 </style>
