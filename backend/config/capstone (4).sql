@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 16, 2025 at 03:42 PM
+-- Generation Time: Mar 17, 2025 at 03:33 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -20,6 +20,34 @@ SET time_zone = "+00:00";
 --
 -- Database: `capstone`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `available_discounts`
+--
+
+CREATE TABLE `available_discounts` (
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` timestamp NULL DEFAULT ((now() + interval 30 day)),
+  `used` tinyint(1) DEFAULT '0',
+  `order_id` char(7) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `available_discounts`
+--
+
+INSERT INTO `available_discounts` (`id`, `user_id`, `amount`, `created_at`, `expires_at`, `used`, `order_id`) VALUES
+(1, 58, 50.00, '2025-03-16 15:49:44', '2025-04-15 15:49:44', 1, '6637028'),
+(2, 58, 50.00, '2025-03-16 16:02:00', '2025-04-15 16:02:00', 1, '8271029'),
+(3, 58, 50.00, '2025-03-16 16:06:30', '2025-04-15 16:06:30', 1, '9632654'),
+(4, 58, 50.00, '2025-03-16 16:10:00', '2025-04-15 16:10:00', 1, '6815523'),
+(5, 58, 50.00, '2025-03-17 13:42:46', '2025-04-16 13:42:46', 1, '3398119'),
+(6, 58, 100.00, '2025-03-17 14:57:52', '2025-04-16 14:57:52', 1, '2137493');
 
 -- --------------------------------------------------------
 
@@ -59,22 +87,36 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `user_id`, `total_amount`, `status`, `created_at`, `updated_at`, `cancel_reason`, `accepted_by`, `accepted_at`) VALUES
+('0039532', 58, 22.00, 'pending', '2025-03-16 16:06:25', '2025-03-16 16:06:25', NULL, NULL, NULL),
 ('0557984', 58, 333.00, 'paid', '2025-03-16 15:07:42', '2025-03-16 15:08:07', NULL, 23, '2025-03-16 23:07:53'),
+('0573700', 58, 333.00, 'pending', '2025-03-16 16:02:48', '2025-03-16 16:02:48', NULL, NULL, NULL),
 ('1657370', 58, 1040.00, 'paid', '2025-03-15 08:21:08', '2025-03-15 08:40:51', NULL, 23, '2025-03-15 16:27:20'),
 ('1826467', 58, 34441.00, 'pending', '2025-03-16 15:07:01', '2025-03-16 15:07:01', NULL, NULL, NULL),
+('2137493', 58, 100.00, 'preparing', '2025-03-17 14:58:10', '2025-03-17 15:29:13', NULL, 23, '2025-03-17 23:29:13'),
 ('2361909', 58, 999.00, 'paid', '2025-03-14 12:54:39', '2025-03-15 02:19:49', NULL, 23, '2025-03-15 10:19:31'),
 ('2767784', 58, 224.00, 'pending', '2025-03-15 03:29:35', '2025-03-15 03:29:35', NULL, NULL, NULL),
+('2903588', 58, 22.00, 'pending', '2025-03-16 16:03:29', '2025-03-16 16:03:29', NULL, NULL, NULL),
+('3398119', 58, 250.00, 'paid', '2025-03-17 13:42:55', '2025-03-17 15:02:33', NULL, 23, '2025-03-17 22:16:13'),
 ('4694938', 58, 333.00, 'pending', '2025-03-16 15:39:56', '2025-03-16 15:39:56', NULL, NULL, NULL),
+('4946198', 58, 62642.00, 'paid', '2025-03-17 14:56:58', '2025-03-17 14:57:21', NULL, 23, '2025-03-17 22:57:05'),
 ('5220016', 58, 110.00, 'paid', '2025-03-16 12:29:58', '2025-03-16 14:15:56', NULL, 23, '2025-03-16 22:15:40'),
 ('5586476', 58, 12547.00, 'paid', '2025-03-16 09:30:24', '2025-03-16 09:31:36', NULL, 23, '2025-03-16 17:30:39'),
 ('6178932', 58, 34441.00, 'paid', '2025-03-16 15:03:42', '2025-03-16 15:04:40', NULL, 23, '2025-03-16 23:04:21'),
 ('6298386', 58, 365.00, 'pending', '2025-03-16 15:38:15', '2025-03-16 15:38:15', NULL, NULL, NULL),
+('6637028', 58, 616.00, 'paid', '2025-03-16 16:20:46', '2025-03-16 16:22:06', NULL, 23, '2025-03-17 00:21:14'),
+('6815523', 58, 50.00, 'pending', '2025-03-16 16:10:52', '2025-03-16 16:10:52', NULL, NULL, NULL),
 ('6881139', 58, 98000.00, 'paid', '2025-03-15 08:42:53', '2025-03-15 08:43:27', NULL, 23, '2025-03-15 16:43:08'),
 ('7254325', 58, 25158.00, 'pending', '2025-03-16 14:59:09', '2025-03-16 14:59:09', NULL, NULL, NULL),
+('7385943', 58, 333.00, 'pending', '2025-03-16 16:02:57', '2025-03-16 16:02:57', NULL, NULL, NULL),
 ('8224349', 58, 520.00, 'pending', '2025-03-15 07:46:08', '2025-03-15 07:46:08', NULL, NULL, NULL),
+('8271029', 58, 0.00, 'pending', '2025-03-17 13:28:07', '2025-03-17 13:28:07', NULL, NULL, NULL),
+('8751845', 58, 666.00, 'pending', '2025-03-16 16:01:46', '2025-03-16 16:01:46', NULL, NULL, NULL),
 ('8841538', 58, 34441.00, 'paid', '2025-03-16 15:03:49', '2025-03-16 15:04:37', NULL, 23, '2025-03-16 23:04:19'),
 ('9093713', 58, 333.00, 'pending', '2025-03-16 15:42:04', '2025-03-16 15:42:04', NULL, NULL, NULL),
-('9265881', 58, 32.00, 'paid', '2025-03-15 03:13:14', '2025-03-15 03:31:24', NULL, 60, '2025-03-15 11:21:52');
+('9265881', 58, 32.00, 'paid', '2025-03-15 03:13:14', '2025-03-15 03:31:24', NULL, 60, '2025-03-15 11:21:52'),
+('9527228', 58, 333.00, 'pending', '2025-03-16 16:02:09', '2025-03-16 16:02:09', NULL, NULL, NULL),
+('9632654', 58, 283.00, 'pending', '2025-03-16 16:20:03', '2025-03-16 16:20:03', NULL, NULL, NULL),
+('9837181', 58, 100.00, 'pending', '2025-03-16 16:06:42', '2025-03-16 16:06:42', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -112,7 +154,22 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`, 
 (108, '8841538', 27, 11, 3131.00, 6),
 (109, '1826467', 27, 11, 3131.00, 6),
 (110, '0557984', 10, 1, 333.00, NULL),
-(111, '9093713', 10, 1, 333.00, NULL);
+(111, '9093713', 10, 1, 333.00, NULL),
+(112, '8751845', 10, 2, 333.00, NULL),
+(113, '9527228', 10, 1, 333.00, NULL),
+(114, '0573700', 10, 1, 333.00, NULL),
+(115, '7385943', 10, 1, 333.00, NULL),
+(116, '2903588', 22, 1, 22.00, NULL),
+(117, '0039532', 22, 1, 22.00, NULL),
+(118, '9837181', 23, 1, 100.00, NULL),
+(119, '6815523', 23, 1, 100.00, NULL),
+(120, '9632654', 10, 1, 333.00, NULL),
+(121, '6637028', 10, 2, 333.00, NULL),
+(122, '8271029', 22, 1, 22.00, NULL),
+(123, '3398119', 23, 3, 100.00, NULL),
+(124, '4946198', 22, 1, 22.00, NULL),
+(125, '4946198', 27, 20, 3131.00, 6),
+(126, '2137493', 23, 2, 100.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -271,11 +328,35 @@ INSERT INTO `user_rewards` (`id`, `user_id`, `order_id`, `points`, `description`
 (10, 58, NULL, -100, 'Redeemed for Bronze Reward', '2025-03-16 15:39:47'),
 (11, 58, '4694938', 3, 'Earned points from order #4694938', '2025-03-16 15:39:56'),
 (12, 58, NULL, -100, 'Redeemed for Bronze Reward', '2025-03-16 15:41:43'),
-(13, 58, '9093713', 3, 'Earned points from order #9093713', '2025-03-16 15:42:04');
+(13, 58, '9093713', 3, 'Earned points from order #9093713', '2025-03-16 15:42:04'),
+(14, 58, NULL, -100, 'Redeemed for Bronze Reward', '2025-03-16 15:49:44'),
+(15, 58, '8751845', 6, 'Earned points from order #8751845', '2025-03-16 16:01:46'),
+(16, 58, NULL, -100, 'Redeemed for Bronze Reward', '2025-03-16 16:02:00'),
+(17, 58, '9527228', 3, 'Earned points from order #9527228', '2025-03-16 16:02:09'),
+(18, 58, '0573700', 3, 'Earned points from order #0573700', '2025-03-16 16:02:48'),
+(19, 58, '7385943', 3, 'Earned points from order #7385943', '2025-03-16 16:02:57'),
+(20, 58, NULL, -100, 'Redeemed for Bronze Reward', '2025-03-16 16:06:30'),
+(21, 58, '9837181', 1, 'Earned points from order #9837181', '2025-03-16 16:06:42'),
+(22, 58, NULL, -100, 'Redeemed for Bronze Reward', '2025-03-16 16:10:00'),
+(23, 58, '9632654', 2, 'Earned points from order #9632654', '2025-03-16 16:20:03'),
+(24, 58, '6637028', 6, 'Earned points from order #6637028', '2025-03-16 16:20:46'),
+(25, 58, NULL, -100, 'Redeemed for Bronze Reward', '2025-03-17 13:42:46'),
+(26, 58, '3398119', 2, 'Earned points from order #3398119', '2025-03-17 13:42:55'),
+(27, 58, '4946198', 626, 'Earned points from order #4946198', '2025-03-17 14:56:58'),
+(28, 58, NULL, -200, 'Redeemed for Silver Reward', '2025-03-17 14:57:52'),
+(29, 58, '2137493', 1, 'Earned points from order #2137493', '2025-03-17 14:58:10');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `available_discounts`
+--
+ALTER TABLE `available_discounts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `order_id` (`order_id`);
 
 --
 -- Indexes for table `cart`
@@ -340,16 +421,22 @@ ALTER TABLE `user_rewards`
 --
 
 --
+-- AUTO_INCREMENT for table `available_discounts`
+--
+ALTER TABLE `available_discounts`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=157;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=127;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -379,11 +466,18 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_rewards`
 --
 ALTER TABLE `user_rewards`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `available_discounts`
+--
+ALTER TABLE `available_discounts`
+  ADD CONSTRAINT `available_discounts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `available_discounts_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`);
 
 --
 -- Constraints for table `cart`
