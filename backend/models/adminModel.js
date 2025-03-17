@@ -291,22 +291,21 @@ class Admin {
     
     static async getOrderDetails(orderId) {
         try {
-            const [orderDetails] = await db.execute(`
-                SELECT 
-                    o.order_id,
-                    o.status,
-                    o.total_amount,
-                    o.created_at,
-                    o.cancel_reason,
-                    o.accepted_by,
-                    o.accepted_at,
+            const [orderDetails] = await db.query(
+                `SELECT o.*, 
                     u.username as customer_name,
-                    s.username as staff_name
+                    s.username as staff_name,
+                    ad.amount as discount_amount,
+                    (SELECT SUM(oi.price * oi.quantity) 
+                     FROM order_items oi 
+                     WHERE oi.order_id = o.order_id) as subtotal
                 FROM orders o
-                JOIN users u ON o.user_id = u.id
+                LEFT JOIN users u ON o.user_id = u.id
                 LEFT JOIN users s ON o.accepted_by = s.id
-                WHERE o.order_id = ?
-            `, [orderId]);
+                LEFT JOIN available_discounts ad ON o.order_id = ad.order_id AND ad.used = TRUE
+                WHERE o.order_id = ?`,
+                [orderId]
+            );
     
             const [orderItems] = await db.execute(`
                 SELECT 
@@ -342,7 +341,9 @@ class Admin {
     
             return {
                 ...orderDetails[0],
-                items: formattedItems
+                items: formattedItems,
+                subtotal: orderDetails[0].subtotal || orderDetails[0].total_amount,
+                discount_amount: parseFloat(orderDetails[0].discount_amount) || 0
             };
         } catch (error) {
             throw error;

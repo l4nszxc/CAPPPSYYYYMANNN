@@ -74,9 +74,19 @@
                     </p>
                     <p><strong>Accepted On:</strong> {{ formatDate(selectedOrder.accepted_at) }}</p>
                     <p><strong>Estimated Ready By:</strong> {{ formatDate(selectedOrder.estimatedPickupTime) }}</p>
-                    <p class="time-remaining" :class="{'past-due': isPastDue(selectedOrder.estimatedPickupTime) && selectedOrder.status !== 'ready for pickup' && selectedOrder.status !== 'paid'}">
-                        <i class="fas fa-clock"></i> {{ getTimeRemaining(selectedOrder.estimatedPickupTime, selectedOrder.status) }}
-                    </p>
+                    
+                    <!-- Add price breakdown -->
+                    <div class="price-breakdown">
+                        <p class="subtotal">
+                            <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(selectedOrder.subtotal) }}
+                        </p>
+                        <p v-if="selectedOrder.discount_amount > 0" class="discount-amount">
+                            <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(selectedOrder.discount_amount) }}
+                        </p>
+                        <p class="total-amount">
+                            <i class="fas fa-dollar-sign"></i> Total: ₱{{ formatPrice(selectedOrder.total_amount) }}
+                        </p>
+                    </div>
                 </div>
                 <div class="products-table">
                     <table>
@@ -108,17 +118,23 @@
                                 <td>{{ item.name }}</td>
                                 <td>
                                     <img 
-                                    :src="item.image || '/img/placeholder.jpg'" 
-                                    :alt="item.name"
-                                    class="product-image"
-                                    @error="handleImageError"
-                                >
+                                        :src="item.image || '/img/placeholder.jpg'" 
+                                        :alt="item.name"
+                                        class="product-image"
+                                        @error="handleImageError"
+                                    >
                                 </td>
                                 <td>₱{{ formatPrice(item.price) }}</td>
                                 <td>{{ item.quantity }}</td>
                                 <td>₱{{ formatPrice(item.price * item.quantity) }}</td>
                             </tr>
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="total-label">Total Amount:</td>
+                                <td class="total-amount">₱{{ formatPrice(selectedOrder.total_amount) }}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
                     <div class="modal-actions">
@@ -538,15 +554,45 @@ th {
     object-fit: cover;
     border-radius: 8px;
 }
+tfoot {
+    border-top: 2px solid #eee;
+}
 
+tfoot tr td {
+    padding: 1rem;
+    font-weight: 600;
+}
 .total-label {
     text-align: right;
-    font-weight: 600;
+    color: #2c3e50;
+}
+.price-breakdown {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.subtotal {
+    color: #666;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.discount-amount {
+    color: #4CAF50;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .total-amount {
-    font-weight: 600;
     color: #2c3e50;
+    font-size: 1.1rem;
 }
 
 .modal-actions {
@@ -666,6 +712,9 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 @media (max-width: 768px) {
+    tfoot tr td {
+        padding: 0.75rem;
+    }
     .staff-container {
         padding-left: 60px;
     }

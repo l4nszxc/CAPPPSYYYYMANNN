@@ -398,6 +398,7 @@ export default {
 .px-4 { padding-left: 1rem; padding-right: 1rem; }
 .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
 
+
 /* Layout */
 .max-w-4xl { max-width: 56rem; }
 .mx-auto { margin-left: auto; margin-right: auto; }

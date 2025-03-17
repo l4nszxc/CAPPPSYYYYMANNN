@@ -48,7 +48,17 @@
                             </div>
                             <div class="order-secondary-info">
                                 <p class="order-date">{{ formatDate(order.created_at) }}</p>
-                                <p class="order-amount">Total: ₱{{ formatPrice(order.total_amount) }}</p>
+                                <div class="price-breakdown">
+                                    <p class="subtotal">
+                                        <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(order.subtotal || order.total_amount) }}
+                                    </p>
+                                    <p v-if="order.discount_amount" class="discount-amount">
+                                        <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(order.discount_amount) }}
+                                    </p>
+                                    <p class="total-amount">
+                                        <i class="fas fa-peso-sign"></i> Total: ₱{{ formatPrice(order.total_amount) }}
+                                    </p>
+                                </div>
                                 <p v-if="order.status === 'cancelled'" class="cancel-reason">
                                     Reason: {{ order.cancel_reason }}
                                 </p>
@@ -177,22 +187,28 @@
             this.showLogoutModal = false;
         }
     },
-      async fetchOrders() {
+    async fetchOrders() {
         try {
-          const token = localStorage.getItem('token')
-          const response = await fetch('http://localhost:7904/api/orders/history', {
-            headers: {
-              'Authorization': `Bearer ${token}`
+            const token = localStorage.getItem('token')
+            const response = await fetch('http://localhost:7904/api/orders/history', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const orders = await response.json();
+                this.orders = orders.map(order => ({
+                    ...order,
+                    subtotal: order.items.reduce((sum, item) => 
+                        sum + (parseFloat(item.price) * item.quantity), 0
+                    )
+                }));
             }
-          })
-  
-          if (response.ok) {
-            this.orders = await response.json()
-          }
         } catch (error) {
-          console.error('Error fetching orders:', error)
+            console.error('Error fetching orders:', error)
         }
-      }
+    }
     },
     async mounted() {
       const token = localStorage.getItem('token')
@@ -537,7 +553,41 @@
       border-radius: 12px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-  
+  .price-breakdown {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    margin: 0.5rem 0;
+    }
+
+    .subtotal {
+        color: #666;
+        margin: 0;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .discount-amount {
+        color: #4CAF50;
+        margin: 0;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .total-amount {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
   .no-orders i {
       font-size: 4rem;
       color: #cbd5e0;
@@ -621,5 +671,10 @@
       .item-details h4 {
           font-size: 1rem;
       }
+      .price-breakdown {
+        width: 100%;
+        align-items: flex-start;
+        margin: 0.5rem 0;
+     }
   }
   </style>

@@ -92,6 +92,19 @@
                 <p v-if="selectedOrder.status === 'cancelled'">
                     <strong>Cancellation Reason:</strong> {{ selectedOrder.cancel_reason }}
                 </p>
+
+                <!-- Add price breakdown -->
+                <div class="price-breakdown">
+                    <p class="subtotal">
+                        <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(selectedOrder.subtotal) }}
+                    </p>
+                    <p v-if="selectedOrder.discount_amount > 0" class="discount-amount">
+                        <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(selectedOrder.discount_amount) }}
+                    </p>
+                    <p class="total-amount">
+                        <i class="fas fa-peso-sign"></i> Total: ₱{{ formatPrice(selectedOrder.total_amount) }}
+                    </p>
+                </div>
             </div>
 
             <div class="products-table">
@@ -173,9 +186,19 @@
                         <span>₱{{ formatPrice(item.price * item.quantity) }}</span>
                     </div>
                 </div>
-                <div class="payment-total">
-                    <strong>Total Amount:</strong>
-                    <span>₱{{ formatPrice(selectedOrder.total_amount) }}</span>
+                <div class="payment-breakdown">
+                    <div class="payment-line">
+                        <span>Subtotal:</span>
+                        <span>₱{{ formatPrice(selectedOrder.subtotal || selectedOrder.total_amount) }}</span>
+                    </div>
+                    <div v-if="selectedOrder.discount_amount" class="payment-line discount">
+                        <span>Discount:</span>
+                        <span>-₱{{ formatPrice(selectedOrder.discount_amount) }}</span>
+                    </div>
+                    <div class="payment-total">
+                        <strong>Total Amount:</strong>
+                        <span>₱{{ formatPrice(selectedOrder.total_amount) }}</span>
+                    </div>
                 </div>
             </div>
             <div class="modal-buttons">
@@ -487,7 +510,12 @@ generateReceiptContent() {
                 });
                 
                 if (response.ok) {
-                    this.selectedOrder = await response.json();
+                    const orderData = await response.json();
+                    this.selectedOrder = {
+                        ...orderData,
+                        subtotal: orderData.subtotal || orderData.total_amount,
+                        discount_amount: parseFloat(orderData.discount_amount) || 0
+                    };
                 }
             } catch (error) {
                 console.error('Error fetching order details:', error);
@@ -877,13 +905,52 @@ tbody tr:hover {
     border-radius: 4px;
     width: fit-content;
 }
-.payment-total {
-    display: flex;
-    justify-content: space-between;
+.subtotal-label, .discount-label, .total-label {
+    text-align: right;
+    font-weight: 600;
+}
+
+.discount-label {
+    color: #4CAF50;
+}
+
+
+.discount-amount {
+    color: #4CAF50;
+    font-weight: 500;
+}
+
+.price-breakdown {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 2px solid #e2e8f0;
+    border-top: 1px solid #eee;
+}
+
+.subtotal {
+    color: #666;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.discount-amount {
+    color: #4CAF50;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.total-amount {
+    color: #2c3e50;
     font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .confirm-pay-btn {

@@ -61,7 +61,13 @@
 
             <div class="fixed-bottom">
                 <div class="order-total">
-                    <h4>Total Amount: ₱{{ formatPrice(calculateTotal) }}</h4>
+                    <div class="total-breakdown">
+                        <p class="subtotal-line">Subtotal: ₱{{ formatPrice(subtotal) }}</p>
+                        <p v-if="discountAmount > 0" class="discount-line">
+                            <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(discountAmount) }}
+                        </p>
+                        <h4 class="final-total">Total Amount: ₱{{ formatPrice(calculateTotal) }}</h4>
+                    </div>
                 </div>
                 <div class="modal-buttons">
                     <button 
@@ -114,20 +120,20 @@ export default {
         }
     },
     computed: {
-        calculateTotal() {
-            let total = this.localItems.reduce((sum, item) => {
+        subtotal() {
+            return this.localItems.reduce((sum, item) => {
                 return sum + (parseFloat(item.price) * item.quantity);
             }, 0);
-
-            // Apply selected discount if any
+        },
+        discountAmount() {
             if (this.selectedDiscountId && this.availableDiscounts?.length > 0) {
                 const selectedDiscount = this.availableDiscounts.find(d => d.id === this.selectedDiscountId);
-                if (selectedDiscount) {
-                    total = Math.max(0, total - selectedDiscount.amount);
-                }
+                return selectedDiscount ? selectedDiscount.amount : 0;
             }
-
-            return total;
+            return 0;
+        },
+        calculateTotal() {
+            return Math.max(0, this.subtotal - this.discountAmount);
         }
     },
     methods: {
@@ -368,5 +374,32 @@ export default {
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 0.95rem;
+}
+.total-breakdown {
+    text-align: right;
+    padding: 1rem 0;
+}
+
+.subtotal-line {
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.discount-line {
+    margin: 0.5rem 0;
+    color: #4CAF50;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.final-total {
+    margin: 0.5rem 0 0 0;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 600;
 }
 </style>

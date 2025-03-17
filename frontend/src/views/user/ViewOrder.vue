@@ -32,7 +32,17 @@
                             </div>
                             <div class="order-secondary-info">
                                 <p class="order-date">{{ formatDate(order.created_at) }}</p>
-                                <p class="total-amount">Total: ₱{{ Number(order.total_amount).toFixed(2) }}</p>
+                                <div class="price-breakdown">
+                                    <p class="subtotal">
+                                        <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(order.subtotal) }}
+                                    </p>
+                                    <p v-if="order.discount_amount > 0" class="discount-amount">
+                                        <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(order.discount_amount) }}
+                                    </p>
+                                    <p class="total-amount">
+                                        <i class="fas fa-peso-sign"></i> Total: ₱{{ formatPrice(order.total_amount) }}
+                                    </p>
+                                </div>
                                 <button class="toggle-btn" @click="toggleOrderDetails(order.order_id)">
                                     <i :class="['fas', expandedOrders.has(order.order_id) ? 'fa-chevron-up' : 'fa-chevron-down']"></i>
                                     {{ expandedOrders.has(order.order_id) ? 'Hide Details' : 'Show Details' }}
@@ -138,7 +148,12 @@ export default {
     },
     computed: {
         activeOrders() {
-            return this.orders.filter(order => 
+            return this.orders.map(order => ({
+                ...order,
+                subtotal: order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                discount_amount: order.discount_amount || 0,
+                total_amount: order.total_amount
+            })).filter(order => 
                 ['pending', 'preparing', 'ready for pickup'].includes(order.status.toLowerCase())
             );
         }
@@ -375,10 +390,40 @@ export default {
     margin-top: 1.5rem;
 }
 
+.price-breakdown {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    margin: 0.5rem 0;
+}
+
+.subtotal {
+    color: #666;
+    margin: 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.discount-amount {
+    color: #4CAF50;
+    margin: 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .total-amount {
     font-size: 1.1rem;
     font-weight: 600;
     color: #2c3e50;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .cancel-btn {
@@ -635,6 +680,11 @@ export default {
         margin: 0.5rem 0;
         width: 100%;
         justify-content: center;
+    }
+    .price-breakdown {
+        width: 100%;
+        align-items: flex-start;
+        margin: 0.5rem 0;
     }
 }
 </style>

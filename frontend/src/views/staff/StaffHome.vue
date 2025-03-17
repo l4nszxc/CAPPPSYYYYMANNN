@@ -79,11 +79,19 @@
                     <p v-if="selectedOrder.status === 'cancelled'" class="cancel-reason">
                         <strong>Cancellation Reason:</strong> {{ selectedOrder.cancel_reason }}
                     </p>
-                    <p v-if="selectedOrder.staff_name" class="accepted-info">
-                        <strong>Accepted by:</strong> <span class="staff-name">{{ selectedOrder.staff_name }}</span>
-                        <br>
-                        <strong>Accepted on:</strong> <span class="accepted-time">{{ formatDate(selectedOrder.accepted_at) }}</span>
-                    </p>
+                    
+                    <!-- Add price breakdown -->
+                    <div class="price-breakdown">
+                        <p class="subtotal">
+                            <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(selectedOrder.subtotal) }}
+                        </p>
+                        <p v-if="selectedOrder.discount_amount > 0" class="discount-amount">
+                            <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(selectedOrder.discount_amount) }}
+                        </p>
+                        <p class="total-amount">
+                            <i class="fas fa-dollar-sign"></i> Total: ₱{{ formatPrice(selectedOrder.total_amount) }}
+                        </p>
+                    </div>
                 </div>
                 <div class="products-table">
                     <table>
@@ -179,6 +187,48 @@ export default {
         }
     },
     methods: {
+        calculateEstimatedTime(order) {
+            try {
+                const baseTime = 15; // Base preparation time in minutes
+                const timePerItem = 5; // Additional time per item in minutes
+                
+                if (!order.items || !Array.isArray(order.items)) {
+                    return null;
+                }
+
+                const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+                const estimatedMinutes = baseTime + (timePerItem * totalQuantity);
+                
+                // Use accepted_at as base time
+                const estimatedTime = new Date(order.accepted_at);
+                estimatedTime.setMinutes(estimatedTime.getMinutes() + estimatedMinutes);
+                
+                return estimatedTime.toISOString();
+            } catch (error) {
+                console.error('Error calculating estimated time:', error);
+                return null;
+            }
+        },
+        formatRemainingTime(estimatedTime) {
+            if (!estimatedTime) return 'Not available';
+
+            const now = new Date();
+            const estimated = new Date(estimatedTime);
+            const diff = estimated - now;
+
+            if (diff < 0) {
+                return 'Past due';
+            }
+
+            const minutes = Math.floor(diff / 60000);
+            if (minutes < 60) {
+                return `${minutes} minutes remaining`;
+            }
+
+            const hours = Math.floor(minutes / 60);
+            const remainingMinutes = minutes % 60;
+            return `${hours}h ${remainingMinutes}m remaining`;
+        },
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg';
         },
@@ -239,37 +289,43 @@ export default {
                 });
                 
                 if (response.ok) {
-                    const details = await response.json();
-                    this.selectedOrder = details;
+                    const orderData = await response.json();
+                    this.selectedOrder = {
+                        ...orderData,
+                        subtotal: orderData.subtotal || orderData.total_amount,
+                        discount_amount: parseFloat(orderData.discount_amount) || 0,
+                        estimatedPickupTime: this.calculateEstimatedTime(orderData)
+                    };
+                    // Show modal or update UI as needed
                 }
             } catch (error) {
                 console.error('Error fetching order details:', error);
             }
         },
         async handleLogout() {
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:7904/api/users/logout', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:7904/api/users/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
 
-        if (response.ok) {
-            localStorage.removeItem('token');
-            this.$router.push('/login');
-        } else {
-            throw new Error('Logout failed');
+                if (response.ok) {
+                    localStorage.removeItem('token');
+                    this.$router.push('/login');
+                } else {
+                    throw new Error('Logout failed');
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            } finally {
+                this.showLogoutModal = false;
+            }
         }
-    } catch (error) {
-        console.error('Logout failed:', error);
-    } finally {
-        this.showLogoutModal = false;
-    }
-}
     },
     mounted() {
         const token = localStorage.getItem('token');
@@ -465,8 +521,38 @@ th {
     font-weight: bold;
 }
 
-.total-amount {
-    font-weight: bold;
+.modal-content .price-breakdown {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.modal-content .price-breakdown .subtotal {
+    color: #666;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-content .price-breakdown .discount-amount {
+    color: #4CAF50 !important;
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-content .price-breakdown .total-amount {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .accept-btn {
