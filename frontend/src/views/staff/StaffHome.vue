@@ -255,12 +255,16 @@ export default {
                 });
 
                 if (response.ok) {
-                    // Refresh the order details and order list
-                    await this.viewOrderDetails(this.selectedOrder);
+                    // Close the modal
+                    this.selectedOrder = null;
+                    
+                    // Refresh the order list
                     await this.fetchOrders();
+                    
                 }
             } catch (error) {
                 console.error('Error accepting order:', error);
+                alert('Failed to accept order');
             }
         },
         async fetchOrders() {
