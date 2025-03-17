@@ -72,17 +72,6 @@
                         </p>
                     </div>
                     <div class="cart-actions">
-                        <div v-if="availableDiscounts.length" class="discount-section mb-4">
-                            <h3 class="text-lg font-semibold mb-2">Available Discounts</h3>
-                            <select v-model="selectedDiscountId" class="w-full p-2 border rounded">
-                                <option value="">No discount</option>
-                                <option v-for="discount in availableDiscounts" 
-                                        :key="discount.id" 
-                                        :value="discount.id">
-                                    ₱{{ discount.amount }} off
-                                </option>
-                            </select>
-                        </div>
                         <button 
                             class="checkout-btn" 
                             @click="showOrdersModal = true" 
@@ -137,10 +126,9 @@ export default {
             showOrdersModal: false,
             cartItems: [],
             checkedItems: new Set(),
-            availableDiscounts: [],
-            selectedDiscountId: null,
             loading: false,
-            error: null
+            error: null,
+            availableDiscounts: []
         };
     },
     computed: {
@@ -151,43 +139,39 @@ export default {
             return this.cartItems.filter(item => this.checkedItems.has(item.id));
         },
         cartTotal() {
-            let total = this.cartItems.reduce((sum, item) => {
+            return this.cartItems.reduce((sum, item) => {
                 if (this.checkedItems.has(item.id)) {
                     return sum + (parseFloat(item.price) * item.quantity);
                 }
                 return sum;
             }, 0);
-
-            // Apply selected discount if any
-            if (this.selectedDiscountId && this.availableDiscounts.length > 0) {
-                const selectedDiscount = this.availableDiscounts.find(d => d.id === this.selectedDiscountId);
-                if (selectedDiscount) {
-                    total = Math.max(0, total - selectedDiscount.amount);
-                }
-            }
-
-            return total;
-        },
-        checkedItemsCount() {
-            return this.checkedItems.size;
         }
     },
     methods: {
         async fetchAvailableDiscounts() {
             try {
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    this.$router.push('/login');
+                    return;
+                }
+
                 const response = await fetch('http://localhost:7904/api/rewards/available-discounts', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     }
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    this.availableDiscounts = data;
+                if (!response.ok) {
+                    throw new Error('Failed to fetch discounts');
                 }
+
+                const data = await response.json();
+                this.availableDiscounts = data;
             } catch (error) {
                 console.error('Error fetching discounts:', error);
+                this.availableDiscounts = [];
             }
         },
         toggleSelectAll() {
