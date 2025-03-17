@@ -132,6 +132,9 @@ export default {
         };
     },
     computed: {
+        checkedItemsCount() {
+            return this.checkedItems.size;
+        },
         allItemsSelected() {
             return this.cartItems.length > 0 && this.checkedItems.size === this.cartItems.length;
         },
