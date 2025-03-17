@@ -299,152 +299,168 @@ export default {
 },
 
 generateReceiptContent() {
-            const date = new Date().toLocaleString();
-            const items = this.selectedOrder.items
-                .map(item => {
-                    // Format name with choice if available
-                    const displayName = item.choice_name 
-                        ? `${item.original_name || item.name} (${item.choice_name})`
-                        : item.name;
-                        
-                    return `
-                        <tr>
-                            <td style="font-size: 12px; padding: 2px 0;">${displayName}</td>
-                        </tr>
-                        <tr>
-                            <td style="font-size: 12px; text-align: right; padding: 2px 0;">
-                                ${item.quantity} x ₱${this.formatPrice(item.price)} = ₱${this.formatPrice(item.price * item.quantity)}
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-
-            // Keep the rest of the receipt generation the same
+    const date = new Date().toLocaleString();
+    const items = this.selectedOrder.items
+        .map(item => {
+            const displayName = item.choice_name 
+                ? `${item.original_name || item.name} (${item.choice_name})`
+                : item.name;
+                
             return `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="utf-8">
-                    <title></title>
-                    <style>
-                        @media print {
-                            @page {
-                                margin: 0;
-                                size: 58mm auto;
-                            }
-                        }
-                        body {
-                            font-family: Arial, sans-serif;
-                            width: 58mm;
-                            margin: 0;
-                            padding: 2mm;
-                            font-size: 12px;
-                        }
-                        .header {
-                            text-align: center;
-                            margin-bottom: 3px;
-                            border-bottom: 1px dashed black;
-                            padding-bottom: 3px;
-                        }
-                        .header h2 {
-                            font-size: 16px;
-                            margin: 0;
-                            padding: 0;
-                            font-weight: bold;
-                        }
-                        .header p {
-                            font-size: 14px;
-                            margin: 2px 0;
-                        }
-                        .details {
-                            margin: 3px 0;
-                            border-bottom: 1px dashed black;
-                            padding-bottom: 3px;
-                        }
-                        .details p {
-                            margin: 1px 0;
-                            font-size: 12px;
-                            line-height: 1.2;
-                        }
-                        table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin: 4px 0;
-                        }
-                        tr {
-                            line-height: 1.2;
-                        }
-                        td {
-                            padding: 1px 0;
-                        }
-                        .items-section {
-                            border-bottom: 1px dashed black;
-                            margin-bottom: 4px;
-                            padding-bottom: 4px;
-                        }
-                        .total {
-                            font-weight: bold;
-                            text-align: right;
-                            font-size: 14px;
-                            margin: 4px 0;
-                            padding: 2px 0;
-                        }
-                        .footer {
-                            text-align: center;
-                            font-size: 12px;
-                            margin-top: 6px;
-                        }
-                        .footer p {
-                            margin: 2px 0;
-                        }
-                        .spacing {
-                            height: 48px; /* 4 lines of spacing (12px * 4) */
-                        }
-                        .cut-line {
-                            text-align: center;
-                            font-size: 12px;
-                            border-top: 1px dashed black;
-                            margin-top: 4px;
-                            padding-top: 4px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h2>JM Garis Store</h2>
-                        <p>Official Receipt</p>
-                    </div>
-                    
-                    <div class="details">
-                        <p><strong>Order #:</strong> ${this.selectedOrder.order_id}</p>
-                        <p><strong>Date:</strong> ${date}</p>
-                        <p><strong>Customer:</strong> ${this.selectedOrder.customer_name}</p>
-                    </div>
-                    
-                    <div class="items-section">
-                        <table>
-                            <tbody>
-                                ${items}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="total">
-                        Total Amount: ₱${this.formatPrice(this.selectedOrder.total_amount)}
-                    </div>
-                    
-                    <div class="footer">
-                        <p>Thank you for your purchase!</p>
-                        <p>Please come again!</p>
-                    </div>
-                    
-                    <div class="cut-line">
-                        --------------------------------
-                    </div>
-                </body>
-                </html>
+                <tr>
+                    <td style="font-size: 12px; padding: 2px 0;">${displayName}</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 12px; text-align: right; padding: 2px 0;">
+                        ${item.quantity} x ₱${this.formatPrice(item.price)} = ₱${this.formatPrice(item.price * item.quantity)}
+                    </td>
+                </tr>
             `;
-        },
+        }).join('');
+
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title></title>
+            <style>
+                @media print {
+                    @page {
+                        margin: 0;
+                        size: 58mm auto;
+                    }
+                }
+                body {
+                    font-family: Arial, sans-serif;
+                    width: 58mm;
+                    margin: 0;
+                    padding: 2mm;
+                    font-size: 12px;
+                }
+                .header {
+                    text-align: center;
+                    margin-bottom: 3px;
+                    border-bottom: 1px dashed black;
+                    padding-bottom: 3px;
+                }
+                .header h2 {
+                    font-size: 16px;
+                    margin: 0;
+                    padding: 0;
+                    font-weight: bold;
+                }
+                .header p {
+                    font-size: 14px;
+                    margin: 2px 0;
+                }
+                .details {
+                    margin: 3px 0;
+                    border-bottom: 1px dashed black;
+                    padding-bottom: 3px;
+                }
+                .details p {
+                    margin: 1px 0;
+                    font-size: 12px;
+                    line-height: 1.2;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 4px 0;
+                }
+                tr {
+                    line-height: 1.2;
+                }
+                td {
+                    padding: 1px 0;
+                }
+                .items-section {
+                    border-bottom: 1px dashed black;
+                    margin-bottom: 4px;
+                    padding-bottom: 4px;
+                }
+                .total-section {
+                    text-align: right;
+                    font-size: 12px;
+                    margin: 4px 0;
+                }
+                .subtotal, .discount, .total {
+                    margin: 2px 0;
+                }
+                .total {
+                    font-weight: bold;
+                    font-size: 14px;
+                    margin-top: 4px;
+                    padding-top: 2px;
+                    border-top: 1px dashed black;
+                }
+                .footer {
+                    text-align: center;
+                    font-size: 12px;
+                    margin-top: 6px;
+                }
+                .footer p {
+                    margin: 2px 0;
+                }
+                .spacing {
+                    height: 48px;
+                }
+                .cut-line {
+                    text-align: center;
+                    font-size: 12px;
+                    border-top: 1px dashed black;
+                    margin-top: 4px;
+                    padding-top: 4px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>JM Garis Store</h2>
+                <p>Official Receipt</p>
+            </div>
+            
+            <div class="details">
+                <p><strong>Order #:</strong> ${this.selectedOrder.order_id}</p>
+                <p><strong>Date:</strong> ${date}</p>
+                <p><strong>Customer:</strong> ${this.selectedOrder.customer_name}</p>
+            </div>
+            
+            <div class="items-section">
+                <table>
+                    <tbody>
+                        ${items}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="total-section">
+                <div class="subtotal">
+                    Subtotal: ₱${this.formatPrice(this.selectedOrder.subtotal)}
+                </div>
+                ${this.selectedOrder.discount_amount > 0 ? `
+                <div class="discount">
+                    Discount: -₱${this.formatPrice(this.selectedOrder.discount_amount)}
+                </div>
+                ` : ''}
+                <div class="total">
+                    Total Amount: ₱${this.formatPrice(this.selectedOrder.total_amount)}
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>Thank you for your purchase!</p>
+                <p>Please come again!</p>
+            </div>
+            
+            <div class="cut-line">
+                --------------------------------
+            </div>
+        </body>
+        </html>
+    `;
+},
         formatPrice(price) {
             return Number(price).toFixed(2);
         },
