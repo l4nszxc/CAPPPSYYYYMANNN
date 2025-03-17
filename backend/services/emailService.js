@@ -53,7 +53,6 @@ exports.sendOrderStatusReceipt = async (email, order, status) => {
             throw new Error('Recipient email is required');
         }
 
-        // Ensure values are properly formatted with fallbacks
         const safeNumber = (num) => (typeof num === 'number' || typeof num === 'string') ? 
             Number(num).toFixed(2) : '0.00';
 
@@ -82,7 +81,25 @@ exports.sendOrderStatusReceipt = async (email, order, status) => {
         const discountAmount = order.discount_amount || 0;
         const totalAmount = order.total_amount || 0;
 
-        const mailOptions = {
+        // Create price breakdown section
+        const priceBreakdown = `
+            <tr>
+                <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold;">Subtotal:</td>
+                <td style="padding: 12px; text-align: right;">₱${safeNumber(subtotal)}</td>
+            </tr>
+            ${Number(discountAmount) > 0 ? `
+            <tr>
+                <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold; color: #4CAF50;">Discount:</td>
+                <td style="padding: 12px; text-align: right; color: #4CAF50;">-₱${safeNumber(discountAmount)}</td>
+            </tr>
+            ` : ''}
+            <tr>
+                <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold; font-size: 1.1em;">Total:</td>
+                <td style="padding: 12px; text-align: right; font-weight: bold; font-size: 1.1em;">₱${safeNumber(totalAmount)}</td>
+            </tr>
+        `;
+
+        await transporter.sendMail({
             from: '"JM Garis Store" <storeofjmgaris@gmail.com>',
             to: email,
             subject: `Order #${order.order_id} - ${status.toUpperCase()}`,
@@ -112,20 +129,7 @@ exports.sendOrderStatusReceipt = async (email, order, status) => {
                             ${items}
                         </tbody>
                         <tfoot>
-                            <tr>
-                                <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold;">Subtotal:</td>
-                                <td style="padding: 12px; text-align: right;">₱${safeNumber(subtotal)}</td>
-                            </tr>
-                            ${Number(discountAmount) > 0 ? `
-                            <tr>
-                                <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold;">Discount:</td>
-                                <td style="padding: 12px; text-align: right; color: #dc3545;">-₱${safeNumber(discountAmount)}</td>
-                            </tr>
-                            ` : ''}
-                            <tr>
-                                <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold; font-size: 1.1em;">Total:</td>
-                                <td style="padding: 12px; text-align: right; font-weight: bold; font-size: 1.1em;">₱${safeNumber(totalAmount)}</td>
-                            </tr>
+                            ${priceBreakdown}
                         </tfoot>
                     </table>
 
@@ -135,9 +139,7 @@ exports.sendOrderStatusReceipt = async (email, order, status) => {
                     </div>
                 </div>
             `
-        };
-
-        await transporter.sendMail(mailOptions);
+        });
     } catch (error) {
         console.error('Error sending order status email:', error);
         throw error;

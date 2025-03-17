@@ -3,6 +3,7 @@ const Admin = require('../models/adminModel');
 const Staff = require('../models/staffModel');
 const User = require('../models/userModel');
 const Reward = require('../models/rewardModel');
+const emailService = require('../services/emailService');
 const jwt = require('jsonwebtoken');
 
 exports.getStats = async (req, res) => {
@@ -114,32 +115,80 @@ exports.processPayment = async (req, res) => {
     try {
         const { orderId } = req.params;
         
-        // Update order status without paid_at field
-        const [result] = await db.execute(
-            'UPDATE orders SET status = ? WHERE order_id = ?',
-            ['paid', orderId]
-        );
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        // Get updated order details
-        const [updatedOrder] = await db.execute(
-            `SELECT 
-                o.*, 
-                u.username as customer_name,
-                s.username as staff_name
+        // Get order details with user email before updating status
+        const [orderDetails] = await db.execute(
+            `SELECT o.*, u.email, u.username as customer_name,
+                    s.username as staff_name,
+                    ad.amount as discount_amount,
+                    (SELECT SUM(oi.price * oi.quantity) 
+                     FROM order_items oi 
+                     WHERE oi.order_id = o.order_id) as subtotal
              FROM orders o
              JOIN users u ON o.user_id = u.id
              LEFT JOIN users s ON o.accepted_by = s.id
+             LEFT JOIN available_discounts ad ON o.order_id = ad.order_id AND ad.used = TRUE
              WHERE o.order_id = ?`,
             [orderId]
         );
 
+        if (!orderDetails[0]) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Get order items
+        const [items] = await db.execute(
+            `SELECT oi.*, p.name, pc.name as choice_name,
+                    p.image, COALESCE(pc.image, p.image) as actual_image
+             FROM order_items oi 
+             LEFT JOIN products p ON oi.product_id = p.products_id
+             LEFT JOIN product_choices pc ON oi.choice_id = pc.choice_id 
+             WHERE oi.order_id = ?`,
+            [orderId]
+        );
+
+        // Update order status
+        await db.execute(
+            'UPDATE orders SET status = ? WHERE order_id = ?',
+            ['paid', orderId]
+        );
+
+        // Format items for email
+        const formattedItems = items.map(item => ({
+            product_id: item.product_id,
+            quantity: item.quantity,
+            price: item.price,
+            name: item.choice_name ? `${item.name} (${item.choice_name})` : item.name,
+            choice_name: item.choice_name,
+            image: item.actual_image || item.image
+        }));
+
+        // Prepare order details for email
+        const emailOrderDetails = {
+            ...orderDetails[0],
+            items: formattedItems,
+            subtotal: orderDetails[0].subtotal,
+            order_id: orderId,
+            total_amount: orderDetails[0].total_amount,
+            discount_amount: parseFloat(orderDetails[0].discount_amount) || 0,
+            email: orderDetails[0].email // Make sure email is included
+        };
+
+        // Send email notification
+        try {
+            console.log('Sending payment confirmation email to:', orderDetails[0].email); // Debug log
+            await emailService.sendOrderStatusReceipt(
+                orderDetails[0].email,
+                emailOrderDetails,
+                'paid'
+            );
+        } catch (emailError) {
+            console.error('Error sending payment email:', emailError);
+            // Don't return error response, just log it
+        }
+
         res.json({ 
             message: 'Payment processed successfully',
-            order: updatedOrder[0]
+            order: orderDetails[0]
         });
     } catch (error) {
         console.error('Error processing payment:', error);

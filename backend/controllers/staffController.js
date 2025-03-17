@@ -33,16 +33,21 @@ exports.updateOrderStatus = async (req, res) => {
         const { orderId } = req.params;
         const { status } = req.body;
 
-        // Get order details with user email
+        // Get order details with user email and discount information
         const [orderResult] = await db.execute(
-            `SELECT o.*, u.email, u.username as customer_name 
+            `SELECT o.*, u.email, u.username as customer_name,
+                    ad.amount as discount_amount,
+                    (SELECT SUM(oi.price * oi.quantity) 
+                     FROM order_items oi 
+                     WHERE oi.order_id = o.order_id) as subtotal
              FROM orders o 
-             JOIN users u ON o.user_id = u.id 
+             JOIN users u ON o.user_id = u.id
+             LEFT JOIN available_discounts ad ON o.order_id = ad.order_id AND ad.used = TRUE 
              WHERE o.order_id = ?`,
             [orderId]
         );
 
-        const order = orderResult[0]; // Get the first row
+        const order = orderResult[0];
 
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
@@ -82,7 +87,7 @@ exports.updateOrderStatus = async (req, res) => {
         const orderDetails = {
             ...order,
             items: formattedItems,
-            subtotal,
+            subtotal: subtotal,
             order_id: orderId,
             total_amount: order.total_amount,
             discount_amount: parseFloat(order.discount_amount) || 0
@@ -91,7 +96,7 @@ exports.updateOrderStatus = async (req, res) => {
         // Send email for specific statuses
         if (['preparing', 'ready for pickup', 'paid'].includes(status.toLowerCase())) {
             try {
-                console.log('Sending email to:', order.email); // Debug log
+                console.log('Sending email to:', order.email, 'with discount:', orderDetails.discount_amount); // Debug log
                 await emailService.sendOrderStatusReceipt(order.email, orderDetails, status);
             } catch (emailError) {
                 console.error('Error sending email:', emailError);
@@ -100,7 +105,7 @@ exports.updateOrderStatus = async (req, res) => {
 
         res.json({ 
             message: 'Order status updated successfully',
-            email: order.email // Return email in response for debugging
+            email: order.email
         });
     } catch (error) {
         console.error('Error updating order status:', error);
@@ -112,16 +117,21 @@ exports.acceptOrder = async (req, res) => {
         const { orderId } = req.params;
         const staffId = req.user.id;
 
-        // Get order details with user email
+        // Get order details with user email and discount information
         const [orderResult] = await db.execute(
-            `SELECT o.*, u.email, u.username as customer_name 
+            `SELECT o.*, u.email, u.username as customer_name,
+                    ad.amount as discount_amount,
+                    (SELECT SUM(oi.price * oi.quantity) 
+                     FROM order_items oi 
+                     WHERE oi.order_id = o.order_id) as subtotal
              FROM orders o 
-             JOIN users u ON o.user_id = u.id 
+             JOIN users u ON o.user_id = u.id
+             LEFT JOIN available_discounts ad ON o.order_id = ad.order_id AND ad.used = TRUE 
              WHERE o.order_id = ?`,
             [orderId]
         );
 
-        const order = orderResult[0]; // Get the first row
+        const order = orderResult[0];
 
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
@@ -165,7 +175,7 @@ exports.acceptOrder = async (req, res) => {
         const orderDetails = {
             ...order,
             items: formattedItems,
-            subtotal,
+            subtotal: subtotal,
             order_id: orderId,
             total_amount: order.total_amount,
             discount_amount: parseFloat(order.discount_amount) || 0
@@ -173,7 +183,7 @@ exports.acceptOrder = async (req, res) => {
 
         // Send email notification
         try {
-            console.log('Sending email to:', order.email); // Debug log
+            console.log('Sending email to:', order.email, 'with discount:', orderDetails.discount_amount); // Debug log
             await emailService.sendOrderStatusReceipt(order.email, orderDetails, 'preparing');
         } catch (emailError) {
             console.error('Error sending email:', emailError);
@@ -181,7 +191,7 @@ exports.acceptOrder = async (req, res) => {
 
         res.json({ 
             message: 'Order accepted successfully',
-            email: order.email // Return email in response for debugging
+            email: order.email
         });
     } catch (error) {
         console.error('Error accepting order:', error);
