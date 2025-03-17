@@ -4,11 +4,20 @@ const Reward = require('../models/rewardModel.js');
 
 exports.createOrder = async (req, res) => {
     const connection = await db.getConnection();
+    
     try {
         await connection.beginTransaction();
 
         const { items, totalAmount, discountId } = req.body;
         const userId = req.user.id;
+
+        // Check if items array is valid
+        if (!Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ message: 'No items provided' });
+        }
+
+        // Debug log
+        console.log('Creating order with items:', items);
 
         let finalAmount = totalAmount;
         let appliedDiscount = 0;
@@ -22,38 +31,16 @@ exports.createOrder = async (req, res) => {
                 console.error('Error applying discount:', error);
             }
         }
-
-        // Generate order ID
-        const orderId = Math.random().toString().slice(2, 9);
-
-        // Insert order with final amount
-        await connection.query(
-            'INSERT INTO orders (order_id, user_id, total_amount, status) VALUES (?, ?, ?, ?)',
-            [orderId, userId, finalAmount, 'pending']
-        );
+        
+        // Use the Order model's create method to handle the order creation and stock update
+        const orderId = await Order.create(userId, items, finalAmount);
 
         // If discount was applied, update the order_id in available_discounts
-        if (discountId) {
-            await connection.query(
-                'UPDATE available_discounts SET order_id = ? WHERE id = ?',
+        if (discountId && appliedDiscount > 0) {
+            await connection.execute(
+                'UPDATE available_discounts SET order_id = ?, used = TRUE WHERE id = ?',
                 [orderId, discountId]
             );
-        }
-
-        // Insert order items
-        for (const item of items) {
-            await connection.query(
-                'INSERT INTO order_items (order_id, product_id, quantity, price, choice_id) VALUES (?, ?, ?, ?, ?)',
-                [orderId, item.product_id, item.quantity, item.price, item.choice_id]
-            );
-        }
-
-        // Clear cart
-        if (items.length > 0) {
-            const itemIds = items.map(item => item.id).filter(id => id);
-            if (itemIds.length > 0) {
-                await connection.query('DELETE FROM cart WHERE id IN (?)', [itemIds]);
-            }
         }
 
         await connection.commit();
@@ -77,7 +64,7 @@ exports.createOrder = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         console.error('Error creating order:', error);
-        res.status(500).json({ message: 'Error creating order' });
+        res.status(500).json({ message: 'Error creating order: ' + error.message });
     } finally {
         connection.release();
     }

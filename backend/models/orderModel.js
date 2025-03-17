@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 class Order {
     static generateOrderId() {
-        return Math.floor(1000000 + Math.random() * 9000000).toString();
+        return Math.random().toString().slice(2, 9);
     }
 
     static async create(userId, items, totalAmount) {
@@ -11,6 +11,31 @@ class Order {
             await connection.beginTransaction();
             
             const orderId = this.generateOrderId();
+    
+            // First verify if there's enough stock for all items
+            for (const item of items) {
+                if (item.choice_id) {
+                    // Check choice stock
+                    const [choiceRows] = await connection.execute(
+                        'SELECT stock FROM product_choices WHERE choice_id = ? FOR UPDATE',
+                        [item.choice_id]
+                    );
+    
+                    if (!choiceRows[0] || choiceRows[0].stock < item.quantity) {
+                        throw new Error(`Not enough stock for product variant with choice ID ${item.choice_id}`);
+                    }
+                } else {
+                    // Check main product stock
+                    const [productRows] = await connection.execute(
+                        'SELECT stock_quantity FROM products WHERE products_id = ? FOR UPDATE',
+                        [item.product_id]
+                    );
+    
+                    if (!productRows[0] || productRows[0].stock_quantity < item.quantity) {
+                        throw new Error(`Not enough stock for product ID ${item.product_id}`);
+                    }
+                }
+            }
             
             // Create order
             await connection.execute(
@@ -18,31 +43,27 @@ class Order {
                 [orderId, userId, totalAmount]
             );
     
-            // Create order items
+            // Process each item
             for (const item of items) {
-                // Make sure price is a valid number
-                const price = parseFloat(item.price || 0);
-                
+                // Insert order item
                 await connection.execute(
                     'INSERT INTO order_items (order_id, product_id, quantity, price, choice_id) VALUES (?, ?, ?, ?, ?)',
-                    [
-                        orderId, 
-                        item.product_id, 
-                        item.quantity, 
-                        price,
-                        item.choice_id || null
-                    ]
+                    [orderId, item.product_id, item.quantity, item.price, item.choice_id || null]
                 );
     
-                // Handle stock reduction appropriately
+                // Update stock
                 if (item.choice_id) {
-                    // Reduce choice stock if it's a choice item
+                    // Debug log
+                    console.log(`Reducing choice stock: choice_id=${item.choice_id}, quantity=${item.quantity}`);
+                    
                     await connection.execute(
                         'UPDATE product_choices SET stock = stock - ? WHERE choice_id = ?',
                         [item.quantity, item.choice_id]
                     );
                 } else {
-                    // Reduce main product stock if it's not a choice
+                    // Debug log
+                    console.log(`Reducing product stock: product_id=${item.product_id}, quantity=${item.quantity}`);
+                    
                     await connection.execute(
                         'UPDATE products SET stock_quantity = stock_quantity - ? WHERE products_id = ?',
                         [item.quantity, item.product_id]
@@ -50,16 +71,25 @@ class Order {
                 }
             }
     
-            // Clear cart items
-            await connection.execute(
-                'DELETE FROM cart WHERE user_id = ?',
-                [userId]
-            );
+            // Clear cart items that were ordered - FIX HERE
+            // Extract cart item IDs
+            const itemIds = items.map(item => item.id).filter(id => id);
+            
+            // Delete items one by one to avoid SQL issues with array parameters
+            if (itemIds.length > 0) {
+                for (const id of itemIds) {
+                    await connection.execute(
+                        'DELETE FROM cart WHERE id = ? AND user_id = ?',
+                        [id, userId]
+                    );
+                }
+            }
     
             await connection.commit();
             return orderId;
         } catch (error) {
             await connection.rollback();
+            console.error('Error creating order:', error);
             throw error;
         } finally {
             connection.release();

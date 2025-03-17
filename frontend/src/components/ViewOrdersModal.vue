@@ -153,8 +153,17 @@ export default {
             this.localItems = this.localItems.filter(item => item.id !== itemId);
         },
         confirmOrder() {
+            // Format items properly to ensure they contain all needed fields
+            const formattedItems = this.localItems.map(item => ({
+                id: item.id,
+                product_id: item.product_id,
+                quantity: item.quantity,
+                price: parseFloat(item.price),
+                choice_id: item.choice_id
+            }));
+            
             this.$emit('place-order', {
-                items: this.localItems,
+                items: formattedItems,
                 discountId: this.selectedDiscountId
             });
         }

@@ -200,13 +200,24 @@ export default {
             try {
                 const token = localStorage.getItem('token');
                 
+                // Ensure items have all required properties
+                const formattedItems = items.map(item => ({
+                    id: item.id,
+                    product_id: item.product_id,
+                    quantity: item.quantity,
+                    price: parseFloat(item.price),
+                    choice_id: item.choice_id
+                }));
+                
                 const requestBody = {
-                    items: items,
-                    totalAmount: items.reduce((sum, item) => 
+                    items: formattedItems,
+                    totalAmount: formattedItems.reduce((sum, item) => 
                         sum + (parseFloat(item.price) * item.quantity), 0
                     ),
                     discountId: discountId
                 };
+
+                console.log('Sending order with data:', requestBody);
 
                 const response = await fetch('http://localhost:7904/api/orders', {
                     method: 'POST',
@@ -218,7 +229,8 @@ export default {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to place order');
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to place order');
                 }
 
                 const { orderId, finalAmount, appliedDiscount, pointsEarned } = await response.json();
@@ -237,7 +249,7 @@ export default {
 
             } catch (error) {
                 console.error('Error placing order:', error);
-                alert('Failed to place order');
+                alert('Failed to place order: ' + (error.message || 'Unknown error'));
             }
         },
         

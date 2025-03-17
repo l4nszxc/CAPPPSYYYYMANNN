@@ -198,6 +198,57 @@ exports.acceptOrder = async (req, res) => {
         res.status(500).json({ message: 'Error accepting order' });
     }
 };
+exports.cancelOrder = async (req, res) => {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+        
+        const { orderId } = req.params;
+        const { reason } = req.body;
+
+        // Get order items before cancelling
+        const [items] = await connection.execute(
+            `SELECT oi.*, p.stock_quantity, pc.stock 
+             FROM order_items oi 
+             LEFT JOIN products p ON oi.product_id = p.products_id 
+             LEFT JOIN product_choices pc ON oi.choice_id = pc.choice_id 
+             WHERE oi.order_id = ?`,
+            [orderId]
+        );
+
+        // Return stock for each item
+        for (const item of items) {
+            if (item.choice_id) {
+                // Return stock to choice
+                await connection.execute(
+                    'UPDATE product_choices SET stock = stock + ? WHERE choice_id = ?',
+                    [item.quantity, item.choice_id]
+                );
+            } else {
+                // Return stock to main product
+                await connection.execute(
+                    'UPDATE products SET stock_quantity = stock_quantity + ? WHERE products_id = ?',
+                    [item.quantity, item.product_id]
+                );
+            }
+        }
+
+        // Update order status
+        await connection.execute(
+            'UPDATE orders SET status = ?, cancel_reason = ? WHERE order_id = ?',
+            ['cancelled', reason, orderId]
+        );
+
+        await connection.commit();
+        res.json({ message: 'Order cancelled successfully' });
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error cancelling order:', error);
+        res.status(500).json({ message: 'Error cancelling order' });
+    } finally {
+        connection.release();
+    }
+};
 exports.getAcceptedOrders = async (req, res) => {
     try {
         const staffId = req.user.id;
