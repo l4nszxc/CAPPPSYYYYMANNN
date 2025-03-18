@@ -21,13 +21,14 @@
         <div class="profile-picture-section">
           <div class="profile-picture-wrapper">
             <div class="profile-picture-container">
-              <img 
-                :src="profilePictureUrl" 
-                :alt="profileData.username"
-                class="profile-picture"
-                @error="handleImageError"
-            >
-            </div>
+            <img
+              :src="profileImageUrl"
+              :alt="username"
+              class="profile-picture"
+              @error="handleImageError"
+              crossorigin="anonymous"
+            />
+          </div>
             
             <div class="picture-buttons">
               <label for="profile-picture-input" class="upload-button">
@@ -191,12 +192,14 @@
 <script>
 import Navbar from '../../components/Navbar.vue'
 import LogoutModal from '../../components/LogoutModal.vue'
+import { getAvatarUrl } from '../../utils/avatarHandler.js';
 
 export default {
   name: 'Profile',
   components: {
     Navbar,
-    LogoutModal
+    LogoutModal,
+    profileImageUrl: '',
   },
   data() {
     return {
@@ -228,8 +231,16 @@ export default {
   },
   computed: {
     profilePictureUrl() {
-        // Use ImgBB URL directly if available, otherwise use fallback
-        return this.profileData.profile_picture || `https://ui-avatars.com/api/?name=${this.username}&background=random`;
+        if (!this.profileData.profile_picture) {
+            return this.getDefaultAvatar(this.username);
+        }
+        // Check if URL is valid
+        try {
+            new URL(this.profileData.profile_picture);
+            return this.profileData.profile_picture;
+        } catch (e) {
+            return this.getDefaultAvatar(this.username);
+        }
     },
     formattedBirthdate: {
         get() {
@@ -242,10 +253,21 @@ export default {
     }
 },
   methods: {
-    handleImageError(e) {
-        e.target.src = `https://ui-avatars.com/api/?name=${this.username}&background=random`;
+    getDefaultAvatar(username) {
+        const encodedName = encodeURIComponent(username || 'User');
+        return `https://ui-avatars.com/api/?name=${encodedName}&background=random&size=200`;
     },
-    
+    handleImageError(e) {
+      e.target.onerror = null; // Prevent infinite loop
+      e.target.src = getAvatarUrl(this.username);
+    },
+    async loadProfileImage() {
+      if (this.profileData?.profile_picture) {
+        this.profileImageUrl = this.profileData.profile_picture;
+      } else {
+        this.profileImageUrl = getAvatarUrl(this.username);
+      }
+    },
     showNotification(message, type = 'success') {
         this.notification = {
             show: true,
@@ -493,6 +515,14 @@ async handleProfilePictureChange(event) {
 }
   
   },
+  watch: {
+    profileData: {
+      immediate: true,
+      handler() {
+        this.loadProfileImage();
+      }
+    }
+  },
   mounted() {
     this.fetchProfile()
   }
@@ -695,13 +725,15 @@ async handleProfilePictureChange(event) {
   gap: 1rem;
 }
 .profile-picture-container {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  border: 4px solid white;
-  transition: transform 0.3s ease;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f0f0f0; /* Fallback color while loading */
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border: 4px solid white;
+    transition: transform 0.3s ease;
 }
 .profile-picture-container:hover {
   transform: scale(1.02);
@@ -715,9 +747,14 @@ async handleProfilePictureChange(event) {
 }
 
 .profile-picture {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden; /* Safari support */
+    transform: translateZ(0); /* Force hardware acceleration */
+    -webkit-transform: translateZ(0);
 }
 
 .upload-overlay {

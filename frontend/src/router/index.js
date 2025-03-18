@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { checkTokenExpiration } from '../utils/auth';
+import { checkTokenExpiration } from '../utils/auth.js';
 import Register from '../views/Register.vue'
 import Login from '../views/Login.vue'
 import Home from '../views/user/Home.vue'
