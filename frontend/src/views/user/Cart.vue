@@ -73,6 +73,13 @@
                     </div>
                     <div class="cart-actions">
                         <button 
+                            class="share-btn" 
+                            @click="showShareModal = true"
+                            :disabled="cartItems.length === 0"
+                        >
+                            <i class="fas fa-share-alt"></i> Share Cart
+                        </button>
+                        <button 
                             class="checkout-btn" 
                             @click="showOrdersModal = true" 
                             :disabled="checkedItemsCount === 0"
@@ -90,6 +97,10 @@
                 </button>
             </div>
         </div>
+        <ShareCartModal 
+            :show="showShareModal"
+            @close="showShareModal = false"
+        />
 
         <LogoutModal 
             :show="showLogoutModal" 
@@ -111,13 +122,15 @@
 import Navbar from '../../components/Navbar.vue';
 import LogoutModal from '../../components/LogoutModal.vue';
 import ViewOrdersModal from '../../components/ViewOrdersModal.vue';
+import ShareCartModal from '../../components/ShareCartModal.vue'
 
 export default {
     name: 'Cart',
     components: {
         Navbar,
         LogoutModal,
-        ViewOrdersModal
+        ViewOrdersModal,
+        ShareCartModal
     },
     data() {
         return {
@@ -128,7 +141,8 @@ export default {
             checkedItems: new Set(),
             loading: false,
             error: null,
-            availableDiscounts: []
+            availableDiscounts: [],
+            showShareModal: false
         };
     },
     computed: {
@@ -722,5 +736,28 @@ export default {
     padding: 0.5rem;
     border-radius: 4px;
     width: fit-content;
+}
+.share-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.share-btn:hover:not(:disabled) {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+.share-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
 </style>
