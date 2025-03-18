@@ -1,4 +1,4 @@
-<template>
+n<template>
   <div class="rewards-page min-h-screen bg-gray-100">
     <Navbar :username="username" @logout="showLogoutModal = true" />
     
@@ -24,7 +24,7 @@
 
       <!-- Available Rewards -->
       <div class="bg-white rounded-lg shadow-md p-8 mb-6">
-        <h2 class="text-xl font-bold text-gray-700 mb-4">Available Rewards</h2>
+        <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Available Rewards</h2>
         <div v-if="availableRewards.length" class="grid md:grid-cols-3 gap-6">
           <div v-for="reward in availableRewards" :key="reward.id" 
                class="bg-gray-50 rounded-lg p-4 text-center relative hover:shadow-lg transition-shadow">
@@ -50,7 +50,7 @@
 
       <!-- Reward History -->
       <div class="bg-white rounded-lg shadow-md p-8">
-        <h2 class="text-xl font-bold text-gray-700 mb-4">Reward History</h2>
+        <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Reward History</h2>
         <div class="overflow-x-auto reward-history-container">
           <table v-if="rewardHistory.length" class="min-w-full bg-white">
             <thead>
