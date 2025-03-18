@@ -15,6 +15,7 @@ import Cart from '../views/user/Cart.vue'
 import OrderHistory from '../views/user/OrderHistory.vue'
 import ViewOrder from '../views/user/ViewOrder.vue'
 import Rewards from '../views/user/Rewards.vue'
+import SharedCart from '../views/user/SharedCart.vue'
 import RewardsManagement from '../views/admin/RewardsManagement.vue'
 
 const routes = [
@@ -86,6 +87,12 @@ const routes = [
     path: '/rewards',
     name: 'Rewards',
     component: Rewards,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/shared-cart/:shareId',
+    name: 'SharedCart',
+    component: SharedCart,
     meta: { requiresAuth: true }
   },
 
