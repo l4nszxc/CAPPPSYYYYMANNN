@@ -7,7 +7,7 @@
             <div v-if="availableDiscounts.length" class="discount-section">
                 <h4>Available Discounts</h4>
                 <select v-model="selectedDiscountId" class="discount-select">
-                    <option value="">No discount</option>
+                    <option value="">No discount (₱0)</option>
                     <option v-for="discount in availableDiscounts" 
                             :key="discount.id" 
                             :value="discount.id">
@@ -100,7 +100,8 @@ export default {
     data() {
         return {
             localItems: [],
-            selectedDiscountId: null
+            selectedDiscountId: null,
+            selectedDiscountId: '' ,
         }
     },
     watch: {
