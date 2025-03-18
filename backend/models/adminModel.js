@@ -171,7 +171,7 @@ class Admin {
     }
     static async getDashboardStats() {
         try {
-            // Keep existing stats query
+            // Keep existing base stats query
             const [salesStats] = await db.execute(`
                 SELECT 
                     COUNT(DISTINCT o.order_id) as totalOrders,
@@ -187,14 +187,29 @@ class Admin {
             const [topProducts] = await db.execute(`
                 SELECT 
                     p.name,
-                    SUM(CASE WHEN o.status = 'paid' THEN oi.quantity ELSE 0 END) as quantity,
-                    SUM(CASE WHEN o.status = 'paid' THEN (oi.price * oi.quantity) ELSE 0 END) as total
-                FROM order_items oi
-                JOIN products p ON oi.product_id = p.products_id
-                JOIN orders o ON oi.order_id = o.order_id
+                    p.image,
+                    SUM(CASE 
+                        WHEN o.status = 'paid' AND o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                        THEN oi.quantity 
+                        ELSE 0 
+                    END) as weekly_quantity,
+                    SUM(CASE 
+                        WHEN o.status = 'paid' AND o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                        THEN (oi.price * oi.quantity) 
+                        ELSE 0 
+                    END) as weekly_revenue,
+                    SUM(CASE WHEN o.status = 'paid' THEN oi.quantity ELSE 0 END) as total_quantity,
+                    SUM(CASE WHEN o.status = 'paid' THEN (oi.price * oi.quantity) ELSE 0 END) as total_revenue,
+                    COUNT(DISTINCT CASE 
+                        WHEN o.status = 'paid' AND o.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                        THEN o.order_id 
+                    END) as weekly_orders
+                FROM products p
+                LEFT JOIN order_items oi ON p.products_id = oi.product_id
+                LEFT JOIN orders o ON oi.order_id = o.order_id
                 GROUP BY p.products_id, p.name
-                HAVING quantity > 0
-                ORDER BY quantity DESC
+                HAVING weekly_quantity > 0 OR total_quantity > 0
+                ORDER BY weekly_quantity DESC, weekly_revenue DESC
                 LIMIT 5
             `);
     

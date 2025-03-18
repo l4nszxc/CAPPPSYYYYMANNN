@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 18, 2025 at 03:16 PM
+-- Generation Time: Mar 18, 2025 at 05:38 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -99,7 +99,10 @@ CREATE TABLE `cart` (
 --
 
 INSERT INTO `cart` (`id`, `user_id`, `product_id`, `quantity`, `created_at`, `choice_id`) VALUES
-(178, 58, 10, 1, '2025-03-18 15:04:50', NULL);
+(179, 59, 22, 1, '2025-03-18 15:56:20', NULL),
+(180, 59, 10, 1, '2025-03-18 16:00:01', NULL),
+(181, 58, 22, 1, '2025-03-18 16:01:00', NULL),
+(182, 58, 10, 1, '2025-03-18 16:01:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -161,6 +164,7 @@ INSERT INTO `orders` (`order_id`, `user_id`, `total_amount`, `status`, `created_
 ('6815523', 58, 50.00, 'paid', '2025-03-16 16:10:52', '2025-03-17 15:59:02', NULL, 23, '2025-03-17 23:38:16'),
 ('6881139', 58, 98000.00, 'paid', '2025-03-15 08:42:53', '2025-03-15 08:43:27', NULL, 23, '2025-03-15 16:43:08'),
 ('7066272', 58, 100.00, 'paid', '2025-03-17 15:44:57', '2025-03-17 15:46:11', NULL, 23, '2025-03-17 23:45:05'),
+('7092556', 58, 333.00, 'pending', '2025-03-18 17:30:39', '2025-03-18 17:30:39', NULL, NULL, NULL),
 ('7254325', 58, 25158.00, 'pending', '2025-03-16 14:59:09', '2025-03-16 14:59:09', NULL, NULL, NULL),
 ('7385943', 58, 333.00, 'ready for pickup', '2025-03-16 16:02:57', '2025-03-17 15:56:28', NULL, 23, '2025-03-17 23:42:08'),
 ('8224349', 58, 520.00, 'pending', '2025-03-15 07:46:08', '2025-03-15 07:46:08', NULL, NULL, NULL),
@@ -248,7 +252,8 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`, 
 (146, '6630894', 22, 2, 22.00, NULL),
 (147, '0783172', 10, 1, 333.00, NULL),
 (148, '9091668', 23, 5, 100.00, NULL),
-(149, '2320699', 10, 1, 333.00, NULL);
+(149, '2320699', 10, 1, 333.00, NULL),
+(150, '7092556', 10, 1, 333.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -273,7 +278,7 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`products_id`, `name`, `description`, `price`, `stock_quantity`, `category`, `image`, `created_at`, `updated_at`) VALUES
-(10, 'zxczxczxczxczxcxzcxzczxcxz', 'hello world zxc', 333.00, 8, 'Beverages', 'https://i.ibb.co/Kck1MWYL/4f38c21520ba.jpg', '2025-03-14 12:13:24', '2025-03-18 15:04:38'),
+(10, 'zxczxczxczxczxcxzcxzczxcxz', 'hello world zxc', 333.00, 7, 'Beverages', 'https://i.ibb.co/Kck1MWYL/4f38c21520ba.jpg', '2025-03-14 12:13:24', '2025-03-18 17:30:39'),
 (19, 'Lans sa Lorence', 'sa', 32.00, 30, 'Condiments', 'https://i.ibb.co/xKr7PR7H/5ad3d88f58f7.png', '2025-03-14 11:02:14', '2025-03-17 17:42:31'),
 (22, 'alfonso', 'asdads', 22.00, 1, 'Beverages', 'https://i.ibb.co/TDxYJwhr/bf62ee51614b.jpg', '2025-03-15 03:44:48', '2025-03-17 17:55:40'),
 (23, 'alfonso', 'dasdsa', 100.00, 505, 'Beverages', 'https://i.ibb.co/VWsng8Jw/3caa5a7fcce3.jpg', '2025-03-15 03:55:49', '2025-03-18 14:24:06'),
@@ -336,6 +341,36 @@ INSERT INTO `reward_tiers` (`id`, `name`, `points_required`, `discount_amount`, 
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `shared_carts`
+--
+
+CREATE TABLE `shared_carts` (
+  `share_id` varchar(36) NOT NULL,
+  `owner_id` int NOT NULL,
+  `shared_with` int DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('active','expired','used') DEFAULT 'active'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `shared_carts`
+--
+
+INSERT INTO `shared_carts` (`share_id`, `owner_id`, `shared_with`, `expires_at`, `created_at`, `status`) VALUES
+('16807ad4-34b0-48c5-98cd-564f61579acb', 58, NULL, '2025-03-19 17:17:28', '2025-03-18 17:17:27', 'active'),
+('3599964f-b6c7-4154-9edc-6f2ca84fcf53', 58, NULL, '2025-03-19 15:31:17', '2025-03-18 15:31:17', 'active'),
+('64b1c524-9fd6-407f-87d8-16676f86ef07', 58, 59, '2025-03-19 15:59:50', '2025-03-18 15:59:49', 'used'),
+('a249f87c-80b8-4049-b29b-4f6bf6eccd02', 58, NULL, '2025-03-19 15:31:59', '2025-03-18 15:31:58', 'active'),
+('a4d57f76-bf03-4b5c-9f6c-153571c394a1', 59, 58, '2025-03-19 15:56:23', '2025-03-18 15:56:23', 'used'),
+('aef59b41-80ec-48ab-92f3-eb3253d9e706', 58, NULL, '2025-03-19 17:16:39', '2025-03-18 17:16:38', 'active'),
+('d357ec54-5b14-4fad-81bb-25ed11686ae7', 58, NULL, '2025-03-19 16:57:58', '2025-03-18 16:57:58', 'active'),
+('f8c27d4e-4fde-4a94-96a4-715002805fbc', 58, NULL, '2025-03-19 15:32:20', '2025-03-18 15:32:20', 'active'),
+('fd1f43b2-35a9-4a86-bbff-4e03d436725b', 58, NULL, '2025-03-19 15:33:52', '2025-03-18 15:33:52', 'active');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -371,7 +406,7 @@ INSERT INTO `users` (`id`, `username`, `firstname`, `middlename`, `lastname`, `g
 (23, 'Helios', 'Kien Eros', NULL, 'Aas', 'male', 'single', '097874547561', 'ilaya calapan', NULL, 'hernandezlanslorence@gmail.com', '$2a$10$FXivDvr6ZEu4/.BoTHD8tOXi6Ji6V3mv8BvVdrS68cQ3hYcmu3j1O', '2025-02-14 21:37:21', NULL, NULL, 1, 'staff', NULL, NULL, NULL),
 (56, 'l4nszxcqwe', 'dsa', 'dsa', 'dsadsa', 'female', 'single', '09127649805', 'Ibaba West, Calapan City, Oriental Mindoro', '2025-02-16', 'dsdsadasdas@gmail.com', '$2a$10$SSpSYo7VpFS4tolhVjEQ2On47sOeNhXD3eplmpR/wEFNkGooExiC6', '2025-02-16 04:31:13', 'lKiGNV', '2025-02-16 04:41:13', 0, 'user', NULL, NULL, NULL),
 (57, 'dsad213213', 'adsad', 'sadsa', '3dsads', 'female', 'single', '3442342', 'dsadas', '2025-02-16', 'lans@gmail.com', '$2a$10$Pd2lZMPCnTMBxylXfT47e.OHqz5AekpbITPS9PFmCKcetRQm.2qb6', '2025-02-16 04:32:19', 'blj3Gv', '2025-02-16 04:42:19', 0, 'user', NULL, NULL, NULL),
-(58, 'L4nszxc_09', 'Lans Lorence', 'Navarro', 'Hernandez', 'male', 'single', '09127649805', 'Ibaba West, Calapan City, Oriental Mindoro', '2004-07-09', 'lanslorence@gmail.com', '$2a$10$z4qsUgfnimoeNljOb83iy.ZyoesJyUPl6qLsxAo1YN03af72K.g0.', '2025-02-16 06:14:39', NULL, NULL, 1, 'user', 'Px7inM', '2025-03-17 23:50:19', 'https://i.ibb.co/j9Vw6DBJ/93808054dac3.jpg'),
+(58, 'L4nszxc_09', 'Lans Lorence', 'Navarro', 'Hernandez', 'male', 'single', '09127649805', 'Ibaba West, Calapan City, Oriental Mindoro', '2004-07-09', 'lanslorence@gmail.com', '$2a$10$z4qsUgfnimoeNljOb83iy.ZyoesJyUPl6qLsxAo1YN03af72K.g0.', '2025-02-16 06:14:39', NULL, NULL, 1, 'user', 'Px7inM', '2025-03-17 23:50:19', 'https://i.ibb.co/5WWvbjyk/dac9333a4e72.jpg'),
 (59, 'norman123', 'Lansdsadsa', 'sadasd', 'Losdadsarence', 'female', 'single', '09127649805', 'Zone 3321', '2025-02-16', 'l4nsh3rn4nd3z@gmail.com', '$2a$10$AO6fKFsPsvFCfhHg9X9GxOMFmeeWkcCzFNArxLDNL/6RQXkrev6o6', '2025-02-16 13:53:55', NULL, NULL, 1, 'user', NULL, NULL, NULL),
 (60, 'saddsaddasdsa', 'sda', 'fdgd', 'fdgf', 'male', 'married', '3232432', 'dsadsa', '2025-02-26', 'sa@gmail.com', '$2a$10$rtbD7y7bDxqiyrlvtmoYROheqdfqRbI2RSIFQX/DKkj.lly8B474.', '2025-02-25 18:02:55', NULL, NULL, 1, 'staff', NULL, NULL, NULL);
 
@@ -467,7 +502,8 @@ INSERT INTO `user_rewards` (`id`, `user_id`, `order_id`, `points`, `description`
 (70, 58, NULL, -200, 'Redeemed for Silver Reward', '2025-03-18 15:00:18'),
 (71, 58, NULL, -200, 'Redeemed for Silver Reward', '2025-03-18 15:00:26'),
 (72, 58, NULL, -500, 'Redeemed for Gold Reward', '2025-03-18 15:00:27'),
-(73, 58, '2320699', 3, 'Earned points from order #2320699', '2025-03-18 15:04:32');
+(73, 58, '2320699', 3, 'Earned points from order #2320699', '2025-03-18 15:04:32'),
+(74, 58, '7092556', 3, 'Earned points from order #7092556', '2025-03-18 17:30:39');
 
 --
 -- Indexes for dumped tables
@@ -526,6 +562,14 @@ ALTER TABLE `reward_tiers`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `shared_carts`
+--
+ALTER TABLE `shared_carts`
+  ADD PRIMARY KEY (`share_id`),
+  ADD KEY `owner_id` (`owner_id`),
+  ADD KEY `shared_with` (`shared_with`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -553,13 +597,13 @@ ALTER TABLE `available_discounts`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=183;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=150;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=151;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -589,7 +633,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_rewards`
 --
 ALTER TABLE `user_rewards`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- Constraints for dumped tables
@@ -629,6 +673,13 @@ ALTER TABLE `order_items`
 --
 ALTER TABLE `product_choices`
   ADD CONSTRAINT `product_choices_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`products_id`);
+
+--
+-- Constraints for table `shared_carts`
+--
+ALTER TABLE `shared_carts`
+  ADD CONSTRAINT `shared_carts_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `shared_carts_ibfk_2` FOREIGN KEY (`shared_with`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `user_rewards`

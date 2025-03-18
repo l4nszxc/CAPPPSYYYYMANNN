@@ -104,31 +104,52 @@
         <h2>
           <i class="fas fa-chart-line"></i>
           Top Selling Products
+          <span class="period-badge">Last 7 Days</span>
         </h2>
         <div class="table-container">
           <table v-if="stats.topProducts && stats.topProducts.length">
             <thead>
               <tr>
-                <th>Product Name</th>
-                <th>Units Sold</th>
-                <th>Total Revenue</th>
+                <th>Product</th>
+                <th>Weekly Sales</th>
+                <th>Total Sales</th>
+                <th>Weekly Revenue</th>
                 <th>Performance</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="(product, index) in stats.topProducts" :key="product.name">
                 <td>
-                  <span class="rank">{{ index + 1 }}</span>
-                  {{ product.name }}
+                  <div class="product-info">
+                    <img 
+                      :src="product.image || '/img/placeholder.jpg'" 
+                      :alt="product.name"
+                      class="product-thumbnail"
+                      @error="handleImageError"
+                    >
+                    <div class="product-details">
+                      <span class="rank">{{ index + 1 }}</span>
+                      <span class="product-name">{{ product.name }}</span>
+                    </div>
+                  </div>
                 </td>
                 <td>
-                  <span class="units-sold">{{ product.quantity }}</span>
+                  <div class="sales-info">
+                    <span class="quantity">{{ product.weekly_quantity }}</span>
+                    <span class="label">units</span>
+                  </div>
                 </td>
-                <td>₱{{ formatPrice(product.total) }}</td>
                 <td>
-                  <div class="performance-indicator">
-                    <i class="fas fa-arrow-up"></i>
-                    High Demand
+                  <div class="sales-info">
+                    <span class="quantity">{{ product.total_quantity }}</span>
+                    <span class="label">total units</span>
+                  </div>
+                </td>
+                <td>₱{{ formatPrice(product.weekly_revenue) }}</td>
+                <td>
+                  <div class="performance-indicator" :class="getPerformanceClass(product)">
+                    <i :class="getPerformanceIcon(product)"></i>
+                    {{ getPerformanceLabel(product) }}
                   </div>
                 </td>
               </tr>
@@ -136,7 +157,7 @@
           </table>
           <p v-else class="no-data">
             <i class="fas fa-chart-bar"></i>
-            No sales data available yet
+            No sales data available for the past week
           </p>
         </div>
       </div>
@@ -247,6 +268,33 @@ export default {
     }
   },
   methods: {
+    getPerformanceClass(product) {
+      const weeklyOrders = product.weekly_orders || 0;
+      if (weeklyOrders >= 10) return 'excellent';
+      if (weeklyOrders >= 5) return 'good';
+      if (weeklyOrders >= 1) return 'normal';
+      return 'low';
+    },
+
+    getPerformanceIcon(product) {
+      const weeklyOrders = product.weekly_orders || 0;
+      if (weeklyOrders >= 10) return 'fas fa-rocket';
+      if (weeklyOrders >= 5) return 'fas fa-arrow-up';
+      if (weeklyOrders >= 1) return 'fas fa-arrow-right';
+      return 'fas fa-arrow-down';
+    },
+
+    getPerformanceLabel(product) {
+      const weeklyOrders = product.weekly_orders || 0;
+      if (weeklyOrders >= 10) return 'High Demand';
+      if (weeklyOrders >= 5) return 'Good Performance';
+      if (weeklyOrders >= 1) return 'Steady Sales';
+      return 'Low Movement';
+    },
+
+    handleImageError(e) {
+      e.target.src = '/img/placeholder.jpg';
+    },
     saveStock(item) {
       this.itemToUpdate = item;
       this.showSaveConfirmation = true;
@@ -486,16 +534,33 @@ export default {
 }
 
 .performance-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    background-color: #f0fdf4;
-    color: #166534;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.performance-indicator.excellent {
+  background-color: #f0fdf4;
+  color: #166534;
 }
 
+.performance-indicator.good {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
+.performance-indicator.normal {
+  background-color: #f0f9ff;
+  color: #0369a1;
+}
+
+.performance-indicator.low {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
 .performance-indicator i {
     color: #fbbf24;
 }
@@ -775,6 +840,86 @@ tr:nth-child(3) .rank {
 .choice-badge i {
     font-size: 0.7rem;
 }
+.period-badge {
+  font-size: 0.8rem;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  margin-left: 1rem;
+  font-weight: 500;
+}
+
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.product-thumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.product-details {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.product-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.sales-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quantity {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.performance-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.performance-indicator.excellent {
+  background-color: #f0fdf4;
+  color: #166534;
+}
+
+.performance-indicator.good {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
+.performance-indicator.normal {
+  background-color: #f0f9ff;
+  color: #0369a1;
+}
+
+.performance-indicator.low {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
   /* Responsive Design */
   @media (max-width: 768px) {
     .admin-container {
@@ -806,6 +951,24 @@ tr:nth-child(3) .rank {
     .modal-content {
       padding: 2rem;
       margin: 1rem;
+    }
+    .product-thumbnail {
+    width: 32px;
+    height: 32px;
+    }
+
+    .quantity {
+      font-size: 1rem;
+    }
+
+    .label {
+      font-size: 0.75rem;
+    }
+
+    .period-badge {
+      display: block;
+      margin: 0.5rem 0 0;
+      text-align: center;
     }
   }
   @media (max-width: 1200px) {
