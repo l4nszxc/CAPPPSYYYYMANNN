@@ -53,7 +53,7 @@
       <!-- Reward History -->
       <div class="bg-white rounded-lg shadow-md p-8">
         <h2 class="text-xl font-bold text-gray-700 mb-4">Reward History</h2>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto reward-history-container">
           <table v-if="rewardHistory.length" class="min-w-full bg-white">
             <thead>
               <tr>
@@ -86,21 +86,31 @@
 
     <!-- Redemption Success Modal -->
     <div v-if="showRedeemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 animate-modal">
-        <div class="text-center">
-          <i class="fas fa-check-circle text-5xl text-green-600 mb-4"></i>
-          <h3 class="text-2xl font-bold text-green-700 mb-4">Reward Redeemed!</h3>
-          <p class="text-gray-600 mb-6">
-            You have successfully redeemed {{ redeemedPoints }} points for
-            ₱{{ redeemedAmount }} off your next purchase.
-          </p>
-          <button @click="closeRedeemModal" 
-                  class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors">
-            Close
-          </button>
-        </div>
+      <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 animate-modal" @click.stop>
+          <div class="text-center">
+              <i class="fas fa-check-circle text-5xl text-green-600 mb-4"></i>
+              <h3 class="text-2xl font-bold text-green-700 mb-4">Reward Redeemed!</h3>
+              <div class="text-gray-600 mb-6">
+                  <p class="mb-4">
+                      You have successfully redeemed {{ redeemedPoints }} points for
+                      ₱{{ redeemedAmount }} off your next purchase.
+                  </p>
+                  <div class="bg-gray-50 p-4 rounded-lg text-sm">
+                      <p class="font-semibold mb-2">How to use your discount:</p>
+                      <ol class="text-left list-decimal pl-4 space-y-2">
+                          <li>Add items to your cart</li>
+                          <li>During checkout, you'll see this discount (₱{{ redeemedAmount }}) available</li>
+                          <li>Select it to apply the discount to your order</li>
+                      </ol>
+                  </div>
+              </div>
+              <button @click="closeRedeemModal" 
+                      class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors">
+                  Close
+              </button>
+          </div>
       </div>
-    </div>
+  </div>
 
     <!-- Logout Modal -->
     <LogoutModal 
@@ -265,28 +275,31 @@ export default {
     },
 
     async redeemReward(reward) {
-        try {
-            if (this.points < reward.points_required) {
-                throw new Error('Insufficient points');
-            }
+      try {
+          if (this.points < reward.points_required) {
+              throw new Error('Insufficient points');
+          }
 
-            const response = await this.fetchWithAuth('/api/rewards/redeem', {
-                method: 'POST',
-                body: JSON.stringify({
-                    rewardId: reward.id,
-                    points: reward.points_required
-                })
-            });
+          const response = await this.fetchWithAuth('/api/rewards/redeem', {
+              method: 'POST',
+              body: JSON.stringify({
+                  rewardId: reward.id,
+                  points: reward.points_required
+              })
+          });
 
-            this.points = response.points;
-            this.redeemedPoints = reward.points_required;
-            this.redeemedAmount = reward.discount_amount;
-            this.showRedeemModal = true;
-            await this.fetchUserData(); // Refresh all data
-        } catch (error) {
-            alert(error.message || 'Failed to redeem reward');
-        }
-    },
+          if (response) {
+              this.points = response.points;
+              this.redeemedPoints = reward.points_required;
+              this.redeemedAmount = reward.discount_amount;
+              this.showRedeemModal = true;
+              await this.fetchUserData(); // Refresh all data
+          }
+      } catch (error) {
+          console.error('Redemption error:', error);
+          alert(error.message || 'Failed to redeem reward');
+      }
+  },
 
     closeRedeemModal() {
       this.showRedeemModal = false;
@@ -418,4 +431,55 @@ export default {
 /* Transitions */
 .transition-colors { transition-property: background-color, border-color, color, fill, stroke; }
 .transition-shadow { transition-property: box-shadow; }
+.reward-history-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.reward-history-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.reward-history-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 0.5rem;
+}
+
+.reward-history-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 0.5rem;
+}
+
+.reward-history-container::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* List Styles */
+.list-decimal {
+  list-style-type: decimal;
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+.fixed {
+    position: fixed;
+}
+
+.z-50 {
+    z-index: 50;
+}
+
+.inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.bg-black.bg-opacity-50 {
+    background-color: rgba(0, 0, 0, 0.5);
+}
 </style>
