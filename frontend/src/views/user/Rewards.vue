@@ -13,13 +13,11 @@
           <h1 class="text-3xl font-bold text-green-700 mb-4">Rewards Program</h1>
           <div class="flex justify-between items-center">
             <div>
-              <h2 class="text-xl font-semibold text-gray-700">Your Points</h2>
-              <p class="text-gray-500">
+              <h2 class="text-xl font-semibold text-gray-700">Your Current Points: <span class="font-bold text-green-600">{{ points }}</span></h2>              <p class="text-gray-500">
                 Total Points Earned: {{ totalPointsEarned }}
               </p>
               <p class="text-gray-500">Earn 1 point for every ₱100 spent</p>
             </div>
-            <div class="text-4xl font-bold text-green-600">{{ points }}</div>
           </div>
         </div>
       </div>
@@ -85,8 +83,8 @@
     </div>
 
     <!-- Redemption Success Modal -->
-    <div v-if="showRedeemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 animate-modal" @click.stop>
+    <div v-if="showRedeemModal" class="fixed inset-0 bg-black bg-opacity-50 z-50">
+      <div class="bg-white rounded-lg p-8 custom-modal-width animate-modal" @click.stop>
           <div class="text-center">
               <i class="fas fa-check-circle text-5xl text-green-600 mb-4"></i>
               <h3 class="text-2xl font-bold text-green-700 mb-4">Reward Redeemed!</h3>
@@ -358,6 +356,9 @@ export default {
 </script>
 
 <style scoped>
+.rewards-page {
+  font-family: Arial, sans-serif;
+}
 .loader {
   border: 3px solid rgba(74, 222, 128, 0.3);
   border-radius: 50%;
@@ -372,9 +373,6 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-.animate-modal {
-  animation: modalFade 0.3s ease-out;
-}
 
 @keyframes modalFade {
   from { opacity: 0; transform: scale(0.95); }
@@ -481,5 +479,14 @@ export default {
 
 .bg-black.bg-opacity-50 {
     background-color: rgba(0, 0, 0, 0.5);
+}
+.custom-modal-width {
+    width: 320px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 90vh; /* Prevents modal from being too tall */
+    overflow-y: auto; /* Adds scroll if content is too long */
 }
 </style>
