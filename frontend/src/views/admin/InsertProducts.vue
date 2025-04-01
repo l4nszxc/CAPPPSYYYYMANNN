@@ -278,7 +278,10 @@ export default {
         },
         
         handleImageUpload(event) {
-            this.image = event.target.files[0];
+            const file = event.target.files[0];
+            if (file) {
+                this.image = file;
+            }
         },
         
         handleChoiceImageUpload(event, index) {
@@ -299,11 +302,16 @@ export default {
                 const formData = new FormData();
                 formData.append('name', this.product.name);
                 formData.append('description', this.product.description);
-                formData.append('price', price);  // Use formatted price
+                formData.append('price', price);
                 formData.append('stock_quantity', this.product.stock_quantity);
                 formData.append('category', this.product.category);
                 
-                // For choices, format their prices too
+                // Add main product image if it exists
+                if (this.image) {
+                    formData.append('image', this.image);
+                }
+                
+                // Handle choices and their images
                 if (this.choices.length > 0) {
                     const formattedChoices = this.choices.map(choice => ({
                         ...choice,
@@ -336,7 +344,7 @@ export default {
                     this.product = { 
                         name: '', 
                         description: '', 
-                        price: null, 
+                        price: '', 
                         stock_quantity: null, 
                         category: '' 
                     };
@@ -344,7 +352,12 @@ export default {
                     this.choices = [];
                     this.choiceImages = [];
                     this.suggestedChoicesVisible = false;
+                    // Clear file inputs
                     document.getElementById('image').value = '';
+                    this.choices.forEach((_, index) => {
+                        const fileInput = document.getElementById(`choice-image-${index}`);
+                        if (fileInput) fileInput.value = '';
+                    });
                 } else {
                     throw new Error(data.message || 'Failed to add product');
                 }
