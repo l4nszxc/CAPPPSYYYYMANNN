@@ -1,4 +1,5 @@
 const Product = require('../models/productModel');
+const Admin = require('../models/adminModel');
 const multer = require('multer');
 const { uploadToImgBB } = require('../services/imgbbService');
 
@@ -185,7 +186,7 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        await Product.delete(id);
+        await Admin.deleteProduct(id); // Change Product.delete to Admin.deleteProduct
         res.json({ message: 'Product deleted successfully' });
     } catch (error) {
         console.error('Error deleting product:', error);
