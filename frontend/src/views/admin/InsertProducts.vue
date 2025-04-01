@@ -18,7 +18,14 @@
 
                     <div class="form-group">
                         <label for="price">Price</label>
-                        <input type="number" id="price" v-model="product.price" required />
+                        <input 
+                            type="number" 
+                            id="price" 
+                            v-model="product.price" 
+                            step="0.01"  
+                            min="0"     
+                            required 
+                        />
                     </div>
                     <div class="form-group">
                         <label for="stock_quantity">Stock Quantity</label>
@@ -90,6 +97,7 @@
                                         :id="'choice-price-' + index" 
                                         v-model="choice.price" 
                                         step="0.01" 
+                                        min="0"     
                                         required
                                     />
                                 </div>
@@ -143,7 +151,7 @@ export default {
             product: {
                 name: '',
                 description: '',
-                price: null,
+                price: '',
                 stock_quantity: null,
                 category: '',
             },
@@ -157,6 +165,11 @@ export default {
         };
     },
     methods: {
+        formatDecimal(value) {
+            // Ensure value is a number and has max 2 decimal places
+            return Number(parseFloat(value).toFixed(2));
+        },
+        
         updateSuggestedChoices() {
     this.suggestedChoicesVisible = true;
     
@@ -277,27 +290,31 @@ export default {
                 this.error = '';
                 this.success = '';
 
+                // Validate decimal places for price
+                const price = this.formatDecimal(this.product.price);
+                if (isNaN(price)) {
+                    throw new Error('Please enter a valid price');
+                }
+
                 const formData = new FormData();
                 formData.append('name', this.product.name);
                 formData.append('description', this.product.description);
-                formData.append('price', this.product.price);
+                formData.append('price', price);  // Use formatted price
                 formData.append('stock_quantity', this.product.stock_quantity);
                 formData.append('category', this.product.category);
                 
-                // Append main product image
-                if (this.image) {
-                    formData.append('image', this.image);
-                }
-                
-                // Add choices data
+                // For choices, format their prices too
                 if (this.choices.length > 0) {
+                    const formattedChoices = this.choices.map(choice => ({
+                        ...choice,
+                        price: this.formatDecimal(choice.price)
+                    }));
                     formData.append('hasChoices', 'true');
-                    formData.append('choices', JSON.stringify(this.choices));
+                    formData.append('choices', JSON.stringify(formattedChoices));
                     
-                    // Add choice images
                     this.choiceImages.forEach((img, idx) => {
                         if (img) {
-                            formData.append('choiceImage', img); // Changed from choiceImage_${idx}
+                            formData.append('choiceImage', img);
                         }
                     });
                 }
