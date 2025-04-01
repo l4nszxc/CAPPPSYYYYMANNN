@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 18, 2025 at 05:38 PM
+-- Generation Time: Apr 01, 2025 at 10:33 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -76,7 +76,7 @@ INSERT INTO `available_discounts` (`id`, `user_id`, `amount`, `created_at`, `exp
 (32, 58, 100.00, '2025-03-18 14:59:53', '2025-04-17 14:59:53', 0, NULL),
 (33, 58, 250.00, '2025-03-18 14:59:55', '2025-04-17 14:59:55', 0, NULL),
 (34, 58, 100.00, '2025-03-18 15:00:18', '2025-04-17 15:00:18', 0, NULL),
-(35, 58, 100.00, '2025-03-18 15:00:26', '2025-04-17 15:00:26', 0, NULL),
+(35, 58, 100.00, '2025-03-18 15:00:26', '2025-04-17 15:00:26', 1, '0563912'),
 (36, 58, 250.00, '2025-03-18 15:00:27', '2025-04-17 15:00:27', 0, NULL);
 
 -- --------------------------------------------------------
@@ -101,8 +101,7 @@ CREATE TABLE `cart` (
 INSERT INTO `cart` (`id`, `user_id`, `product_id`, `quantity`, `created_at`, `choice_id`) VALUES
 (179, 59, 22, 1, '2025-03-18 15:56:20', NULL),
 (180, 59, 10, 1, '2025-03-18 16:00:01', NULL),
-(181, 58, 22, 1, '2025-03-18 16:01:00', NULL),
-(182, 58, 10, 1, '2025-03-18 16:01:00', NULL);
+(183, 58, 27, 1, '2025-03-19 04:36:28', 6);
 
 -- --------------------------------------------------------
 
@@ -129,6 +128,7 @@ CREATE TABLE `orders` (
 INSERT INTO `orders` (`order_id`, `user_id`, `total_amount`, `status`, `created_at`, `updated_at`, `cancel_reason`, `accepted_by`, `accepted_at`) VALUES
 ('0039532', 58, 22.00, 'ready for pickup', '2025-03-16 16:06:25', '2025-03-17 15:56:34', NULL, 23, '2025-03-17 23:38:50'),
 ('0557984', 58, 333.00, 'paid', '2025-03-16 15:07:42', '2025-03-16 15:08:07', NULL, 23, '2025-03-16 23:07:53'),
+('0563912', 58, 588.00, 'paid', '2025-03-19 04:24:24', '2025-03-19 04:26:08', NULL, 23, '2025-03-19 12:25:06'),
 ('0573700', 58, 333.00, 'preparing', '2025-03-16 16:02:48', '2025-03-17 18:00:34', NULL, 23, '2025-03-18 02:00:34'),
 ('0636143', 58, 1565.00, 'paid', '2025-03-17 17:13:01', '2025-03-17 17:14:25', NULL, 23, '2025-03-18 01:13:10'),
 ('0783172', 58, 283.00, 'paid', '2025-03-18 01:10:12', '2025-03-18 01:15:42', NULL, 23, '2025-03-18 09:11:53'),
@@ -253,7 +253,9 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`, 
 (147, '0783172', 10, 1, 333.00, NULL),
 (148, '9091668', 23, 5, 100.00, NULL),
 (149, '2320699', 10, 1, 333.00, NULL),
-(150, '7092556', 10, 1, 333.00, NULL);
+(150, '7092556', 10, 1, 333.00, NULL),
+(151, '0563912', 22, 1, 22.00, NULL),
+(152, '0563912', 10, 2, 333.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -278,9 +280,9 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`products_id`, `name`, `description`, `price`, `stock_quantity`, `category`, `image`, `created_at`, `updated_at`) VALUES
-(10, 'zxczxczxczxczxcxzcxzczxcxz', 'hello world zxc', 333.00, 7, 'Beverages', 'https://i.ibb.co/Kck1MWYL/4f38c21520ba.jpg', '2025-03-14 12:13:24', '2025-03-18 17:30:39'),
+(10, 'zxczxczxczxczxcxzcxzczxcxz', 'hello world zxc', 333.00, 5, 'Beverages', 'https://i.ibb.co/Kck1MWYL/4f38c21520ba.jpg', '2025-03-14 12:13:24', '2025-03-19 04:24:24'),
 (19, 'Lans sa Lorence', 'sa', 32.00, 30, 'Condiments', 'https://i.ibb.co/xKr7PR7H/5ad3d88f58f7.png', '2025-03-14 11:02:14', '2025-03-17 17:42:31'),
-(22, 'alfonso', 'asdads', 22.00, 1, 'Beverages', 'https://i.ibb.co/TDxYJwhr/bf62ee51614b.jpg', '2025-03-15 03:44:48', '2025-03-17 17:55:40'),
+(22, 'alfonso', 'asdads', 22.00, 20, 'Beverages', 'https://i.ibb.co/TDxYJwhr/bf62ee51614b.jpg', '2025-03-15 03:44:48', '2025-03-19 04:27:25'),
 (23, 'alfonso', 'dasdsa', 100.00, 505, 'Beverages', 'https://i.ibb.co/VWsng8Jw/3caa5a7fcce3.jpg', '2025-03-15 03:55:49', '2025-03-18 14:24:06'),
 (24, 'try test', 'try', 40.00, 40, 'Beverages', 'https://i.ibb.co/nNw52CdX/3a3b95a83d4b.jpg', '2025-03-15 04:07:22', '2025-03-15 04:07:22'),
 (25, 'zxczxczxc', 'zxc', 40.00, 10, 'Milk and Chocolate Drink', 'https://i.ibb.co/JFKdHGG6/53df8be31bd3.jpg', '2025-03-15 04:09:20', '2025-03-16 10:09:42'),
@@ -363,6 +365,7 @@ INSERT INTO `shared_carts` (`share_id`, `owner_id`, `shared_with`, `expires_at`,
 ('64b1c524-9fd6-407f-87d8-16676f86ef07', 58, 59, '2025-03-19 15:59:50', '2025-03-18 15:59:49', 'used'),
 ('a249f87c-80b8-4049-b29b-4f6bf6eccd02', 58, NULL, '2025-03-19 15:31:59', '2025-03-18 15:31:58', 'active'),
 ('a4d57f76-bf03-4b5c-9f6c-153571c394a1', 59, 58, '2025-03-19 15:56:23', '2025-03-18 15:56:23', 'used'),
+('abf33e66-6b42-4674-bd34-aa1645e13b13', 58, NULL, '2025-03-20 04:22:24', '2025-03-19 04:22:24', 'active'),
 ('aef59b41-80ec-48ab-92f3-eb3253d9e706', 58, NULL, '2025-03-19 17:16:39', '2025-03-18 17:16:38', 'active'),
 ('d357ec54-5b14-4fad-81bb-25ed11686ae7', 58, NULL, '2025-03-19 16:57:58', '2025-03-18 16:57:58', 'active'),
 ('f8c27d4e-4fde-4a94-96a4-715002805fbc', 58, NULL, '2025-03-19 15:32:20', '2025-03-18 15:32:20', 'active'),
@@ -503,7 +506,8 @@ INSERT INTO `user_rewards` (`id`, `user_id`, `order_id`, `points`, `description`
 (71, 58, NULL, -200, 'Redeemed for Silver Reward', '2025-03-18 15:00:26'),
 (72, 58, NULL, -500, 'Redeemed for Gold Reward', '2025-03-18 15:00:27'),
 (73, 58, '2320699', 3, 'Earned points from order #2320699', '2025-03-18 15:04:32'),
-(74, 58, '7092556', 3, 'Earned points from order #7092556', '2025-03-18 17:30:39');
+(74, 58, '7092556', 3, 'Earned points from order #7092556', '2025-03-18 17:30:39'),
+(75, 58, '0563912', 5, 'Earned points from order #0563912', '2025-03-19 04:24:24');
 
 --
 -- Indexes for dumped tables
@@ -597,13 +601,13 @@ ALTER TABLE `available_discounts`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=183;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=184;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=151;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=153;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -633,7 +637,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_rewards`
 --
 ALTER TABLE `user_rewards`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- Constraints for dumped tables
