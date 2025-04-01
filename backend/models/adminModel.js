@@ -369,25 +369,31 @@ class Admin {
         try {
             await connection.beginTransaction();
     
-            // First get the product image name to delete the file
+            // Get the product image name to delete the file
             const [product] = await connection.execute(
                 'SELECT image FROM products WHERE products_id = ?',
                 [productId]
             );
     
-            // Delete related records from order_items table first
+            // Delete product choices first
+            await connection.execute(
+                'DELETE FROM product_choices WHERE product_id = ?',
+                [productId]
+            );
+    
+            // Delete related records from order_items table
             await connection.execute(
                 'DELETE FROM order_items WHERE product_id = ?',
                 [productId]
             );
     
-            // Delete from cart table if product exists there
+            // Delete from cart table
             await connection.execute(
                 'DELETE FROM cart WHERE product_id = ?',
                 [productId]
             );
     
-            // Then delete the product
+            // Finally delete the product
             await connection.execute(
                 'DELETE FROM products WHERE products_id = ?',
                 [productId]
