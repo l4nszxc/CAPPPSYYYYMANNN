@@ -3,7 +3,6 @@ const Admin = require('../models/adminModel');
 const multer = require('multer');
 const { uploadToImgBB } = require('../services/imgbbService');
 
-// Configure multer for memory storage instead of disk storage
 const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage,
@@ -11,48 +10,25 @@ const upload = multer({
         fileSize: 5 * 1024 * 1024 // 5MB limit
     },
     fileFilter: (req, file, cb) => {
-        // Accept only image files
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
             cb(new Error('Only image files are allowed!'), false);
         }
     }
-});
-
+}).fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'choiceImage', maxCount: 10 } // Allow up to 10 choice images
+]);
 exports.uploadMiddleware = (req, res, next) => {
-    console.log('Upload middleware processing request path:', req.path);
-    console.log('Request content type:', req.headers['content-type']);
-    
-    // Determine if it's a product choice update or a main product update
-    if (req.path.includes('/choices/')) {
-        console.log('Processing choice update with single file upload');
-        const uploadSingle = upload.single('image');
-        
-        uploadSingle(req, res, (err) => {
-            if (err instanceof multer.MulterError) {
-                return res.status(400).json({ message: `Upload error: ${err.message}` });
-            } else if (err) {
-                return res.status(500).json({ message: `Server error: ${err.message}` });
-            }
-            console.log('Choice image file upload processed:', req.file ? 'File received' : 'No file received');
-            next();
-        });
-    } else {
-        // For product inserts/updates, also use single file upload
-        console.log('Processing main product update with single file upload');
-        const uploadSingle = upload.single('image');
-        
-        uploadSingle(req, res, (err) => {
-            if (err instanceof multer.MulterError) {
-                return res.status(400).json({ message: `Upload error: ${err.message}` });
-            } else if (err) {
-                return res.status(500).json({ message: `Server error: ${err.message}` });
-            }
-            console.log('Main product image file upload processed:', req.file ? 'File received' : 'No file received');
-            next();
-        });
-    }
+    upload(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({ message: `Upload error: ${err.message}` });
+        } else if (err) {
+            return res.status(500).json({ message: `Server error: ${err.message}` });
+        }
+        next();
+    });
 };
 
 exports.insertProduct = async (req, res) => {
@@ -83,14 +59,15 @@ exports.insertProduct = async (req, res) => {
         // Handle product choices if they exist
         if (hasChoices && choices) {
             const choicesArray = JSON.parse(choices);
+            const choiceImages = req.files.choiceImage || [];
             
             for (let i = 0; i < choicesArray.length; i++) {
                 const choice = choicesArray[i];
                 let choiceImageUrl = null;
                 
                 // Upload choice image if provided
-                if (req.files && req.files[`choiceImage_${i}`] && req.files[`choiceImage_${i}`][0]) {
-                    choiceImageUrl = await uploadToImgBB(req.files[`choiceImage_${i}`][0].buffer);
+                if (choiceImages[i]) {
+                    choiceImageUrl = await uploadToImgBB(choiceImages[i].buffer);
                 }
                 
                 // Create the choice

@@ -283,6 +283,8 @@ export default {
                 formData.append('price', this.product.price);
                 formData.append('stock_quantity', this.product.stock_quantity);
                 formData.append('category', this.product.category);
+                
+                // Append main product image
                 if (this.image) {
                     formData.append('image', this.image);
                 }
@@ -295,7 +297,7 @@ export default {
                     // Add choice images
                     this.choiceImages.forEach((img, idx) => {
                         if (img) {
-                            formData.append(`choiceImage_${idx}`, img);
+                            formData.append('choiceImage', img); // Changed from choiceImage_${idx}
                         }
                     });
                 }
