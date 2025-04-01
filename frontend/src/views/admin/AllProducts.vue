@@ -526,10 +526,7 @@ export default {
             try {
                 const token = localStorage.getItem('token');
                 
-                console.log('Editing product:', this.editingProduct);
-                console.log('Has new image?', this.newImage ? 'Yes' : 'No');
-                
-                // Create FormData for the request
+                // Create FormData and append all fields
                 const formData = new FormData();
                 formData.append('name', this.editingProduct.name);
                 formData.append('description', this.editingProduct.description);
@@ -537,124 +534,93 @@ export default {
                 formData.append('stock_quantity', parseInt(this.editingProduct.stock_quantity));
                 formData.append('category', this.editingProduct.category);
 
-                // Add image if there's a new one
+                // Handle image upload
                 if (this.newImage) {
-                    console.log('Attaching image file:', this.newImage.name);
                     formData.append('image', this.newImage);
-                }
-                
-                // Debug log - print all form data being sent
-                console.log('Sending form data with these fields:');
-                for (let pair of formData.entries()) {
-                    console.log(pair[0] + ': ' + (pair[0] === 'image' ? 'File: ' + pair[1].name : pair[1]));
+                    console.log('Adding image to form:', this.newImage.name);
                 }
 
                 const response = await fetch(`http://localhost:7904/api/products/${this.editingProduct.products_id}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`
-                        // Do NOT set Content-Type here - the browser will set it with the proper multipart boundary
                     },
                     body: formData
                 });
 
-                // Parse the response to get the updated image URL
-                const responseData = await response.json();
-                
+                const data = await response.json();
+
                 if (!response.ok) {
-                    throw new Error(responseData.message || 'Failed to update product');
+                    throw new Error(data.message || 'Failed to update product');
                 }
-                
-                console.log('Product update response:', responseData);
-                
-                // Instead of using this.$set, directly modify a copy of the products array
-                const updatedProducts = [...this.products];
-                const productIndex = updatedProducts.findIndex(p => p.products_id === this.editingProduct.products_id);
-                
+
+                // Update the product in local state
+                const productIndex = this.products.findIndex(p => p.products_id === this.editingProduct.products_id);
                 if (productIndex !== -1) {
-                    // Create updated product with all edited fields
-                    const updatedProduct = { 
-                        ...updatedProducts[productIndex],
-                        name: this.editingProduct.name,
-                        description: this.editingProduct.description,
-                        price: parseFloat(this.editingProduct.price),
-                        stock_quantity: parseInt(this.editingProduct.stock_quantity),
-                        category: this.editingProduct.category
+                    // Create updated product object
+                    const updatedProduct = {
+                        ...this.products[productIndex],
+                        ...this.editingProduct
                     };
                     
-                    // If we have a new image URL in the response, update that too
-                    if (responseData.imageUrl) {
-                        updatedProduct.image = responseData.imageUrl;
-                        console.log('Updated product image to:', responseData.imageUrl);
+                    // Update image URL if one was returned
+                    if (data.imageUrl) {
+                        updatedProduct.image = data.imageUrl;
                     }
                     
-                    // Replace the product in the array
-                    updatedProducts[productIndex] = updatedProduct;
-                    
-                    // Update the products array
-                    this.products = updatedProducts;
-                    console.log('Updated product in local array');
+                    // Update products array using array splice for reactivity
+                    this.products.splice(productIndex, 1, updatedProduct);
                 }
-                
+
                 this.closeModal();
+                await this.fetchProducts(); // Refresh products list
             } catch (error) {
                 console.error('Error updating product:', error);
-                // Add error handling UI feedback here if needed
             }
         },
         
         async handleEditChoiceSubmit() {
             try {
-                if (!this.editingChoice || !this.editingChoice.choice_id) {
-                    console.error('Invalid choice data', this.editingChoice);
-                    return;
+                if (!this.editingChoice?.choice_id) {
+                    throw new Error('Invalid choice data');
                 }
-                
+
                 const token = localStorage.getItem('token');
-                
-                // Create FormData for the request
                 const formData = new FormData();
                 
-                // Add all form fields
                 formData.append('name', this.editingChoice.name);
                 formData.append('price', parseFloat(this.editingChoice.price));
                 formData.append('stock', parseInt(this.editingChoice.stock));
 
-                // Add image if there's a new one - fixed field name to match the controller
+                // Handle choice image upload
                 if (this.newChoiceImage) {
-                    console.log('Attaching image file:', this.newChoiceImage.name);
                     formData.append('image', this.newChoiceImage);
+                    console.log('Adding choice image to form:', this.newChoiceImage.name);
                 }
 
-                // Debug log - should see name, price, stock and image if available
-                console.log('Sending form data with these fields:');
-                for (let pair of formData.entries()) {
-                    console.log(pair[0] + ': ' + (pair[0] === 'image' ? 'File: ' + pair[1].name : pair[1]));
-                }
-                
                 const response = await fetch(`http://localhost:7904/api/products/choices/${this.editingChoice.choice_id}`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`
-                        // Do NOT set Content-Type here - the browser will set it with the proper multipart boundary
                     },
                     body: formData
                 });
 
-                const responseData = await response.json();
-                
+                const data = await response.json();
+
                 if (!response.ok) {
-                    throw new Error(responseData.message || 'Failed to update product option');
+                    throw new Error(data.message || 'Failed to update product choice');
                 }
 
-                console.log('Product choice update successful:', responseData);
-                
-                // Refresh products list to show updated data
-                await this.fetchProducts();
+                // Update the choice in local state if there's a new image URL
+                if (data.imageUrl) {
+                    this.editingChoice.image = data.imageUrl;
+                }
+
                 this.closeChoiceModal();
+                await this.fetchProducts(); // Refresh products list
             } catch (error) {
                 console.error('Error updating product choice:', error);
-                // Add error notification here if you have one
             }
         },
         

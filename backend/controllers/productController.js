@@ -118,38 +118,32 @@ exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, price, stock_quantity, category } = req.body;
-        
-        // Debug logs
-        console.log('Updating product with ID:', id);
-        console.log('Request body:', req.body);
-        console.log('Request file:', req.file);
-        
         let imageUrl = null;
-        
-        // Upload new image to ImgBB if provided
-        if (req.file) {
-            console.log('Processing image file for product update:', req.file);
-            imageUrl = await uploadToImgBB(req.file.buffer);
-            console.log('New product image uploaded to ImgBB:', imageUrl);
+
+        // Handle image upload to ImgBB if a new image was provided
+        if (req.files && req.files.image && req.files.image[0]) {
+            imageUrl = await uploadToImgBB(req.files.image[0].buffer);
         }
 
-        // Create updates object with only defined values
-        const updates = {};
-        if (name) updates.name = name;
-        if (description) updates.description = description;
-        if (price) updates.price = parseFloat(price);
-        if (stock_quantity) updates.stock_quantity = parseInt(stock_quantity);
-        if (category) updates.category = category;
-        if (imageUrl) updates.image = imageUrl;
+        // Create updates object
+        const updates = {
+            name,
+            description,
+            price: parseFloat(price),
+            stock_quantity: parseInt(stock_quantity),
+            category
+        };
 
-        console.log('Updates to be applied:', updates);
+        // Only include image if a new one was uploaded
+        if (imageUrl) {
+            updates.image = imageUrl;
+        }
 
-        // Update the product
         await Product.update(id, updates);
 
         res.json({ 
             message: 'Product updated successfully',
-            imageUrl: imageUrl // Always return the imageUrl if it exists
+            imageUrl: imageUrl // Return the new image URL if one was uploaded
         });
     } catch (error) {
         console.error('Error updating product:', error);
@@ -189,41 +183,38 @@ exports.getProductById = async (req, res) => {
 exports.updateProductChoice = async (req, res) => {
     try {
         const { choiceId } = req.params;
-        const { name, stock, price } = req.body;
-        
-        // Create updates object with only defined values
-        const updates = {};
-        if (name !== undefined) updates.name = name;
-        if (stock !== undefined) updates.stock = parseInt(stock);
-        if (price !== undefined) updates.price = parseFloat(price);
-        
-        // Handle image upload if provided
-        if (req.file) {
-            console.log('Image file received for product choice update:', req.file);
-            const imageUrl = await uploadToImgBB(req.file.buffer);
-            if (imageUrl) {
-                console.log('Image uploaded to ImgBB:', imageUrl);
-                updates.image = imageUrl;
-            }
-        } else {
-            console.log('No image file received for product choice update');
+        const { name, price, stock } = req.body;
+        let imageUrl = null;
+
+        // Handle image upload to ImgBB if a new image was provided
+        if (req.files && req.files.image && req.files.image[0]) {
+            imageUrl = await uploadToImgBB(req.files.image[0].buffer);
         }
 
-        if (Object.keys(updates).length === 0) {
-            return res.status(400).json({ message: 'No valid updates provided' });
+        // Create updates object
+        const updates = {
+            name,
+            price: parseFloat(price),
+            stock: parseInt(stock)
+        };
+
+        // Only include image if a new one was uploaded
+        if (imageUrl) {
+            updates.image = imageUrl;
         }
 
-        console.log('Updating product choice with:', updates);
-        // Update the choice
         await Product.updateChoice(choiceId, updates);
 
         res.json({ 
             message: 'Product choice updated successfully',
-            updates 
+            imageUrl: imageUrl // Return the new image URL if one was uploaded
         });
     } catch (error) {
         console.error('Error updating product choice:', error);
-        res.status(500).json({ message: 'Error updating product choice', error: error.message });
+        res.status(500).json({ 
+            message: 'Error updating product choice',
+            error: error.message 
+        });
     }
 };
 exports.deleteProductChoice = async (req, res) => {
