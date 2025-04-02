@@ -526,7 +526,6 @@ export default {
             try {
                 const token = localStorage.getItem('token');
                 
-                // Create FormData and append all fields
                 const formData = new FormData();
                 formData.append('name', this.editingProduct.name);
                 formData.append('description', this.editingProduct.description);
@@ -534,7 +533,6 @@ export default {
                 formData.append('stock_quantity', parseInt(this.editingProduct.stock_quantity));
                 formData.append('category', this.editingProduct.category);
 
-                // Handle image upload
                 if (this.newImage) {
                     formData.append('image', this.newImage);
                     console.log('Adding image to form:', this.newImage.name);
@@ -554,28 +552,18 @@ export default {
                     throw new Error(data.message || 'Failed to update product');
                 }
 
-                // Update the product in local state
-                const productIndex = this.products.findIndex(p => p.products_id === this.editingProduct.products_id);
-                if (productIndex !== -1) {
-                    // Create updated product object
-                    const updatedProduct = {
-                        ...this.products[productIndex],
-                        ...this.editingProduct
-                    };
-                    
-                    // Update image URL if one was returned
-                    if (data.imageUrl) {
-                        updatedProduct.image = data.imageUrl;
-                    }
-                    
-                    // Update products array using array splice for reactivity
-                    this.products.splice(productIndex, 1, updatedProduct);
-                }
-
+                // Close modal first
                 this.closeModal();
-                await this.fetchProducts(); // Refresh products list
+                
+                // Fetch fresh data and force refresh
+                await this.fetchProducts();
+                
+                // Force refresh the page
+                window.location.reload();
+
             } catch (error) {
                 console.error('Error updating product:', error);
+                alert('Error updating product: ' + error.message);
             }
         },
         
@@ -592,7 +580,6 @@ export default {
                 formData.append('price', parseFloat(this.editingChoice.price));
                 formData.append('stock', parseInt(this.editingChoice.stock));
 
-                // Handle choice image upload
                 if (this.newChoiceImage) {
                     formData.append('image', this.newChoiceImage);
                     console.log('Adding choice image to form:', this.newChoiceImage.name);
@@ -612,15 +599,18 @@ export default {
                     throw new Error(data.message || 'Failed to update product choice');
                 }
 
-                // Update the choice in local state if there's a new image URL
-                if (data.imageUrl) {
-                    this.editingChoice.image = data.imageUrl;
-                }
-
+                // Close modal first
                 this.closeChoiceModal();
-                await this.fetchProducts(); // Refresh products list
+                
+                // Fetch fresh data
+                await this.fetchProducts();
+                
+                // Force refresh the page
+                window.location.reload();
+
             } catch (error) {
                 console.error('Error updating product choice:', error);
+                alert('Error updating product choice: ' + error.message);
             }
         },
         
