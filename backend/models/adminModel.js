@@ -375,21 +375,27 @@ class Admin {
                 [productId]
             );
     
-            // Delete product choices first
-            await connection.execute(
-                'DELETE FROM product_choices WHERE product_id = ?',
+            // Get all choice_ids for this product
+            const [choices] = await connection.execute(
+                'SELECT choice_id FROM product_choices WHERE product_id = ?',
                 [productId]
             );
+            
+            // Delete from cart table first (where either product_id matches or choice_id matches)
+            await connection.execute(
+                'DELETE FROM cart WHERE product_id = ? OR choice_id IN (SELECT choice_id FROM product_choices WHERE product_id = ?)',
+                [productId, productId]
+            );
     
-            // Delete related records from order_items table
+            // Delete from order_items table
             await connection.execute(
                 'DELETE FROM order_items WHERE product_id = ?',
                 [productId]
             );
     
-            // Delete from cart table
+            // Now safe to delete product choices
             await connection.execute(
-                'DELETE FROM cart WHERE product_id = ?',
+                'DELETE FROM product_choices WHERE product_id = ?',
                 [productId]
             );
     
