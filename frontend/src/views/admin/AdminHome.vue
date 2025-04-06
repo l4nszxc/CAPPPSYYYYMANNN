@@ -123,7 +123,19 @@
             </thead>
             <tbody>
               <tr v-for="(forecast, productId) in forecasts" :key="productId">
-                <td>{{ forecast.name }}</td>
+                <td>
+                  <div class="product-info">
+                    <img 
+                      :src="forecast.image || '/img/placeholder.jpg'" 
+                      :alt="forecast.name"
+                      class="product-thumbnail"
+                      @error="handleImageError"
+                    >
+                    <div class="product-details">
+                      <span class="product-name">{{ forecast.name }}</span>
+                    </div>
+                  </div>
+                </td>
                 <td>{{ forecast.current_sales }}</td>
                 <td>
                   {{ Math.round(getForecastedSales(forecast.forecast_data)) }}

@@ -34,13 +34,14 @@ class ForecastService:
                     DATE(o.created_at) as date,
                     p.products_id,
                     p.name as product_name,
+                    p.image,  # Changed from p.image as product_image
                     SUM(oi.quantity) as daily_sales
                 FROM orders o
                 JOIN order_items oi ON o.order_id = oi.order_id
                 JOIN products p ON oi.product_id = p.products_id
                 WHERE o.status = 'paid'
                 AND o.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-                GROUP BY DATE(o.created_at), p.products_id, p.name
+                GROUP BY DATE(o.created_at), p.products_id, p.name, p.image
                 HAVING SUM(oi.quantity) > 0
                 ORDER BY date
             """
@@ -139,6 +140,7 @@ class ForecastService:
                     if forecast_data:
                         forecasts[str(idx)] = {
                             'name': product['product_name'],
+                            'image': product_sales['image'].iloc[0],  # Changed from product['product_image']
                             'current_sales': int(product['daily_sales']),
                             'forecast_data': forecast_data
                         }
