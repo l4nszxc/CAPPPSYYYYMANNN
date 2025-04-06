@@ -34,13 +34,13 @@
                                 <p class="order-date">{{ formatDate(order.created_at) }}</p>
                                 <div class="price-breakdown">
                                     <p class="subtotal">
-                                        <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(order.subtotal) }}
+                                        <i class="fas fa-receipt"></i> Subtotal: {{ formatPrice(order.subtotal) }}
                                     </p>
                                     <p v-if="order.discount_amount > 0" class="discount-amount">
-                                        <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(order.discount_amount) }}
+                                        <i class="fas fa-tag"></i> Discount: -{{ formatPrice(order.discount_amount) }}
                                     </p>
                                     <p class="total-amount">
-                                        <i class="fas fa-peso-sign"></i> Total: ₱{{ formatPrice(order.total_amount) }}
+                                        <i class="fas fa-peso-sign"></i> Total: {{ formatPrice(order.total_amount) }}
                                     </p>
                                 </div>
                                 <div class="button-group">
@@ -73,8 +73,8 @@
                                     <p v-if="item.choice_name" class="choice-info">
                                         <i class="fas fa-tag"></i> Option: {{ item.choice_name }}
                                     </p>
-                                    <p class="item-price">₱{{ formatPrice(item.price) }} x {{ item.quantity }}</p>
-                                    <p class="item-subtotal">Subtotal: ₱{{ formatPrice(item.price * item.quantity) }}</p>
+                                    <p class="item-price">{{ formatPrice(item.price) }} x {{ item.quantity }}</p>
+                                    <p class="item-subtotal">Subtotal: {{ formatPrice(item.price * item.quantity) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -172,7 +172,12 @@ export default {
     },
     methods: {
         formatPrice(price) {
-            return Number(price).toFixed(2);
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
         },
         toggleOrderDetails(orderId) {
             if (this.expandedOrders.has(orderId)) {

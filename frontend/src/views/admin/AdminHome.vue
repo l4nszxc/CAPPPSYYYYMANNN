@@ -723,13 +723,23 @@ export default {
         let endpoint, payload;
         
         if (this.itemToUpdate.type === 'choice') {
-          // Update choice stock
+          // Update choice stock - maintain existing price
           endpoint = `http://localhost:7904/api/products/choices/${this.itemToUpdate.choice_id}`;
-          payload = { stock: parseInt(this.editingStock) };
+          payload = { 
+            stock: parseInt(this.editingStock),
+            price: this.itemToUpdate.price,
+            name: this.itemToUpdate.choice_name
+          };
         } else {
-          // Update regular product stock
+          // Update regular product stock - maintain existing price
           endpoint = `http://localhost:7904/api/products/${this.itemToUpdate.id}`;
-          payload = { stock_quantity: parseInt(this.editingStock) };
+          payload = { 
+            stock_quantity: parseInt(this.editingStock),
+            price: this.itemToUpdate.price,
+            name: this.itemToUpdate.name,
+            description: this.itemToUpdate.description,
+            category: this.itemToUpdate.category
+          };
         }
 
         const response = await fetch(endpoint, {
@@ -742,7 +752,7 @@ export default {
         });
 
         if (response.ok) {
-          // Update the stock directly in the data
+          // Update only the stock in the local data
           this.itemToUpdate.stock = parseInt(this.editingStock);
           this.editingId = null;
           this.editingStock = null;

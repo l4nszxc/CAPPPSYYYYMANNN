@@ -41,8 +41,9 @@
                         <p v-if="item.choice_name" class="choice-info">
                             <i class="fas fa-tag"></i> Option: {{ item.choice_name }}
                         </p>
-                        <p class="price"><i class="fas fa-tag"></i> Price: ₱{{ (item.price || 0).toFixed(2) }}</p>
-                        <div class="quantity-controls">
+                        <p class="price">
+                            <i class="fas fa-tag"></i> Price: {{ formatPrice(item.price || 0) }}
+                        </p>                        <div class="quantity-controls">
                             <span class="quantity-label"><i class="fas fa-cubes"></i> Quantity:</span>
                             <button @click="updateQuantity(item.id, item.quantity - 1)" 
                                     :disabled="item.quantity <= 1"
@@ -55,8 +56,9 @@
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                        <p class="subtotal"><i class="fas fa-calculator"></i> Subtotal: ₱{{ ((item.price || 0) * item.quantity).toFixed(2) }}</p>
-                        <button class="remove-btn" @click="removeFromCart(item.id)">
+                        <p class="subtotal">
+                            <i class="fas fa-calculator"></i> Subtotal: {{ formatPrice((item.price || 0) * item.quantity) }}
+                        </p>                        <button class="remove-btn" @click="removeFromCart(item.id)">
                             <i class="fas fa-trash"></i> Remove
                         </button>
                     </div>
@@ -68,7 +70,7 @@
                             <i class="fas fa-shopping-basket"></i> Selected Items: {{ checkedItemsCount }}
                         </p>
                         <p class="total-amount">
-                            <i class="fas fa-dollar-sign"></i> Total Amount: ₱{{ cartTotal.toFixed(2) }}
+                            <i class="fas fa-dollar-sign"></i> Total Amount: {{ formatPrice(cartTotal) }}
                         </p>
                     </div>
                     <div class="cart-actions">
@@ -165,6 +167,14 @@ export default {
         }
     },
     methods: {
+        formatPrice(price) {
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
+        },
         async fetchAvailableDiscounts() {
             try {
                 const token = localStorage.getItem('token');
