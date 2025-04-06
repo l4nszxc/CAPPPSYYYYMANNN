@@ -205,19 +205,40 @@
     </div>
     
 
-      <!-- Top Selling Products Section -->
-      <div class="dashboard-section">
-        <h2>
-          <i class="fas fa-chart-line"></i>
-          Top Selling Products
-          <span class="period-badge">Last 7 Days</span>
-        </h2>
+    <div class="dashboard-section">
+      <h2>
+        <i class="fas fa-chart-line"></i>
+        Top Selling Products
+        <span class="period-badge">{{ getTopSellingPeriodLabel() }}</span>
+      </h2>
+      <div class="period-selector-container">
+        <div class="period-selector">
+          <button 
+            v-for="period in topSellingPeriods" 
+            :key="period.value"
+            :class="['period-btn', { active: selectedTopSellingPeriod === period.value }]"
+            @click="changeTopSellingPeriod(period.value)"
+          >
+            {{ period.label }}
+          </button>
+        </div>
+        <div v-if="selectedTopSellingPeriod === 'quarterly'" class="quarter-selector">
+          <button 
+            v-for="quarter in topSellingQuarters" 
+            :key="quarter.value"
+            :class="['quarter-btn', { active: selectedTopSellingQuarter === quarter.value }]"
+            @click="selectTopSellingQuarter(quarter.value)"
+          >
+            {{ quarter.label }}
+          </button>
+        </div>
+      </div>
         <div class="table-container">
           <table v-if="stats.topProducts && stats.topProducts.length">
             <thead>
               <tr>
                 <th>Product</th>
-                <th>Weekly Sales</th>
+                <th>Current Sales</th>
                 <th>Total Sales</th>
                 <th>Weekly Revenue</th>
                 <th>Performance</th>
@@ -379,6 +400,20 @@ export default {
         { label: 'Q3 (Jul-Sep)', value: 'Q3' },
         { label: 'Q4 (Oct-Dec)', value: 'Q4' }
       ],
+      selectedTopSellingPeriod: 'weekly',
+      selectedTopSellingQuarter: 'Q1',
+      topSellingPeriods: [
+        { label: 'Weekly', value: 'weekly' },
+        { label: 'Monthly', value: 'monthly' },
+        { label: 'Quarterly', value: 'quarterly' },
+        { label: 'Annually', value: 'annually' }
+      ],
+      topSellingQuarters: [
+        { label: 'Q1 (Jan-Mar)', value: 'Q1' },
+        { label: 'Q2 (Apr-Jun)', value: 'Q2' },
+        { label: 'Q3 (Jul-Sep)', value: 'Q3' },
+        { label: 'Q4 (Oct-Dec)', value: 'Q4' }
+      ],
       stats: {
         totalSales: 0,
         totalProducts: 0,
@@ -391,6 +426,36 @@ export default {
     }
   },
   methods: {
+    async changeTopSellingPeriod(period) {
+      this.selectedTopSellingPeriod = period;
+      await this.fetchDashboardStats();
+    },
+
+    async selectTopSellingQuarter(quarter) {
+      this.selectedTopSellingQuarter = quarter;
+      await this.fetchDashboardStats();
+    },
+
+    getTopSellingPeriodLabel() {
+      switch (this.selectedTopSellingPeriod) {
+        case 'weekly':
+          return 'Last 7 Days';
+        case 'monthly':
+          return 'Last 30 Days';
+        case 'quarterly':
+          const quarterMap = {
+            Q1: 'January-March',
+            Q2: 'April-June',
+            Q3: 'July-September',
+            Q4: 'October-December'
+          };
+          return quarterMap[this.selectedTopSellingQuarter];
+        case 'annually':
+          return 'Last 12 Months';
+        default:
+          return 'Last 7 Days';
+      }
+    },
     async changeForecastPeriod(period) {
       this.selectedForecastPeriod = period;
       await this.fetchForecasts();
@@ -477,37 +542,25 @@ export default {
       await this.fetchForecasts();
     },
     async fetchDashboardStats() {
-      this.forecastLoading = true;
-      this.forecastError = null;
-      
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:7904/api/admin/dashboard-stats', {
+        const params = new URLSearchParams({
+          topSellingPeriod: this.selectedTopSellingPeriod,
+          topSellingQuarter: this.selectedTopSellingQuarter
+        });
+        
+        const response = await fetch(`http://localhost:7904/api/admin/dashboard-stats?${params}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.ok) {
+          const data = await response.json();
+          this.stats = data;
         }
-        
-        const data = await response.json();
-        
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        
-        this.stats = data;
-        
-        // Log success for debugging
-        console.log('Dashboard stats loaded:', this.stats);
-        
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
-        this.forecastError = 'Failed to load dashboard stats. Please try again later.';
-      } finally {
-        this.forecastLoading = false;
       }
     },
     async fetchForecasts() {
