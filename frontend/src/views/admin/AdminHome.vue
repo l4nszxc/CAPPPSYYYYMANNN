@@ -104,8 +104,30 @@
         <h2>
           <i class="fas fa-chart-line"></i>
           Sales Forecasts
-          <span class="period-badge">Next 30 Days</span>
+          <span class="period-badge">{{ getForecastPeriodLabel() }}</span>
         </h2>
+        <div class="period-selector-container">
+          <div class="period-selector">
+            <button 
+              v-for="period in forecastPeriods" 
+              :key="period.value"
+              :class="['period-btn', { active: selectedForecastPeriod === period.value }]"
+              @click="changeForecastPeriod(period.value)"
+            >
+              {{ period.label }}
+            </button>
+          </div>
+          <div v-if="selectedForecastPeriod === 'quarterly'" class="quarter-selector">
+            <button 
+              v-for="quarter in quarters" 
+              :key="quarter.value"
+              :class="['quarter-btn', { active: selectedQuarter === quarter.value }]"
+              @click="selectQuarter(quarter.value)"
+            >
+              {{ quarter.label }}
+            </button>
+          </div>
+        </div>
         <div class="table-container">
           <div v-if="forecastLoading" class="loading-state">
             <i class="fas fa-spinner fa-spin"></i>
@@ -343,6 +365,20 @@ export default {
       forecastLoading: false,
       forecastError: null,
       forecasts: null,
+      selectedForecastPeriod: 'weekly',
+      selectedQuarter: 'Q1',
+      forecastPeriods: [
+        { label: 'Weekly', value: 'weekly' },
+        { label: 'Monthly', value: 'monthly' },
+        { label: 'Quarterly', value: 'quarterly' },
+        { label: 'Annually', value: 'annually' }
+      ],
+      quarters: [
+        { label: 'Q1 (Jan-Mar)', value: 'Q1' },
+        { label: 'Q2 (Apr-Jun)', value: 'Q2' },
+        { label: 'Q3 (Jul-Sep)', value: 'Q3' },
+        { label: 'Q4 (Oct-Dec)', value: 'Q4' }
+      ],
       stats: {
         totalSales: 0,
         totalProducts: 0,
@@ -355,6 +391,36 @@ export default {
     }
   },
   methods: {
+    async changeForecastPeriod(period) {
+      this.selectedForecastPeriod = period;
+      await this.fetchForecasts();
+    },
+
+    async selectQuarter(quarter) {
+      this.selectedQuarter = quarter;
+      await this.fetchForecasts();
+    },
+
+    getForecastPeriodLabel() {
+      switch (this.selectedForecastPeriod) {
+        case 'weekly':
+          return 'Next 7 Days';
+        case 'monthly':
+          return 'Next 30 Days';
+        case 'quarterly':
+          const quarterMap = {
+            Q1: 'January-March',
+            Q2: 'April-June',
+            Q3: 'July-September',
+            Q4: 'October-December'
+          };
+          return quarterMap[this.selectedQuarter];
+        case 'annually':
+          return 'Next 12 Months';
+        default:
+          return 'Next 7 Days';
+      }
+    },
     getConfidenceWidth(forecastData) {
         try {
             if (!forecastData?.forecast) return '0%';
@@ -450,7 +516,12 @@ export default {
       
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:7904/api/admin/forecasts', {
+        const params = new URLSearchParams({
+          period: this.selectedForecastPeriod,
+          quarter: this.selectedQuarter
+        });
+        
+        const response = await fetch(`http://localhost:7904/api/admin/forecasts?${params}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -1248,7 +1319,15 @@ tr:nth-child(3) .rank {
   color: #dc2626;
 }
   /* Responsive Design */
-  @media (max-width: 768px) {
+  @media (max-width: 768px) {\.period-selector,
+    .quarter-selector {
+      flex-wrap: wrap;
+    }
+    
+    .period-btn,
+    .quarter-btn {
+      flex: 1 1 calc(50% - 0.25rem);
+    }
     .admin-container {
       padding-left: 60px; /* Match collapsed sidebar width */
     }
@@ -1442,5 +1521,70 @@ tr:nth-child(3) .rank {
 .loading-state i {
   color: #3b82f6;
   font-size: 1.5rem;
+}
+.period-selector-container {
+  margin-bottom: 1.5rem;
+}
+
+.period-selector {
+  display: flex;
+  gap: 0.5rem;
+  background-color: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.period-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #64748b;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.period-btn:hover {
+  color: #1e293b;
+  background-color: #e2e8f0;
+}
+
+.period-btn.active {
+  background-color: white;
+  color: #3b82f6;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.quarter-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.quarter-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #64748b;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.quarter-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.quarter-btn.active {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
 }
 </style>
