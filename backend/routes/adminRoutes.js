@@ -22,4 +22,5 @@ router.post('/rewards/tiers', authenticate, isAdmin, adminController.createRewar
 router.put('/rewards/tiers/:id', authenticate, isAdmin, adminController.updateRewardTier);
 router.delete('/rewards/tiers/:id', authenticate, isAdmin, adminController.deleteRewardTier);
 router.get('/rewards/statistics', authenticate, isAdmin, adminController.getRewardsStatistics);
+router.get('/forecasts', adminController.getProductForecasts);
 module.exports = router;
