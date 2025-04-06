@@ -40,7 +40,7 @@
                                         <option value="paid" disabled>Paid</option>
                                     </select>
                                 </td>
-                                <td>₱{{ formatPrice(order.total_amount) }}</td>
+                                <td>{{ formatPrice(order.total_amount) }}</td>
                                 <td>{{ formatDate(order.accepted_at) }}</td>
                                 <td class="estimated-time">
                                     {{ formatDate(order.estimatedPickupTime) }}
@@ -78,13 +78,13 @@
                     <!-- Add price breakdown -->
                     <div class="price-breakdown">
                         <p class="subtotal">
-                            <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(selectedOrder.subtotal) }}
+                            <i class="fas fa-receipt"></i> Subtotal: {{ formatPrice(selectedOrder.subtotal) }}
                         </p>
                         <p v-if="selectedOrder.discount_amount > 0" class="discount-amount">
-                            <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(selectedOrder.discount_amount) }}
+                            <i class="fas fa-tag"></i> Discount: -{{ formatPrice(selectedOrder.discount_amount) }}
                         </p>
                         <p class="total-amount">
-                            <i class="fas fa-dollar-sign"></i> Total: ₱{{ formatPrice(selectedOrder.total_amount) }}
+                            <i class="fas fa-dollar-sign"></i> Total: {{ formatPrice(selectedOrder.total_amount) }}
                         </p>
                     </div>
                 </div>
@@ -124,15 +124,15 @@
                                         @error="handleImageError"
                                     >
                                 </td>
-                                <td>₱{{ formatPrice(item.price) }}</td>
+                                <td>{{ formatPrice(item.price) }}</td>
                                 <td>{{ item.quantity }}</td>
-                                <td>₱{{ formatPrice(item.price * item.quantity) }}</td>
+                                <td>{{ formatPrice(item.price * item.quantity) }}</td>
                             </tr>
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="5" class="total-label">Total Amount:</td>
-                                <td class="total-amount">₱{{ formatPrice(selectedOrder.total_amount) }}</td>
+                                <td class="total-amount">{{ formatPrice(selectedOrder.total_amount) }}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -264,7 +264,12 @@ export default {
             }
         },
         formatPrice(price) {
-            return Number(price).toFixed(2)
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
         },
         formatDate(date) {
             return new Date(date).toLocaleString('en-US', {
