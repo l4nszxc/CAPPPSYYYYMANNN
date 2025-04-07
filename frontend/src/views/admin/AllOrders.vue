@@ -171,39 +171,55 @@
             @cancel="showLogoutModal = false"
         />
     </div>
+
     <div v-if="showPaymentConfirmation" class="modal-overlay">
     <div class="modal-content payment-modal">
-        <h2>Confirm Payment</h2>
-        <div class="payment-details">
-            <h3>Order Items:</h3>
-            <div class="payment-items">
-                <div v-for="item in selectedOrder.items" :key="item.product_id" class="payment-item">
-                    <div class="payment-item-name">
-                        <span>{{ item.original_name || item.name }}</span>
-                        <small v-if="item.choice_name" class="choice-pill">{{ item.choice_name }}</small>
+        <div class="payment-header">
+            <h2>Payment Details</h2>
+            <div class="order-metadata">
+                <span class="order-id">Order #{{ selectedOrder.order_id }}</span>
+                <span class="customer-name">{{ selectedOrder.customer_name }}</span>
+            </div>
+        </div>
+
+        <div class="payment-body">
+            <div class="payment-summary">
+                <h3>Order Summary</h3>
+                <div class="order-items">
+                    <div v-for="item in selectedOrder.items" :key="item.product_id" class="order-item">
+                        <div class="item-details">
+                            <span class="item-name">{{ item.original_name || item.name }}</span>
+                            <small v-if="item.choice_name" class="variant-tag">{{ item.choice_name }}</small>
+                        </div>
+                        <div class="item-pricing">
+                            <span class="quantity">× {{ item.quantity }}</span>
+                            <span class="amount">{{ formatPrice(item.price * item.quantity) }}</span>
+                        </div>
                     </div>
-                    <span>x{{ item.quantity }}</span>
-                    <span>{{ formatPrice(item.price * item.quantity) }}</span>
+                </div>
+
+                <div class="totals-breakdown">
+                    <div class="breakdown-row">
+                        <span>Subtotal</span>
+                        <span>{{ formatPrice(selectedOrder.subtotal || selectedOrder.total_amount) }}</span>
+                    </div>
+                    <div v-if="selectedOrder.discount_amount" class="breakdown-row discount">
+                        <span>Discount Applied</span>
+                        <span>-{{ formatPrice(selectedOrder.discount_amount) }}</span>
+                    </div>
+                    <div class="breakdown-row total">
+                        <span>Total Amount</span>
+                        <span>{{ formatPrice(selectedOrder.total_amount) }}</span>
+                    </div>
                 </div>
             </div>
-            <div class="payment-breakdown">
-                <div class="payment-line">
-                    <span>Subtotal:</span>
-                    <span>{{ formatPrice(selectedOrder.subtotal || selectedOrder.total_amount) }}</span>
-                </div>
-                <div v-if="selectedOrder.discount_amount" class="payment-line discount">
-                    <span>Discount:</span>
-                    <span>-{{ formatPrice(selectedOrder.discount_amount) }}</span>
-                </div>
-                <div class="payment-total">
-                    <strong>Total Amount:</strong>
-                    <span>{{ formatPrice(selectedOrder.total_amount) }}</span>
-                </div>
-                
-                <!-- Add cash calculator section -->
-                <div class="cash-calculator">
-                    <div class="cash-input">
-                        <label for="cashAmount">Cash Amount:</label>
+
+            <div class="payment-calculator">
+                <h3>Payment Calculator</h3>
+                <div class="calculator-input">
+                    <label for="cashAmount">Cash Amount</label>
+                    <div class="input-wrapper">
+                        <span class="currency-symbol">₱</span>
                         <input 
                             type="number" 
                             id="cashAmount" 
@@ -211,26 +227,30 @@
                             @input="calculateChange"
                             :min="selectedOrder.total_amount"
                             step="0.01"
-                            placeholder="Enter cash amount"
+                            placeholder="Enter amount"
                         >
                     </div>
-                    <div class="change-amount" :class="{ 'insufficient': isInsufficientCash }">
-                        <strong>Change:</strong>
-                        <span>{{ formatPrice(changeAmount) }}</span>
-                    </div>
+                </div>
+
+                <div class="calculator-result" :class="{ 'insufficient': isInsufficientCash }">
+                    <span>Change</span>
+                    <span class="change-amount">{{ formatPrice(changeAmount) }}</span>
                 </div>
             </div>
         </div>
-        <div class="modal-buttons">
+
+        <div class="payment-actions">
             <button 
                 @click="processPayment" 
-                class="confirm-pay-btn"
+                class="confirm-btn"
                 :disabled="isInsufficientCash || !cashAmount"
             >
-                <i class="fas fa-check"></i> Confirm Payment
+                <i class="fas fa-check-circle"></i>
+                Confirm Payment
             </button>
             <button @click="showPaymentConfirmation = false" class="cancel-btn">
-                <i class="fas fa-times"></i> Cancel
+                <i class="fas fa-times"></i>
+                Cancel
             </button>
         </div>
     </div>
@@ -898,18 +918,6 @@ tbody tr:hover {
     margin-top: 2rem;
 }
 
-.close-btn {
-    padding: 0.75rem 1.5rem;
-    background-color: #6b7280;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-}
 .pay-btn {
     padding: 0.75rem 1.5rem;
     background-color: #10b981;
@@ -929,9 +937,18 @@ tbody tr:hover {
 }
 
 .payment-modal {
-    max-width: 500px;
+    max-width: 480px;
+    padding: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
+.payment-header {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
 .payment-details {
     margin-top: 8px;
     padding-top: 8px;
@@ -944,7 +961,158 @@ tbody tr:hover {
     overflow-y: auto;
     margin: 1rem 0;
 }
+.order-metadata {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 1rem;
+    color: #64748b;
+    font-size: 0.875rem;
+}
+.order-items {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+}
+.item-details {
+    flex: 1;
+    margin-right: 1rem;
+}
 
+.item-name {
+    display: block;
+    color: #334155;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.variant-tag {
+    display: inline-block;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.item-pricing {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.totals-breakdown {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.breakdown-row.discount {
+    color: #16a34a;
+}
+.payment-calculator {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.calculator-input {
+    margin-bottom: 1rem;
+}
+
+.calculator-input label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.calculator-input input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.calculator-input input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.calculator-result {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f1f5f9;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.calculator-result.insufficient {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.currency-symbol {
+    position: absolute;
+    left: 1rem;
+    color: #64748b;
+    font-weight: 500;
+}
+.breakdown-row.total {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e2e8f0;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 1.1rem;
+}
+.order-id {
+    font-weight: 500;
+}
+.payment-summary h3,
+.payment-calculator h3 {
+    margin: 0 0 1rem 0;
+    color: #334155;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.payment-body {
+    padding: 1.5rem;
+}
+.payment-header h2 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
 .payment-item {
     display: flex;
     justify-content: space-between;
@@ -1042,9 +1210,6 @@ tbody tr:hover {
 .confirm-pay-btn:hover {
     background-color: #059669;
 }
-.close-btn:hover {
-    background-color: #4b5563;
-}
 .cash-calculator {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
@@ -1080,24 +1245,60 @@ tbody tr:hover {
 }
 
 .change-amount {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    background-color: #f8f9fa;
-    border-radius: 6px;
     font-size: 1.1rem;
+    font-weight: 600;
 }
-
+.payment-actions {
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
 .change-amount.insufficient {
     background-color: #fee2e2;
     color: #dc2626;
 }
+.confirm-btn, .cancel-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.confirm-btn {
+    background: #16a34a;
+    color: white;
+}
 
+.confirm-btn:hover {
+    background: #15803d;
+}
+
+.confirm-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.cancel-btn {
+    background-color: #6b7280;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background: #4b5563;
+}
 .confirm-pay-btn:disabled {
     background-color: #9ca3af;
     cursor: not-allowed;
 }
+
 /* Responsive Styles */
 @media (max-width: 1200px) {
     .admin-content {
@@ -1168,4 +1369,5 @@ tbody tr:hover {
         font-size: 0.85rem;
     }
 }
+
 </style>
