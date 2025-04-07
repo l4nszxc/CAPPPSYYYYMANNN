@@ -117,7 +117,7 @@ exports.getProductsByCategory = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, stock_quantity, category } = req.body;
+        const { name, description, price, stock_quantity, category, hasChoices, choices } = req.body;
         let imageUrl = null;
 
         // Handle image upload to ImgBB if a new image was provided
@@ -139,7 +139,48 @@ exports.updateProduct = async (req, res) => {
             updates.image = imageUrl;
         }
 
+        // Update the main product
         await Product.update(id, updates);
+
+        // Handle choices if they exist
+        if (hasChoices && choices) {
+            const choicesArray = JSON.parse(choices);
+            const choiceImages = req.files.choiceImage || [];
+            const choiceImageIndexes = req.body.choiceImageIndex || [];
+
+            for (let i = 0; i < choicesArray.length; i++) {
+                const choice = choicesArray[i];
+                let choiceImageUrl = null;
+
+                // Check if there's a new image for this choice
+                const imageIndex = choiceImageIndexes.indexOf(i.toString());
+                if (imageIndex !== -1 && choiceImages[imageIndex]) {
+                    choiceImageUrl = await uploadToImgBB(choiceImages[imageIndex].buffer);
+                }
+
+                if (choice.choice_id) {
+                    // Update existing choice
+                    const choiceUpdates = {
+                        name: choice.name,
+                        price: choice.price,
+                        stock: choice.stock
+                    };
+                    if (choiceImageUrl) {
+                        choiceUpdates.image = choiceImageUrl;
+                    }
+                    await Product.updateChoice(choice.choice_id, choiceUpdates);
+                } else {
+                    // Create new choice
+                    await Product.createChoice({
+                        productId: id,
+                        name: choice.name,
+                        price: choice.price,
+                        stock: choice.stock,
+                        image: choiceImageUrl || choice.image
+                    });
+                }
+            }
+        }
 
         res.json({ 
             message: 'Product updated successfully',
