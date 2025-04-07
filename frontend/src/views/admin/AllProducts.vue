@@ -57,7 +57,7 @@
                                 </td>
                                 <td>{{ product.name }}</td>
                                 <td>{{ product.category }}</td>
-                                <td>₱{{ formatPrice(product.price) }}</td>
+                                <td>{{ formatPrice(product.price) }}</td>
                                 <td>
                                     <div class="options-count">
                                         <span v-if="product.choices && product.choices.length">
@@ -119,7 +119,7 @@
                                                         >
                                                     </td>
                                                     <td>{{ choice.name }}</td>
-                                                    <td>₱{{ formatPrice(choice.price) }}</td>
+                                                    <td>{{ formatPrice(choice.price) }}</td>
                                                     <td>
                                                         <span 
                                                             :class="getStockStatusClass(choice.stock)" 
@@ -472,7 +472,12 @@ export default {
         },
         
         formatPrice(price) {
-            return Number(price).toFixed(2);
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
         },
         
         handleImageError(e) {
