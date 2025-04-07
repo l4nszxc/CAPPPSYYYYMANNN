@@ -115,6 +115,7 @@ exports.getOrderDetails = async (req, res) => {
 exports.processPayment = async (req, res) => {
     try {
         const { orderId } = req.params;
+        const { cashAmount, changeAmount } = req.body;
         
         // Get order details with user email before updating status
         const [orderDetails] = await db.execute(
@@ -176,21 +177,20 @@ exports.processPayment = async (req, res) => {
 
         // Send email notification
         try {
-            console.log('Sending payment confirmation email to:', orderDetails[0].email); // Debug log
             await emailService.sendOrderStatusReceipt(
                 orderDetails[0].email,
                 emailOrderDetails,
-                'paid'
+                'paid',
+                {
+                    cashAmount,
+                    changeAmount
+                }
             );
         } catch (emailError) {
-            console.error('Error sending payment email:', emailError);
-            // Don't return error response, just log it
+            console.error('Error sending payment confirmation email:', emailError);
         }
 
-        res.json({ 
-            message: 'Payment processed successfully',
-            order: orderDetails[0]
-        });
+        res.json({ message: 'Payment processed successfully' });
     } catch (error) {
         console.error('Error processing payment:', error);
         res.status(500).json({ message: 'Error processing payment' });

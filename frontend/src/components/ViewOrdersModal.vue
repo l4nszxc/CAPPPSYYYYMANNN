@@ -64,7 +64,7 @@
                     <div class="total-breakdown">
                         <p class="subtotal-line">Subtotal: {{ formatPrice(subtotal) }}</p>
                         <p v-if="discountAmount > 0" class="discount-line">
-                            <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(discountAmount) }}
+                            <i class="fas fa-tag"></i> Discount: -{{ formatPrice(discountAmount) }}
                         </p>
                         <h4 class="final-total">Total Amount: {{ formatPrice(calculateTotal) }}</h4>
                     </div>
