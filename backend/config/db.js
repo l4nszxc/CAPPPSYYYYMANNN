@@ -4,7 +4,7 @@ const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: '', // Add your MySQL password here
-  database: 'Capstone',
+  database: 'capstone',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0

@@ -47,7 +47,7 @@ exports.sendPasswordResetOTP = async (email, otp) => {
         throw error;
     }
 };
-exports.sendOrderStatusReceipt = async (email, order, status) => {
+exports.sendOrderStatusReceipt = async (email, order, status, paymentDetails = null) => {
     try {
         if (!email) {
             throw new Error('Recipient email is required');
@@ -81,7 +81,17 @@ exports.sendOrderStatusReceipt = async (email, order, status) => {
         const discountAmount = order.discount_amount || 0;
         const totalAmount = order.total_amount || 0;
 
-        // Create price breakdown section
+        const paymentSection = status.toLowerCase() === 'paid' && paymentDetails ? `
+            <tr>
+                <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold;">Cash Amount:</td>
+                <td style="padding: 12px; text-align: right;">₱${safeNumber(paymentDetails.cashAmount)}</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold;">Change:</td>
+                <td style="padding: 12px; text-align: right;">₱${safeNumber(paymentDetails.changeAmount)}</td>
+            </tr>
+        ` : '';
+
         const priceBreakdown = `
             <tr>
                 <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold;">Subtotal:</td>
@@ -97,6 +107,7 @@ exports.sendOrderStatusReceipt = async (email, order, status) => {
                 <td colspan="2" style="padding: 12px; text-align: right; font-weight: bold; font-size: 1.1em;">Total:</td>
                 <td style="padding: 12px; text-align: right; font-weight: bold; font-size: 1.1em;">₱${safeNumber(totalAmount)}</td>
             </tr>
+            ${paymentSection}
         `;
 
         await transporter.sendMail({

@@ -4,6 +4,7 @@ const Staff = require('../models/staffModel');
 const User = require('../models/userModel');
 const Reward = require('../models/rewardModel');
 const emailService = require('../services/emailService');
+const forecastService = require('../services/forecastService.js');
 const jwt = require('jsonwebtoken');
 
 exports.getStats = async (req, res) => {
@@ -114,6 +115,7 @@ exports.getOrderDetails = async (req, res) => {
 exports.processPayment = async (req, res) => {
     try {
         const { orderId } = req.params;
+        const { cashAmount, changeAmount } = req.body;
         
         // Get order details with user email before updating status
         const [orderDetails] = await db.execute(
@@ -175,21 +177,20 @@ exports.processPayment = async (req, res) => {
 
         // Send email notification
         try {
-            console.log('Sending payment confirmation email to:', orderDetails[0].email); // Debug log
             await emailService.sendOrderStatusReceipt(
                 orderDetails[0].email,
                 emailOrderDetails,
-                'paid'
+                'paid',
+                {
+                    cashAmount,
+                    changeAmount
+                }
             );
         } catch (emailError) {
-            console.error('Error sending payment email:', emailError);
-            // Don't return error response, just log it
+            console.error('Error sending payment confirmation email:', emailError);
         }
 
-        res.json({ 
-            message: 'Payment processed successfully',
-            order: orderDetails[0]
-        });
+        res.json({ message: 'Payment processed successfully' });
     } catch (error) {
         console.error('Error processing payment:', error);
         res.status(500).json({ message: 'Error processing payment' });
@@ -307,5 +308,19 @@ exports.getRewardsStatistics = async (req, res) => {
     } catch (error) {
         console.error('Error getting rewards statistics:', error);
         res.status(500).json({ message: 'Error getting rewards statistics' });
+    }
+};
+exports.getProductForecasts = async (req, res) => {
+    try {
+        const forecasts = await forecastService.updateForecastMetrics();
+        
+        if (!forecasts) {
+            return res.status(500).json({ message: 'Error generating forecasts' });
+        }
+        
+        res.json(forecasts);
+    } catch (error) {
+        console.error('Error getting forecasts:', error);
+        res.status(500).json({ message: 'Error generating forecasts' });
     }
 };

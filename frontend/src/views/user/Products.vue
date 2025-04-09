@@ -55,12 +55,11 @@
                         <p class="product-description">{{ product.description }}</p>
                         <div class="product-info">
                             <p class="product-price">
-                                <!-- Updated price display to show range for products with choices -->
                                 <template v-if="hasChoices(product) && getPriceRange(product).min !== getPriceRange(product).max">
-                                    ₱{{ formatPrice(getPriceRange(product).min) }} - {{ formatPrice(getPriceRange(product).max) }}
+                                    {{ formatPrice(getPriceRange(product).min) }} - {{ formatPrice(getPriceRange(product).max) }}
                                 </template>
                                 <template v-else>
-                                    ₱{{ formatPrice(product.price) }}
+                                    {{ formatPrice(product.price) }}
                                 </template>
                             </p>
                             <p class="product-stock" :class="{ 'low-stock': getTotalStock(product) <= 10 }">
@@ -209,7 +208,12 @@ export default {
         e.target.src = '/img/placeholder.jpg'
         },
         formatPrice(price) {
-            return Number(price).toFixed(2);
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
         },
         showQuantityModal(product) {
             this.selectedProduct = product;

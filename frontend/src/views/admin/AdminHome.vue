@@ -99,19 +99,146 @@
         </div>
       </div>
 
-      <!-- Top Selling Products Section -->
+      
       <div class="dashboard-section">
         <h2>
           <i class="fas fa-chart-line"></i>
-          Top Selling Products
-          <span class="period-badge">Last 7 Days</span>
+          Sales Forecasts
+          <span class="period-badge">{{ getForecastPeriodLabel() }}</span>
         </h2>
+        <div class="period-selector-container">
+          <div class="period-selector">
+            <button 
+              v-for="period in forecastPeriods" 
+              :key="period.value"
+              :class="['period-btn', { active: selectedForecastPeriod === period.value }]"
+              @click="changeForecastPeriod(period.value)"
+            >
+              {{ period.label }}
+            </button>
+          </div>
+          <div v-if="selectedForecastPeriod === 'quarterly'" class="quarter-selector">
+            <button 
+              v-for="quarter in quarters" 
+              :key="quarter.value"
+              :class="['quarter-btn', { active: selectedQuarter === quarter.value }]"
+              @click="selectQuarter(quarter.value)"
+            >
+              {{ quarter.label }}
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <div v-if="forecastLoading" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            Generating forecasts...
+          </div>
+          <table v-else-if="forecasts && Object.keys(forecasts).length > 0">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Current Sales</th>
+                <th>Forecasted Sales</th>
+                <th>Trend</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(forecast, productId) in forecasts" :key="productId">
+                <td>
+                  <div class="product-info">
+                    <img 
+                      :src="forecast.image || '/img/placeholder.jpg'" 
+                      :alt="forecast.name"
+                      class="product-thumbnail"
+                      @error="handleImageError"
+                    >
+                    <div class="product-details">
+                      <span class="product-name">{{ forecast.name }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ forecast.current_sales }}</td>
+                <td>
+                  {{ Math.round(getForecastedSales(forecast.forecast_data)) }}
+                  <span class="forecast-range">
+                    ({{ Math.round(getForecastLowerBound(forecast.forecast_data)) }} - 
+                    {{ Math.round(getForecastUpperBound(forecast.forecast_data)) }})
+                  </span>
+                </td>
+                <td>
+                  <div class="trend-indicator" :class="getTrendClass(forecast.forecast_data)">
+                    <i :class="getTrendIcon(forecast.forecast_data)"></i>
+                    {{ getTrendLabel(forecast.forecast_data) }}
+                  </div>
+                </td>
+                <td>
+                  <div class="confidence-meter">
+                    <div class="confidence-bar" 
+                        :style="{ width: getConfidenceWidth(forecast.forecast_data) }"
+                        :class="getConfidenceClass(forecast.forecast_data)">
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        <div v-else class="no-data">
+          <i class="fas fa-exclamation-circle"></i>
+          <p>{{ forecastError || 'No sales data available for forecasting' }}</p>
+          <p class="help-text">To enable forecasting, you need:</p>
+          <ul>
+            <li>At least 7 days of sales data</li>
+            <li>Orders marked as 'paid'</li>
+            <li>Sales within the last 30 days</li>
+            <li>Products with consistent sales history</li>
+          </ul>
+          <p class="suggestion-text">
+            Try creating some test orders or wait until more sales data is available.
+          </p>
+          <button @click="retryForecast" class="retry-btn">
+            <i class="fas fa-sync"></i>
+            Retry Forecast
+          </button>
+        </div>
+      </div>
+    </div>
+    
+
+    <div class="dashboard-section">
+      <h2>
+        <i class="fas fa-chart-line"></i>
+        Top Selling Products
+        <span class="period-badge">{{ getTopSellingPeriodLabel() }}</span>
+      </h2>
+      <div class="period-selector-container">
+        <div class="period-selector">
+          <button 
+            v-for="period in topSellingPeriods" 
+            :key="period.value"
+            :class="['period-btn', { active: selectedTopSellingPeriod === period.value }]"
+            @click="changeTopSellingPeriod(period.value)"
+          >
+            {{ period.label }}
+          </button>
+        </div>
+        <div v-if="selectedTopSellingPeriod === 'quarterly'" class="quarter-selector">
+          <button 
+            v-for="quarter in topSellingQuarters" 
+            :key="quarter.value"
+            :class="['quarter-btn', { active: selectedTopSellingQuarter === quarter.value }]"
+            @click="selectTopSellingQuarter(quarter.value)"
+          >
+            {{ quarter.label }}
+          </button>
+        </div>
+      </div>
         <div class="table-container">
           <table v-if="stats.topProducts && stats.topProducts.length">
             <thead>
               <tr>
                 <th>Product</th>
-                <th>Weekly Sales</th>
+                <th>Current Sales</th>
                 <th>Total Sales</th>
                 <th>Weekly Revenue</th>
                 <th>Performance</th>
@@ -256,6 +383,37 @@ export default {
       stockInput: null, 
       showSaveConfirmation: false,
       itemToUpdate: null,
+      forecastLoading: false,
+      forecastError: null,
+      forecasts: null,
+      selectedForecastPeriod: 'weekly',
+      selectedQuarter: 'Q1',
+      forecastPeriods: [
+        { label: 'Weekly', value: 'weekly' },
+        { label: 'Monthly', value: 'monthly' },
+        { label: 'Quarterly', value: 'quarterly' },
+        { label: 'Annually', value: 'annually' }
+      ],
+      quarters: [
+        { label: 'Q1 (Jan-Mar)', value: 'Q1' },
+        { label: 'Q2 (Apr-Jun)', value: 'Q2' },
+        { label: 'Q3 (Jul-Sep)', value: 'Q3' },
+        { label: 'Q4 (Oct-Dec)', value: 'Q4' }
+      ],
+      selectedTopSellingPeriod: 'weekly',
+      selectedTopSellingQuarter: 'Q1',
+      topSellingPeriods: [
+        { label: 'Weekly', value: 'weekly' },
+        { label: 'Monthly', value: 'monthly' },
+        { label: 'Quarterly', value: 'quarterly' },
+        { label: 'Annually', value: 'annually' }
+      ],
+      topSellingQuarters: [
+        { label: 'Q1 (Jan-Mar)', value: 'Q1' },
+        { label: 'Q2 (Apr-Jun)', value: 'Q2' },
+        { label: 'Q3 (Jul-Sep)', value: 'Q3' },
+        { label: 'Q4 (Oct-Dec)', value: 'Q4' }
+      ],
       stats: {
         totalSales: 0,
         totalProducts: 0,
@@ -268,6 +426,257 @@ export default {
     }
   },
   methods: {
+    async changeTopSellingPeriod(period) {
+      this.selectedTopSellingPeriod = period;
+      await this.fetchDashboardStats();
+    },
+
+    async selectTopSellingQuarter(quarter) {
+      this.selectedTopSellingQuarter = quarter;
+      await this.fetchDashboardStats();
+    },
+
+    getTopSellingPeriodLabel() {
+      switch (this.selectedTopSellingPeriod) {
+        case 'weekly':
+          return 'Last 7 Days';
+        case 'monthly':
+          return 'Last 30 Days';
+        case 'quarterly':
+          const quarterMap = {
+            Q1: 'January-March',
+            Q2: 'April-June',
+            Q3: 'July-September',
+            Q4: 'October-December'
+          };
+          return quarterMap[this.selectedTopSellingQuarter];
+        case 'annually':
+          return 'Last 12 Months';
+        default:
+          return 'Last 7 Days';
+      }
+    },
+    async changeForecastPeriod(period) {
+      this.selectedForecastPeriod = period;
+      await this.fetchForecasts();
+    },
+
+    async selectQuarter(quarter) {
+      this.selectedQuarter = quarter;
+      await this.fetchForecasts();
+    },
+
+    getForecastPeriodLabel() {
+      switch (this.selectedForecastPeriod) {
+        case 'weekly':
+          return 'Next 7 Days';
+        case 'monthly':
+          return 'Next 30 Days';
+        case 'quarterly':
+          const quarterMap = {
+            Q1: 'January-March',
+            Q2: 'April-June',
+            Q3: 'July-September',
+            Q4: 'October-December'
+          };
+          return quarterMap[this.selectedQuarter];
+        case 'annually':
+          return 'Next 12 Months';
+        default:
+          return 'Next 7 Days';
+      }
+    },
+    getConfidenceWidth(forecastData) {
+        try {
+            if (!forecastData?.forecast) return '0%';
+            const forecast = forecastData.forecast;
+            
+            // Calculate average confidence interval width
+            const avgInterval = forecast.reduce((sum, day) => {
+                return sum + (day.yhat_upper - day.yhat_lower) / day.yhat;
+            }, 0) / forecast.length;
+            
+            // Convert to confidence percentage (inverse of interval width)
+            const confidence = Math.max(0, Math.min(100, (1 - avgInterval) * 100));
+            return `${confidence}%`;
+        } catch (error) {
+            console.error('Error calculating confidence width:', error);
+            return '0%';
+        }
+    },
+
+    getConfidenceClass(forecastData) {
+        try {
+            if (!forecastData?.forecast) return 'low';
+            const forecast = forecastData.forecast;
+            
+            // Calculate average confidence interval width
+            const avgInterval = forecast.reduce((sum, day) => {
+                return sum + (day.yhat_upper - day.yhat_lower) / day.yhat;
+            }, 0) / forecast.length;
+            
+            // Classify confidence based on interval width
+            if (avgInterval < 0.2) return 'high';
+            if (avgInterval < 0.4) return 'medium';
+            return 'low';
+        } catch (error) {
+            console.error('Error calculating confidence class:', error);
+            return 'low';
+        }
+    },
+
+    getConfidenceLabel(forecastData) {
+        const confidenceClass = this.getConfidenceClass(forecastData);
+        switch (confidenceClass) {
+            case 'high':
+                return 'High Confidence';
+            case 'medium':
+                return 'Medium Confidence';
+            case 'low':
+                return 'Low Confidence';
+            default:
+                return 'Unknown';
+        }
+    },
+    async retryForecast() {
+      await this.fetchForecasts();
+    },
+    async fetchDashboardStats() {
+      try {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams({
+          topSellingPeriod: this.selectedTopSellingPeriod,
+          topSellingQuarter: this.selectedTopSellingQuarter
+        });
+        
+        const response = await fetch(`http://localhost:7904/api/admin/dashboard-stats?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          this.stats = data;
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      }
+    },
+    async fetchForecasts() {
+      this.forecastLoading = true;
+      this.forecastError = null;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const params = new URLSearchParams({
+          period: this.selectedForecastPeriod,
+          quarter: this.selectedQuarter
+        });
+        
+        const response = await fetch(`http://localhost:7904/api/admin/forecasts?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        this.forecasts = data;
+        
+        // Log success for debugging
+        console.log('Forecasts loaded:', this.forecasts);
+        
+      } catch (error) {
+        console.error('Error fetching forecasts:', error);
+        this.forecastError = 'Failed to generate forecasts. Please try again later.';
+        this.forecasts = null;
+      } finally {
+        this.forecastLoading = false;
+      }
+    },
+
+    getForecastedSales(forecastData) {
+      try {
+        if (!forecastData?.forecast) return 0;
+        return forecastData.forecast.reduce((sum, day) => sum + day.yhat, 0);
+      } catch (error) {
+        console.error('Error calculating forecasted sales:', error);
+        return 0;
+      }
+    },
+
+    getForecastLowerBound(forecastData) {
+      try {
+        if (!forecastData?.forecast) return 0;
+        return forecastData.forecast.reduce((sum, day) => sum + day.yhat_lower, 0);
+      } catch (error) {
+        console.error('Error calculating lower bound:', error);
+        return 0;
+      }
+    },
+
+    getForecastUpperBound(forecastData) {
+      try {
+        if (!forecastData?.forecast) return 0;
+        return forecastData.forecast.reduce((sum, day) => sum + day.yhat_upper, 0);
+      } catch (error) {
+        console.error('Error calculating upper bound:', error);
+        return 0;
+      }
+    },
+
+    getTrendClass(forecastData) {
+      const trend = this.calculateTrend(forecastData);
+      if (trend > 10) return 'strong-upward';
+      if (trend > 0) return 'upward';
+      if (trend < -10) return 'strong-downward';
+      if (trend < 0) return 'downward';
+      return 'stable';
+    },
+
+    getTrendIcon(forecastData) {
+      const trend = this.calculateTrend(forecastData);
+      if (trend > 10) return 'fas fa-angle-double-up';
+      if (trend > 0) return 'fas fa-angle-up';
+      if (trend < -10) return 'fas fa-angle-double-down';
+      if (trend < 0) return 'fas fa-angle-down';
+      return 'fas fa-equals';
+    },
+
+    getTrendLabel(forecastData) {
+      const trend = this.calculateTrend(forecastData);
+      if (trend > 10) return 'Strong Growth';
+      if (trend > 0) return 'Growing';
+      if (trend < -10) return 'Declining';
+      if (trend < 0) return 'Slight Decline';
+      return 'Stable';
+    },
+
+    calculateTrend(forecastData) {
+      try {
+        if (!forecastData?.forecast) return 0;
+        const forecast = forecastData.forecast;
+        const firstWeek = forecast.slice(0, 7);
+        const lastWeek = forecast.slice(-7);
+        
+        const firstWeekAvg = firstWeek.reduce((sum, day) => sum + day.yhat, 0) / 7;
+        const lastWeekAvg = lastWeek.reduce((sum, day) => sum + day.yhat, 0) / 7;
+        
+        return ((lastWeekAvg - firstWeekAvg) / firstWeekAvg) * 100;
+      } catch (error) {
+        console.error('Error calculating trend:', error);
+        return 0;
+      }
+    },
     getPerformanceClass(product) {
       const weeklyOrders = product.weekly_orders || 0;
       if (weeklyOrders >= 10) return 'excellent';
@@ -314,13 +723,23 @@ export default {
         let endpoint, payload;
         
         if (this.itemToUpdate.type === 'choice') {
-          // Update choice stock
+          // Update choice stock - maintain existing price
           endpoint = `http://localhost:7904/api/products/choices/${this.itemToUpdate.choice_id}`;
-          payload = { stock: parseInt(this.editingStock) };
+          payload = { 
+            stock: parseInt(this.editingStock),
+            price: this.itemToUpdate.price,
+            name: this.itemToUpdate.choice_name
+          };
         } else {
-          // Update regular product stock
+          // Update regular product stock - maintain existing price
           endpoint = `http://localhost:7904/api/products/${this.itemToUpdate.id}`;
-          payload = { stock_quantity: parseInt(this.editingStock) };
+          payload = { 
+            stock_quantity: parseInt(this.editingStock),
+            price: this.itemToUpdate.price,
+            name: this.itemToUpdate.name,
+            description: this.itemToUpdate.description,
+            category: this.itemToUpdate.category
+          };
         }
 
         const response = await fetch(endpoint, {
@@ -333,7 +752,7 @@ export default {
         });
 
         if (response.ok) {
-          // Update the stock directly in the data
+          // Update only the stock in the local data
           this.itemToUpdate.stock = parseInt(this.editingStock);
           this.editingId = null;
           this.editingStock = null;
@@ -436,7 +855,10 @@ export default {
     if (token) {
       const decoded = JSON.parse(atob(token.split('.')[1]));
       this.username = decoded.username || 'Admin';
-      await this.fetchDashboardStats();
+      await Promise.all([
+        this.fetchDashboardStats(),
+        this.fetchForecasts() // Add this line
+      ]);
     }
   }
 }
@@ -746,8 +1168,47 @@ tr:nth-child(3) .rank {
     padding: 3rem;
     font-size: 1rem;
   }
-  
-  
+  .no-data .help-text {
+  margin-top: 1rem;
+  font-weight: 500;
+}.no-data ul {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  text-align: left;
+  display: inline-block;
+}
+
+.no-data li {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.no-data li:before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #3b82f6;
+}
+.retry-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.retry-btn:hover {
+  background-color: #2563eb;
+}
 .stock-input {
   width: 80px;
   padding: 0.5rem;
@@ -921,7 +1382,15 @@ tr:nth-child(3) .rank {
   color: #dc2626;
 }
   /* Responsive Design */
-  @media (max-width: 768px) {
+  @media (max-width: 768px) {\.period-selector,
+    .quarter-selector {
+      flex-wrap: wrap;
+    }
+    
+    .period-btn,
+    .quarter-btn {
+      flex: 1 1 calc(50% - 0.25rem);
+    }
     .admin-container {
       padding-left: 60px; /* Match collapsed sidebar width */
     }
@@ -1037,4 +1506,148 @@ tr:nth-child(3) .rank {
   gap: 1rem;
   margin-top: 1.5rem;
 }
-  </style>
+.forecast-range {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-left: 0.5rem;
+}
+
+.trend-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.trend-indicator.strong-upward {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.trend-indicator.upward {
+  background-color: #f0fdf4;
+  color: #166534;
+}
+
+.trend-indicator.stable {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.trend-indicator.downward {
+  background-color: #fff1f2;
+  color: #be123c;
+}
+
+.trend-indicator.strong-downward {
+  background-color: #fecdd3;
+  color: #be123c;
+}
+
+.confidence-meter {
+  width: 100%;
+  height: 8px;
+  background-color: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.confidence-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.confidence-bar.high {
+  background-color: #22c55e;
+}
+
+.confidence-bar.medium {
+  background-color: #eab308;
+}
+
+.confidence-bar.low {
+  background-color: #ef4444;
+}
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #64748b;
+  gap: 1rem;
+  font-size: 1.1rem;
+}
+
+.loading-state i {
+  color: #3b82f6;
+  font-size: 1.5rem;
+}
+.period-selector-container {
+  margin-bottom: 1.5rem;
+}
+
+.period-selector {
+  display: flex;
+  gap: 0.5rem;
+  background-color: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.period-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #64748b;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.period-btn:hover {
+  color: #1e293b;
+  background-color: #e2e8f0;
+}
+
+.period-btn.active {
+  background-color: white;
+  color: #3b82f6;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.quarter-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.quarter-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: #64748b;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.quarter-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.quarter-btn.active {
+  background-color: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+</style>

@@ -29,18 +29,12 @@
                                         :class="['status-select', order.status]"
                                     >
                                         <option value="pending" disabled>Pending</option>
-                                        <option 
-                                            value="preparing" 
-                                            :disabled="isOptionDisabled(order.status, 'preparing')"
-                                        >Preparing</option>
-                                        <option 
-                                            value="ready for pickup" 
-                                            :disabled="isOptionDisabled(order.status, 'ready for pickup')"
-                                        >Ready for Pickup</option>
+                                        <option value="preparing">Preparing</option>
+                                        <option value="ready for pickup">Ready for Pickup</option>
                                         <option value="paid" disabled>Paid</option>
                                     </select>
                                 </td>
-                                <td>₱{{ formatPrice(order.total_amount) }}</td>
+                                <td>{{ formatPrice(order.total_amount) }}</td>
                                 <td>{{ formatDate(order.accepted_at) }}</td>
                                 <td class="estimated-time">
                                     {{ formatDate(order.estimatedPickupTime) }}
@@ -64,84 +58,86 @@
         <div v-if="selectedOrder" class="modal-overlay">
             <div class="modal-content order-details">
                 <h2>Order Details</h2>
-                <div class="order-info">
-                    <p><strong>Order ID:</strong> {{ selectedOrder.order_id }}</p>
-                    <p><strong>Customer:</strong> {{ selectedOrder.customer_name }}</p>
-                    <p><strong>Status:</strong> 
-                        <span :class="['status-badge', selectedOrder.status]">
-                            {{ selectedOrder.status }}
-                        </span>
-                    </p>
-                    <p><strong>Accepted On:</strong> {{ formatDate(selectedOrder.accepted_at) }}</p>
-                    <p><strong>Estimated Ready By:</strong> {{ formatDate(selectedOrder.estimatedPickupTime) }}</p>
+                <div class="modal-scroll-content">
+                    <div class="order-info">
+                        <p><strong>Order ID:</strong> {{ selectedOrder.order_id }}</p>
+                        <p><strong>Customer:</strong> {{ selectedOrder.customer_name }}</p>
+                        <p><strong>Status:</strong> 
+                            <span :class="['status-badge', selectedOrder.status]">
+                                {{ selectedOrder.status }}
+                            </span>
+                        </p>
+                        <p><strong>Accepted On:</strong> {{ formatDate(selectedOrder.accepted_at) }}</p>
+                        <p><strong>Estimated Ready By:</strong> {{ formatDate(selectedOrder.estimatedPickupTime) }}</p>
+                        
+                        <div class="price-breakdown">
+                            <p class="subtotal">
+                                <i class="fas fa-receipt"></i> Subtotal: {{ formatPrice(selectedOrder.subtotal) }}
+                            </p>
+                            <p v-if="selectedOrder.discount_amount > 0" class="discount-amount">
+                                <i class="fas fa-tag"></i> Discount: -{{ formatPrice(selectedOrder.discount_amount) }}
+                            </p>
+                            <p class="total-amount">
+                                <i class="fas fa-dollar-sign"></i> Total: {{ formatPrice(selectedOrder.total_amount) }}
+                            </p>
+                        </div>
+                    </div>
                     
-                    <!-- Add price breakdown -->
-                    <div class="price-breakdown">
-                        <p class="subtotal">
-                            <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(selectedOrder.subtotal) }}
-                        </p>
-                        <p v-if="selectedOrder.discount_amount > 0" class="discount-amount">
-                            <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(selectedOrder.discount_amount) }}
-                        </p>
-                        <p class="total-amount">
-                            <i class="fas fa-dollar-sign"></i> Total: ₱{{ formatPrice(selectedOrder.total_amount) }}
-                        </p>
+                    <div class="products-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input 
+                                            type="checkbox" 
+                                            :checked="allChecked"
+                                            @change="toggleAllProducts"
+                                        >
+                                    </th>
+                                    <th>Product</th>
+                                    <th>Image</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in selectedOrder.items" :key="item.product_id">
+                                    <td>
+                                        <input 
+                                            type="checkbox" 
+                                            v-model="checkedProducts"
+                                            :value="item.product_id"
+                                        >
+                                    </td>
+                                    <td>{{ item.name }}</td>
+                                    <td>
+                                        <img 
+                                            :src="item.image || '/img/placeholder.jpg'" 
+                                            :alt="item.name"
+                                            class="product-image"
+                                            @error="handleImageError"
+                                        >
+                                    </td>
+                                    <td>{{ formatPrice(item.price) }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>{{ formatPrice(item.price * item.quantity) }}</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="5" class="total-label">Total Amount:</td>
+                                    <td class="total-amount">{{ formatPrice(selectedOrder.total_amount) }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
-                <div class="products-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>
-                                    <input 
-                                        type="checkbox" 
-                                        v-model="allChecked"
-                                        @change="toggleAllProducts"
-                                    >
-                                </th>
-                                <th>Product</th>
-                                <th>Image</th>
-                                <th>Price</th>
-                                <th>Quantity</th>
-                                <th>Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in selectedOrder.items" :key="item.product_id">
-                                <td>
-                                    <input 
-                                        type="checkbox" 
-                                        v-model="checkedProducts"
-                                        :value="item.product_id"
-                                    >
-                                </td>
-                                <td>{{ item.name }}</td>
-                                <td>
-                                    <img 
-                                        :src="item.image || '/img/placeholder.jpg'" 
-                                        :alt="item.name"
-                                        class="product-image"
-                                        @error="handleImageError"
-                                    >
-                                </td>
-                                <td>₱{{ formatPrice(item.price) }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>₱{{ formatPrice(item.price * item.quantity) }}</td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="5" class="total-label">Total Amount:</td>
-                                <td class="total-amount">₱{{ formatPrice(selectedOrder.total_amount) }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                    <div class="modal-actions">
+                <div class="modal-actions">
                     <button 
                         @click="markAsReady" 
                         class="ready-btn"
-                        :disabled="!isAllChecked || selectedOrder.status === 'ready for pickup' || selectedOrder.status === 'paid'"
+                        :disabled="!allChecked || selectedOrder.status === 'ready for pickup' || selectedOrder.status === 'paid'"
                     >
                         <i class="fas fa-check"></i> Mark as Ready
                     </button>
@@ -151,8 +147,8 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div v-if="showLogoutModal" class="modal-overlay">
+
+        <div v-if="showLogoutModal" class="modal-overlay">
             <div class="modal-content logout-modal">
                 <h2>Confirm Logout</h2>
                 <p>Are you sure you want to logout?</p>
@@ -162,6 +158,7 @@
                 </div>
             </div>
         </div>
+    </div>
 </template>
 
 <script>
@@ -264,7 +261,12 @@ export default {
             }
         },
         formatPrice(price) {
-            return Number(price).toFixed(2)
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
         },
         formatDate(date) {
             return new Date(date).toLocaleString('en-US', {
@@ -531,11 +533,21 @@ th {
 }
 
 .order-info {
-    margin-bottom: 2rem;
+    margin-bottom: 1rem; /* Reduce from 2rem */
     padding-bottom: 1rem;
     border-bottom: 1px solid #eee;
 }
 
+.order-details h2 {
+    margin: 0 0 1rem 0; /* Reduce from 1.5rem */
+}
+
+/* Add a container for the scrollable content */
+.modal-scroll-content {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 0.5rem; /* Add some padding for the scrollbar */
+}
 .order-info p {
     margin: 0.5rem 0;
 }
@@ -595,10 +607,25 @@ tfoot tr td {
     font-size: 1.1rem;
 }
 
+.products-table {
+    margin: 1.5rem 0;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    max-height: 380px;
+    overflow-y: auto;
+    flex: 1; /* Add this */
+}
+
 .modal-actions {
-    margin-top: 2rem;
+    margin-top: 1rem; /* Reduce from 2rem */
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
     display: flex;
     justify-content: flex-end;
+    gap: 1rem;
+    background: white; /* Add this */
+    position: sticky; /* Add this */
+    bottom: 0; /* Add this */
 }
 
 .close-btn {
@@ -705,7 +732,17 @@ tfoot tr td {
     justify-content: flex-end;
     gap: 1rem;
 }
-
+.modal-content.order-details {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: hidden; /* Change from auto to hidden */
+    display: flex;
+    flex-direction: column;
+}
 input[type="checkbox"] {
     width: 18px;
     height: 18px;

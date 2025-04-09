@@ -57,7 +57,7 @@
                                 </td>
                                 <td>{{ product.name }}</td>
                                 <td>{{ product.category }}</td>
-                                <td>₱{{ formatPrice(product.price) }}</td>
+                                <td>{{ formatPrice(product.price) }}</td>
                                 <td>
                                     <div class="options-count">
                                         <span v-if="product.choices && product.choices.length">
@@ -119,7 +119,7 @@
                                                         >
                                                     </td>
                                                     <td>{{ choice.name }}</td>
-                                                    <td>₱{{ formatPrice(choice.price) }}</td>
+                                                    <td>{{ formatPrice(choice.price) }}</td>
                                                     <td>
                                                         <span 
                                                             :class="getStockStatusClass(choice.stock)" 
@@ -187,6 +187,64 @@
                             <option value="Biscuits">Biscuits</option>
                             <option value="Candies and Snacks">Candies and Snacks</option>
                         </select>
+                    </div>
+                    <div class="product-choices-section">
+                        <div class="choices-header">
+                            <h3>Product Options (Optional)</h3>
+                            <button type="button" class="add-choice-btn" @click="addChoice">
+                                <i class="fas fa-plus"></i> Add Option
+                            </button>
+                        </div>
+                        
+                        <div v-for="(choice, index) in editingChoices" :key="index" class="product-choice">
+                            <div class="choice-header">
+                                <h4>Option #{{ index + 1 }}</h4>
+                                <button type="button" class="remove-choice-btn" @click="removeChoice(index)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <div class="choice-form">
+                                <div class="form-group">
+                                    <label :for="'choice-name-' + index">Name</label>
+                                    <input 
+                                        type="text" 
+                                        :id="'choice-name-' + index" 
+                                        v-model="choice.name" 
+                                        placeholder="e.g., 750ml, 1.65L, Medium, Large, etc." 
+                                        required
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label :for="'choice-price-' + index">Price</label>
+                                    <input 
+                                        type="number" 
+                                        :id="'choice-price-' + index" 
+                                        v-model="choice.price" 
+                                        step="0.01" 
+                                        min="0"     
+                                        required
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label :for="'choice-stock-' + index">Stock Quantity</label>
+                                    <input 
+                                        type="number" 
+                                        :id="'choice-stock-' + index" 
+                                        v-model="choice.stock" 
+                                        required
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label :for="'choice-image-' + index">Image (Optional)</label>
+                                    <input 
+                                        type="file" 
+                                        :id="'choice-image-' + index" 
+                                        @change="(e) => handleNewChoiceImageUpload(e, index)" 
+                                        accept="image/*" 
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -311,6 +369,8 @@ export default {
             showDeleteChoiceModal: false,
             choiceToDelete: null,
             choiceProductName: '',
+            editingChoices: [],
+            newChoiceImages: [],
         };
     },
     computed: {
@@ -326,6 +386,25 @@ export default {
         }
     },
     methods: {
+        addChoice() {
+            this.editingChoices.push({
+                name: '',
+                price: null,
+                stock: null
+            });
+            this.newChoiceImages.push(null);
+        },
+        
+        removeChoice(index) {
+            this.editingChoices.splice(index, 1);
+            this.newChoiceImages.splice(index, 1);
+        },
+        
+        handleNewChoiceImageUpload(event, index) {
+            if (event.target.files && event.target.files[0]) {
+                this.newChoiceImages[index] = event.target.files[0];
+            }
+        },
         showDeleteChoiceConfirmation(choice, product) {
             this.choiceToDelete = choice;
             this.choiceProductName = product.name;
@@ -472,7 +551,12 @@ export default {
         },
         
         formatPrice(price) {
-            return Number(price).toFixed(2);
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
         },
         
         handleImageError(e) {
@@ -481,6 +565,9 @@ export default {
         
         showEditModal(product) {
             this.editingProduct = { ...product };
+            // Load existing choices
+            this.editingChoices = product.choices ? [...product.choices] : [];
+            this.newChoiceImages = new Array(this.editingChoices.length).fill(null);
             this.showModal = true;
         },
         
@@ -488,6 +575,8 @@ export default {
             this.showModal = false;
             this.editingProduct = null;
             this.newImage = null;
+            this.editingChoices = [];
+            this.newChoiceImages = [];
         },
         
         showEditChoiceModal(choice, product) {
@@ -525,17 +614,40 @@ export default {
         async handleEditSubmit() {
             try {
                 const token = localStorage.getItem('token');
-                
                 const formData = new FormData();
+                
+                // Add existing form data
                 formData.append('name', this.editingProduct.name);
                 formData.append('description', this.editingProduct.description);
                 formData.append('price', parseFloat(this.editingProduct.price));
                 formData.append('stock_quantity', parseInt(this.editingProduct.stock_quantity));
                 formData.append('category', this.editingProduct.category);
 
+                // Handle main product image
                 if (this.newImage) {
                     formData.append('image', this.newImage);
-                    console.log('Adding image to form:', this.newImage.name);
+                }
+
+                // Handle product choices
+                if (this.editingChoices.length > 0) {
+                    const formattedChoices = this.editingChoices.map((choice, index) => ({
+                        choice_id: choice.choice_id, // Include existing choice_id if it exists
+                        name: choice.name,
+                        price: parseFloat(choice.price),
+                        stock: parseInt(choice.stock),
+                        image: choice.image // Keep existing image URL
+                    }));
+
+                    formData.append('hasChoices', 'true');
+                    formData.append('choices', JSON.stringify(formattedChoices));
+                    
+                    // Add choice images
+                    this.newChoiceImages.forEach((img, idx) => {
+                        if (img) {
+                            formData.append(`choiceImage`, img);
+                            formData.append('choiceImageIndex', idx.toString());
+                        }
+                    });
                 }
 
                 const response = await fetch(`http://localhost:7904/api/products/${this.editingProduct.products_id}`, {
@@ -552,13 +664,8 @@ export default {
                     throw new Error(data.message || 'Failed to update product');
                 }
 
-                // Close modal first
                 this.closeModal();
-                
-                // Fetch fresh data and force refresh
                 await this.fetchProducts();
-                
-                // Force refresh the page
                 window.location.reload();
 
             } catch (error) {
@@ -954,7 +1061,7 @@ tbody tr:hover {
     border-radius: 12px;
     padding: 2rem;
     width: 90%;
-    max-width: 500px;
+    max-width: 1000px;
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -1184,5 +1291,76 @@ tbody tr:hover {
         width: 100%;
         justify-content: center;
     }
+}
+.product-choices-section {
+    margin-top: 1.5rem;
+    border: 1px solid #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 8px;
+    background-color: #f8fafc;
+}
+
+.choices-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.choices-header h3 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.add-choice-btn {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.add-choice-btn:hover {
+    background-color: #2563eb;
+}
+
+.product-choice {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.choice-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.remove-choice-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s;
+}
+
+.remove-choice-btn:hover {
+    background-color: #dc2626;
 }
 </style>

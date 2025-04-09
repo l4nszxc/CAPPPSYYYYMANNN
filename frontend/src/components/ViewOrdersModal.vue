@@ -30,7 +30,7 @@
                             <p v-if="item.choice_name" class="choice-info">
                                 <i class="fas fa-tag"></i> Option: {{ item.choice_name }}
                             </p>
-                            <p class="item-price">Price: ₱{{ formatPrice(item.price) }}</p>
+                            <p class="item-price">Price: {{ formatPrice(item.price) }}</p>
                             <div class="quantity-controls">
                                 <button 
                                     @click="updateQuantity(item.id, item.quantity - 1)"
@@ -47,7 +47,7 @@
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
-                            <p class="item-subtotal">Subtotal: ₱{{ formatPrice(item.price * item.quantity) }}</p>
+                            <p class="item-subtotal">Subtotal: {{ formatPrice(item.price * item.quantity) }}</p>
                             <button class="remove-btn" @click="removeItem(item.id)">
                                 <i class="fas fa-trash"></i> Remove
                             </button>
@@ -62,11 +62,11 @@
             <div class="fixed-bottom">
                 <div class="order-total">
                     <div class="total-breakdown">
-                        <p class="subtotal-line">Subtotal: ₱{{ formatPrice(subtotal) }}</p>
+                        <p class="subtotal-line">Subtotal: {{ formatPrice(subtotal) }}</p>
                         <p v-if="discountAmount > 0" class="discount-line">
-                            <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(discountAmount) }}
+                            <i class="fas fa-tag"></i> Discount: -{{ formatPrice(discountAmount) }}
                         </p>
-                        <h4 class="final-total">Total Amount: ₱{{ formatPrice(calculateTotal) }}</h4>
+                        <h4 class="final-total">Total Amount: {{ formatPrice(calculateTotal) }}</h4>
                     </div>
                 </div>
                 <div class="modal-buttons">
@@ -139,7 +139,12 @@ export default {
     },
     methods: {
         formatPrice(price) {
-            return Number(price).toFixed(2);
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
         },
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg';

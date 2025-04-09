@@ -50,13 +50,13 @@
                                 <p class="order-date">{{ formatDate(order.created_at) }}</p>
                                 <div class="price-breakdown">
                                     <p class="subtotal">
-                                        <i class="fas fa-receipt"></i> Subtotal: ₱{{ formatPrice(order.subtotal || order.total_amount) }}
+                                        <i class="fas fa-receipt"></i> Subtotal: {{ formatPrice(order.subtotal || order.total_amount) }}
                                     </p>
                                     <p v-if="order.discount_amount" class="discount-amount">
-                                        <i class="fas fa-tag"></i> Discount: -₱{{ formatPrice(order.discount_amount) }}
+                                        <i class="fas fa-tag"></i> Discount: -{{ formatPrice(order.discount_amount) }}
                                     </p>
                                     <p class="total-amount">
-                                        <i class="fas fa-peso-sign"></i> Total: ₱{{ formatPrice(order.total_amount) }}
+                                        <i class="fas fa-peso-sign"></i> Total: {{ formatPrice(order.total_amount) }}
                                     </p>
                                 </div>
                                 <p v-if="order.status === 'cancelled'" class="cancel-reason">
@@ -84,8 +84,8 @@
                                         <p v-if="item.choice_name" class="choice-info">
                                             <i class="fas fa-tag"></i> Option: {{ item.choice_name }}
                                         </p>
-                                        <p class="item-price">₱{{ formatPrice(item.price) }} x {{ item.quantity }}</p>
-                                        <p class="item-subtotal">Subtotal: ₱{{ formatPrice(item.price * item.quantity) }}</p>
+                                        <p class="item-price">{{ formatPrice(item.price) }} x {{ item.quantity }}</p>
+                                        <p class="item-subtotal">Subtotal: {{ formatPrice(item.price * item.quantity) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -141,15 +141,20 @@
         }
     },
     methods: {
+        formatPrice(price) {
+            return new Intl.NumberFormat('en-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(price).replace('PHP', '₱');
+        },
         toggleOrderDetails(orderId) {
             if (this.expandedOrders.has(orderId)) {
             this.expandedOrders.delete(orderId);
             } else {
             this.expandedOrders.add(orderId);
             }
-        },
-        formatPrice(amount) {
-            return Number(amount).toFixed(2);
         },
       formatDate(dateString) {
         return new Date(dateString).toLocaleString('en-US', {
