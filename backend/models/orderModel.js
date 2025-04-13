@@ -154,18 +154,29 @@ class Order {
         try {
             await connection.beginTransaction();
     
-            // Get order items to restore stock
+            // Get order items with choice information
             const [orderItems] = await connection.execute(
-                'SELECT product_id, quantity FROM order_items WHERE order_id = ?',
+                `SELECT oi.product_id, oi.quantity, oi.choice_id 
+                 FROM order_items oi 
+                 WHERE oi.order_id = ?`,
                 [orderId]
             );
     
             // Restore stock quantities
             for (const item of orderItems) {
-                await connection.execute(
-                    'UPDATE products SET stock_quantity = stock_quantity + ? WHERE products_id = ?',
-                    [item.quantity, item.product_id]
-                );
+                if (item.choice_id) {
+                    // Restore stock to choice
+                    await connection.execute(
+                        'UPDATE product_choices SET stock = stock + ? WHERE choice_id = ?',
+                        [item.quantity, item.choice_id]
+                    );
+                } else {
+                    // Restore stock to main product
+                    await connection.execute(
+                        'UPDATE products SET stock_quantity = stock_quantity + ? WHERE products_id = ?',
+                        [item.quantity, item.product_id]
+                    );
+                }
             }
     
             // Update order status and reason
