@@ -36,22 +36,24 @@ exports.insertProduct = async (req, res) => {
         const { name, description, price, stock_quantity, category, hasChoices, choices } = req.body;
         let imageUrl = null;
 
-        // Upload main product image to ImgBB if provided
         if (req.files && req.files.image && req.files.image[0]) {
             imageUrl = await uploadToImgBB(req.files.image[0].buffer);
         }
 
         // Validate input data
-        if (!name || !description || !price || !stock_quantity || !category) {
-            return res.status(400).json({ message: 'All fields are required' });
+        if (!name || !description || !price || category === undefined) {
+            return res.status(400).json({ message: 'Required fields are missing' });
         }
+
+        // Ensure stock_quantity is a valid integer
+        const parsedStock = parseInt(stock_quantity) || 0;
 
         // Create the product
         const productId = await Product.create({
             name,
             description,
             price,
-            stock_quantity,
+            stock_quantity: parsedStock,
             category,
             image: imageUrl
         });

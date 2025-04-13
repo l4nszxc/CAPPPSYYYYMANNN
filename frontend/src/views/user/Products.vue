@@ -77,10 +77,10 @@
                     <button 
                         class="add-to-cart-btn" 
                         @click="showQuantityModal(product)"
-                        :disabled="product.stock_quantity === 0"
+                        :disabled="getTotalStock(product) === 0"
                     >
                         <i class="fas fa-shopping-cart"></i> 
-                        {{ product.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart' }}
+                        {{ getTotalStock(product) === 0 ? 'Out of Stock' : 'Add to Cart' }}
                     </button>
                 </div>
             </div>

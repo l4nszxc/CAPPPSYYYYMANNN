@@ -29,7 +29,17 @@
                     </div>
                     <div class="form-group">
                         <label for="stock_quantity">Stock Quantity</label>
-                        <input type="number" id="stock_quantity" v-model="product.stock_quantity" required />
+                        <input 
+                            type="number" 
+                            id="stock_quantity" 
+                            v-model="product.stock_quantity" 
+                            required
+                            :disabled="choices.length > 0"
+                            :title="choices.length > 0 ? 'Stock quantity is managed through product options' : ''"
+                        />
+                        <small v-if="choices.length > 0" class="help-text">
+                            <i class="fas fa-info-circle"></i> Stock is managed through product options
+                        </small>
                     </div>
                     <div class="form-group">
                         <label for="category">Category</label>
@@ -293,7 +303,6 @@ export default {
                 this.error = '';
                 this.success = '';
 
-                // Validate decimal places for price
                 const price = this.formatDecimal(this.product.price);
                 if (isNaN(price)) {
                     throw new Error('Please enter a valid price');
@@ -303,7 +312,8 @@ export default {
                 formData.append('name', this.product.name);
                 formData.append('description', this.product.description);
                 formData.append('price', price);
-                formData.append('stock_quantity', this.product.stock_quantity);
+                // Set stock_quantity to 0 if using choices, otherwise use the input value
+                formData.append('stock_quantity', this.choices.length > 0 ? '0' : this.product.stock_quantity || '0');
                 formData.append('category', this.product.category);
                 
                 // Add main product image if it exists
@@ -593,5 +603,18 @@ select {
     .choice-form {
         grid-template-columns: 1fr;
     }
+}
+.help-text {
+    color: #666;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
 }
 </style>

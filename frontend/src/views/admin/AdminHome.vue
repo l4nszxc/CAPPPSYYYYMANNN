@@ -45,7 +45,7 @@
           Low Stock Alert
         </h2>
         <div class="table-container low-stock-table">
-          <table v-if="stats.lowStock && stats.lowStock.length">
+          <table v-if="filteredLowStock.length">
             <thead>
               <tr>
                 <th>Product Name</th>
@@ -55,42 +55,42 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in stats.lowStock" :key="item.type === 'choice' ? `choice-${item.choice_id}` : `product-${item.id}`">
-                <td>
-                  {{ item.type === 'choice' ? 
-                    `${item.product_name} (${item.choice_name})` : 
-                    item.name }}
-                  <span v-if="item.type === 'choice'" class="choice-badge">
-                    <i class="fas fa-tag"></i> Variant
-                  </span>
-                </td>
-                <td>
-                  <div v-if="editingId === (item.type === 'choice' ? `choice-${item.choice_id}` : item.id)" class="stock-edit">
-                    <input 
-                      type="number" 
-                      v-model="editingStock"
-                      min="0"
-                      @keyup.enter="saveStock(item)"
-                      @keyup.esc="cancelEdit()"
-                      :ref="el => { if (el) stockInput = el }"
-                      class="stock-input"
-                    >
-                  </div>
-                  <span v-else class="stock-badge" :class="getStockStatusClass(item.stock)">
-                    {{ item.stock }}
-                  </span>
-                </td>
-                <td>₱{{ formatPrice(item.price) }}</td>
-                <td>
-                  <button v-if="editingId === (item.type === 'choice' ? `choice-${item.choice_id}` : item.id)" class="save-btn" @click="saveStock(item)">
-                    <i class="fas fa-save"></i> Save
-                  </button>
-                  <button v-else @click="startEdit(item)" class="edit-btn">
-                    <i class="fas fa-edit"></i> Edit Stock
-                  </button>
-                </td>
+              <tr v-for="item in filteredLowStock" :key="item.type === 'choice' ? `choice-${item.choice_id}` : `product-${item.id}`">
+                  <td>
+                      {{ item.type === 'choice' ? 
+                          `${item.product_name} (${item.choice_name})` : 
+                          item.name }}
+                      <span v-if="item.type === 'choice'" class="choice-badge">
+                          <i class="fas fa-tag"></i> Variant
+                      </span>
+                  </td>
+                  <td>
+                      <div v-if="editingId === (item.type === 'choice' ? `choice-${item.choice_id}` : item.id)" class="stock-edit">
+                          <input 
+                              type="number" 
+                              v-model="editingStock"
+                              min="0"
+                              @keyup.enter="saveStock(item)"
+                              @keyup.esc="cancelEdit()"
+                              :ref="el => { if (el) stockInput = el }"
+                              class="stock-input"
+                          >
+                      </div>
+                      <span v-else class="stock-badge" :class="getStockStatusClass(item.stock)">
+                          {{ item.stock }}
+                      </span>
+                  </td>
+                  <td>₱{{ formatPrice(item.price) }}</td>
+                  <td>
+                      <button v-if="editingId === (item.type === 'choice' ? `choice-${item.choice_id}` : item.id)" class="save-btn" @click="saveStock(item)">
+                          <i class="fas fa-save"></i> Save
+                      </button>
+                      <button v-else @click="startEdit(item)" class="edit-btn">
+                          <i class="fas fa-edit"></i> Edit Stock
+                      </button>
+                  </td>
               </tr>
-            </tbody>
+          </tbody>
           </table>
           <p v-else class="no-data">
             <i class="fas fa-check-circle"></i>
@@ -234,7 +234,7 @@
         </div>
       </div>
         <div class="table-container">
-          <table v-if="stats.topProducts && stats.topProducts.length">
+          <table v-if="filteredLowStock.length">
             <thead>
               <tr>
                 <th>Product</th>
@@ -296,7 +296,7 @@
           Top Performing Staff
         </h2>
         <div class="table-container">
-          <table v-if="stats.topStaff && stats.topStaff.length">
+          <table v-if="filteredLowStock.length">
             <thead>
               <tr>
                 <th>Rank</th>
@@ -424,6 +424,19 @@ export default {
         topStaff: []
       }
     }
+  },
+    computed: {
+      filteredLowStock() {
+          if (!this.stats.lowStock) return [];
+          
+          return this.stats.lowStock.filter(item => {
+              // Keep product choices
+              if (item.type === 'choice') return true;
+              
+              // For main products, only keep those without choices
+              return !item.has_choices; // Assuming your backend sends this flag
+          });
+      }
   },
   methods: {
     async changeTopSellingPeriod(period) {

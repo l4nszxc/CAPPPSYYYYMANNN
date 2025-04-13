@@ -71,9 +71,14 @@
                                 </td>
                                 <td>
                                     <span 
-                                        :class="getStockStatusClass(product.stock_quantity)" 
-                                        class="stock-badge">
-                                        {{ product.stock_quantity }}
+                                        :class="getStockStatusClass(product.choices && product.choices.length > 0 ? 
+                                            product.choices.reduce((total, choice) => total + (parseInt(choice.stock) || 0), 0) : 
+                                            product.stock_quantity)" 
+                                        class="stock-badge"
+                                    >
+                                        {{ product.choices && product.choices.length > 0 ? 
+                                            product.choices.reduce((total, choice) => total + (parseInt(choice.stock) || 0), 0) : 
+                                            product.stock_quantity }}
                                     </span>
                                 </td>
                                 <td>
@@ -173,7 +178,17 @@
                     
                     <div class="form-group">
                         <label for="stock">Stock Quantity</label>
-                        <input type="number" id="stock" v-model="editingProduct.stock_quantity" required>
+                        <input 
+                            type="number" 
+                            id="stock" 
+                            v-model="editingProduct.stock_quantity" 
+                            required
+                            :disabled="editingChoices.length > 0"
+                            :title="editingChoices.length > 0 ? 'Stock quantity is managed through product options' : ''"
+                        />
+                        <small v-if="editingChoices.length > 0" class="help-text">
+                            <i class="fas fa-info-circle"></i> Stock is managed through product options
+                        </small>
                     </div>
                     
                     <div class="form-group">
@@ -381,6 +396,13 @@ export default {
                 const matchesCategory = !this.selectedCategory || 
                     product.category === this.selectedCategory;
                 
+                // Calculate total stock if product has choices
+                if (product.choices && product.choices.length > 0) {
+                    product.stock_quantity = product.choices.reduce((total, choice) => {
+                        return total + (parseInt(choice.stock) || 0);
+                    }, 0);
+                }
+                
                 return matchesSearch && matchesCategory;
             });
         }
@@ -467,11 +489,12 @@ export default {
         },
         
         getStockStatusClass(stock) {
-            stock = parseInt(stock) || 0;
-            if (stock <= 10) return 'critical-stock';
-            if (stock <= 20) return 'low-stock';
+            const totalStock = parseInt(stock) || 0;
+            if (totalStock <= 10) return 'critical-stock';
+            if (totalStock <= 20) return 'low-stock';
             return 'normal-stock';
-        },tatusClass(stock) {
+        },
+        tatusClass(stock) {
             if (stock <= 10) return 'critical-stock';
             if (stock <= 20) return 'low-stock';
             return 'normal-stock';
@@ -1362,5 +1385,18 @@ tbody tr:hover {
 
 .remove-choice-btn:hover {
     background-color: #dc2626;
+}
+.help-text {
+    color: #666;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
 }
 </style>
