@@ -95,8 +95,18 @@ export default {
         },
         getMaxStock() {
             if (this.selectedChoice) {
+                // Return specific choice stock when a choice is selected
                 return this.selectedChoice.stock;
             }
+            
+            // Calculate total stock from all choices if product has choices
+            if (this.product && this.product.choices && this.product.choices.length > 0) {
+                return this.product.choices.reduce((total, choice) => {
+                    return total + (parseInt(choice.stock) || 0);
+                }, 0);
+            }
+            
+            // Return product stock if no choices available
             return this.productStock;
         },
         selectChoice(choice) {
