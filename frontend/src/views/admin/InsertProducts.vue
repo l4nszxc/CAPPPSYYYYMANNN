@@ -35,6 +35,7 @@
                             v-model="product.stock_quantity" 
                             required
                             :disabled="choices.length > 0"
+                            :value="choices.length > 0 ? 0 : product.stock_quantity"
                             :title="choices.length > 0 ? 'Stock quantity is managed through product options' : ''"
                         />
                         <small v-if="choices.length > 0" class="help-text">
@@ -181,96 +182,98 @@ export default {
         },
         
         updateSuggestedChoices() {
-    this.suggestedChoicesVisible = true;
-    
-    // Define suggested choices based on category
-    const categoryChoices = {
-        'Beverages': [
-            {
-                label: 'Drink Sizes',
-                choices: [
-                    { name: '330ml', price: null, stock: null },
-                    { name: '500ml', price: null, stock: null },
-                    { name: '1 Liter', price: null, stock: null },
-                    { name: '1.5 Liter', price: null, stock: null },
-                    { name: '1.65 Liter', price: null, stock: null },
-                    { name: '2 Liter', price: null, stock: null }
+            this.suggestedChoicesVisible = true;
+            
+            // Define suggested choices based on category
+            const categoryChoices = {
+                'Beverages': [
+                    {
+                        label: 'Drink Sizes',
+                        choices: [
+                            { name: '330ml', price: null, stock: null },
+                            { name: '500ml', price: null, stock: null },
+                            { name: '1 Liter', price: null, stock: null },
+                            { name: '1.5 Liter', price: null, stock: null },
+                            { name: '1.65 Liter', price: null, stock: null },
+                            { name: '2 Liter', price: null, stock: null }
+                        ]
+                    }
+                ],
+                'Milk and Chocolate Drink': [
+                    {
+                        label: 'Package Options',
+                        choices: [
+                            { name: 'Single Sachet', price: null, stock: null },
+                            { name: 'Small Pack', price: null, stock: null },
+                            { name: 'Medium Pack', price: null, stock: null },
+                            { name: 'Large Pack', price: null, stock: null }
+                        ]
+                    }
+                ],
+                'Coffee and Creamer': [
+                    {
+                        label: 'Package Options',
+                        choices: [
+                            { name: 'Single Sachet', price: null, stock: null },
+                            { name: 'Small Pack (5 sachets)', price: null, stock: null },
+                            { name: 'Medium Pack (10 sachets)', price: null, stock: null },
+                            { name: 'Large Pack (30 sachets)', price: null, stock: null }
+                        ]
+                    }
+                ],
+                'Condiments': [
+                    {
+                        label: 'Bottle Sizes',
+                        choices: [
+                            { name: 'Small (100ml)', price: null, stock: null },
+                            { name: 'Medium (250ml)', price: null, stock: null },
+                            { name: 'Large (500ml)', price: null, stock: null },
+                            { name: 'Family Size (1L)', price: null, stock: null }
+                        ]
+                    }
+                ],
+                'Canned Goods': [
+                    {
+                        label: 'Can Sizes',
+                        choices: [
+                            { name: 'Small (155g)', price: null, stock: null },
+                            { name: 'Medium (380g)', price: null, stock: null },
+                            { name: 'Large (480g)', price: null, stock: null }
+                        ]
+                    }
+                ],
+                'Biscuits': [
+                    {
+                        label: 'Package Options',
+                        choices: [
+                            { name: 'Single Pack', price: null, stock: null },
+                            { name: 'Pack of 3', price: null, stock: null },
+                            { name: 'Pack of 6', price: null, stock: null },
+                            { name: 'Family Size', price: null, stock: null }
+                        ]
+                    }
+                ],
+                'Candies and Snacks': [
+                    {
+                        label: 'Package Options',
+                        choices: [
+                            { name: 'Mini (15g)', price: null, stock: null },
+                            { name: 'Regular (30g)', price: null, stock: null },
+                            { name: 'Sharing (75g)', price: null, stock: null },
+                            { name: 'Jumbo (150g)', price: null, stock: null }
+                        ]
+                    }
                 ]
-            }
-        ],
-        'Milk and Chocolate Drink': [
-            {
-                label: 'Package Options',
-                choices: [
-                    { name: 'Single Sachet', price: null, stock: null },
-                    { name: 'Small Pack', price: null, stock: null },
-                    { name: 'Medium Pack', price: null, stock: null },
-                    { name: 'Large Pack', price: null, stock: null }
-                ]
-            }
-        ],
-        'Coffee and Creamer': [
-            {
-                label: 'Package Options',
-                choices: [
-                    { name: 'Single Sachet', price: null, stock: null },
-                    { name: 'Small Pack (5 sachets)', price: null, stock: null },
-                    { name: 'Medium Pack (10 sachets)', price: null, stock: null },
-                    { name: 'Large Pack (30 sachets)', price: null, stock: null }
-                ]
-            }
-        ],
-        'Condiments': [
-            {
-                label: 'Bottle Sizes',
-                choices: [
-                    { name: 'Small (100ml)', price: null, stock: null },
-                    { name: 'Medium (250ml)', price: null, stock: null },
-                    { name: 'Large (500ml)', price: null, stock: null },
-                    { name: 'Family Size (1L)', price: null, stock: null }
-                ]
-            }
-        ],
-        'Canned Goods': [
-            {
-                label: 'Can Sizes',
-                choices: [
-                    { name: 'Small (155g)', price: null, stock: null },
-                    { name: 'Medium (380g)', price: null, stock: null },
-                    { name: 'Large (480g)', price: null, stock: null }
-                ]
-            }
-        ],
-        'Biscuits': [
-            {
-                label: 'Package Options',
-                choices: [
-                    { name: 'Single Pack', price: null, stock: null },
-                    { name: 'Pack of 3', price: null, stock: null },
-                    { name: 'Pack of 6', price: null, stock: null },
-                    { name: 'Family Size', price: null, stock: null }
-                ]
-            }
-        ],
-        'Candies and Snacks': [
-            {
-                label: 'Package Options',
-                choices: [
-                    { name: 'Mini (15g)', price: null, stock: null },
-                    { name: 'Regular (30g)', price: null, stock: null },
-                    { name: 'Sharing (75g)', price: null, stock: null },
-                    { name: 'Jumbo (150g)', price: null, stock: null }
-                ]
-            }
-        ]
-    };
-    
-    this.suggestedChoices = categoryChoices[this.product.category] || [];
-},
+            };
+            
+            this.suggestedChoices = categoryChoices[this.product.category] || [];
+        },
         
         applyChoices(suggestion) {
             this.choices = JSON.parse(JSON.stringify(suggestion.choices));
             this.choiceImages = this.choices.map(() => null);
+            // Reset main product stock to 0 when applying choices
+            this.product.stock_quantity = 0;
         },
         
         addChoice() {
@@ -280,11 +283,19 @@ export default {
                 stock: null
             });
             this.choiceImages.push(null);
+            // Reset main product stock to 0 when adding first choice
+            if (this.choices.length === 1) {
+                this.product.stock_quantity = 0;
+            }
         },
-        
+
         removeChoice(index) {
             this.choices.splice(index, 1);
             this.choiceImages.splice(index, 1);
+            // Reset main product stock when removing last choice
+            if (this.choices.length === 0) {
+                this.product.stock_quantity = null;
+            }
         },
         
         handleImageUpload(event) {

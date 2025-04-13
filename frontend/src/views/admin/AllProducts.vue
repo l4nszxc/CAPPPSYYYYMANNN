@@ -6,29 +6,49 @@
             <div class="header">
                 <h2>MANAGE PRODUCTS</h2>
                 <div class="filters">
-                    <div class="search-box">
+                    <div class="search-container">
+                        <div class="search-box">
                         <input 
                             type="text" 
                             v-model="searchQuery" 
                             placeholder="Search by product name..."
                         >
+                        </div>
+                        <div class="sort-controls">
+                        <select v-model="sortBy" class="sort-select">
+                            <option value="name">Name</option>
+                            <option value="updated_at">Date Updated</option>
+                            <option value="price">Price</option>
+                            <option value="stock">Stock</option>
+                            <option value="total_sold">Total Sold</option>
+                        </select>
+                        <button 
+                            class="sort-direction-btn" 
+                            @click="toggleSortDirection"
+                            :title="sortDirection === 'asc' ? 'Ascending' : 'Descending'"
+                        >
+                            <i :class="['fas', sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down']"></i>
+                        </button>
+                        </div>
+                        <button @click="resetSearch" class="reset-btn">
+                        <i class="fas fa-undo"></i> Reset Search
+                        </button>
                     </div>
-                    <select v-model="selectedCategory" class="status-filter">
-                        <option value="">All Categories</option>
-                        <option value="Beverages">Beverages</option>
-                        <option value="Milk and Chocolate Drink">Milk and Chocolate Drink</option>
-                        <option value="Coffee and Creamer">Coffee and Creamer</option>
-                        <option value="Condiments">Condiments</option>
-                        <option value="Canned Goods">Canned Goods</option>
-                        <option value="Biscuits">Biscuits</option>
-                        <option value="Candies and Snacks">Candies and Snacks</option>
-                    </select>
-                    <button @click="resetFilters" class="reset-btn">
-                        <i class="fas fa-undo"></i> Reset Filters
+                </div>
+                
+            </div>
+            <div class="table-wrapper">
+                <div class="category-selector">
+                    <button 
+                        v-for="category in categories" 
+                        :key="category.value"
+                        :class="['category-btn', { active: selectedCategory === category.value }]"
+                        @click="selectedCategory = category.value"
+                    >
+                        {{ category.label }}
                     </button>
                 </div>
             </div>
-
             <div class="table-container">
                 <table v-if="filteredProducts.length">
                     <thead>
@@ -386,17 +406,28 @@ export default {
             choiceProductName: '',
             editingChoices: [],
             newChoiceImages: [],
+            categories: [
+                { label: 'All', value: '' },
+                { label: 'Beverages', value: 'Beverages' },
+                { label: 'Milk & Chocolate', value: 'Milk and Chocolate Drink' },
+                { label: 'Coffee & Creamer', value: 'Coffee and Creamer' },
+                { label: 'Condiments', value: 'Condiments' },
+                { label: 'Canned Goods', value: 'Canned Goods' },
+                { label: 'Biscuits', value: 'Biscuits' },
+                { label: 'Candies & Snacks', value: 'Candies and Snacks' }
+            ],
+            sortBy: 'updated_at',
+            sortDirection: 'desc',
         };
     },
     computed: {
         filteredProducts() {
-            return this.products.filter(product => {
+            let filtered = this.products.filter(product => {
                 const matchesSearch = !this.searchQuery || 
                     product.name.toLowerCase().includes(this.searchQuery.toLowerCase());
                 const matchesCategory = !this.selectedCategory || 
                     product.category === this.selectedCategory;
                 
-                // Calculate total stock if product has choices
                 if (product.choices && product.choices.length > 0) {
                     product.stock_quantity = product.choices.reduce((total, choice) => {
                         return total + (parseInt(choice.stock) || 0);
@@ -405,9 +436,50 @@ export default {
                 
                 return matchesSearch && matchesCategory;
             });
+
+            // Sort the filtered products
+            filtered.sort((a, b) => {
+                let aValue = a[this.sortBy];
+                let bValue = b[this.sortBy];
+
+                // Handle special cases
+                switch(this.sortBy) {
+                    case 'stock':
+                        aValue = a.choices?.length > 0 
+                            ? a.choices.reduce((sum, choice) => sum + (parseInt(choice.stock) || 0), 0)
+                            : (parseInt(a.stock_quantity) || 0);
+                        bValue = b.choices?.length > 0 
+                            ? b.choices.reduce((sum, choice) => sum + (parseInt(choice.stock) || 0), 0)
+                            : (parseInt(b.stock_quantity) || 0);
+                        break;
+                    case 'updated_at':
+                        aValue = new Date(a.updated_at).getTime();
+                        bValue = new Date(b.updated_at).getTime();
+                        break;
+                    case 'total_sold':
+                        aValue = parseInt(a.total_sold) || 0;
+                        bValue = parseInt(b.total_sold) || 0;
+                        break;
+                    case 'price':
+                        aValue = parseFloat(a.price) || 0;
+                        bValue = parseFloat(b.price) || 0;
+                        break;
+                }
+
+                if (this.sortDirection === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
+            });
+
+            return filtered;
         }
     },
     methods: {
+        toggleSortDirection() {
+            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        },
         addChoice() {
             this.editingChoices.push({
                 name: '',
@@ -536,9 +608,8 @@ export default {
             }
         },
         
-        resetFilters() {
+        resetSearch() {
             this.searchQuery = '';
-            this.selectedCategory = '';
         },
         
         async fetchProducts() {
@@ -639,6 +710,9 @@ export default {
                 const token = localStorage.getItem('token');
                 const formData = new FormData();
                 
+                // Store current category for later
+                const currentCategory = this.selectedCategory;
+                
                 // Add existing form data
                 formData.append('name', this.editingProduct.name);
                 formData.append('description', this.editingProduct.description);
@@ -653,18 +727,17 @@ export default {
 
                 // Handle product choices
                 if (this.editingChoices.length > 0) {
-                    const formattedChoices = this.editingChoices.map((choice, index) => ({
-                        choice_id: choice.choice_id, // Include existing choice_id if it exists
+                    const formattedChoices = this.editingChoices.map(choice => ({
+                        choice_id: choice.choice_id,
                         name: choice.name,
                         price: parseFloat(choice.price),
                         stock: parseInt(choice.stock),
-                        image: choice.image // Keep existing image URL
+                        image: choice.image
                     }));
 
                     formData.append('hasChoices', 'true');
                     formData.append('choices', JSON.stringify(formattedChoices));
                     
-                    // Add choice images
                     this.newChoiceImages.forEach((img, idx) => {
                         if (img) {
                             formData.append(`choiceImage`, img);
@@ -689,7 +762,9 @@ export default {
 
                 this.closeModal();
                 await this.fetchProducts();
-                window.location.reload();
+                
+                // Restore the selected category
+                this.selectedCategory = currentCategory;
 
             } catch (error) {
                 console.error('Error updating product:', error);
@@ -807,8 +882,9 @@ export default {
     padding: 1.5rem;
     border-radius: 12px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
+
 
 .header h2 {
     color: #2c3e50;
@@ -819,13 +895,19 @@ export default {
 
 .filters {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
+}
+
+.search-container {
+    display: flex;
     align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .search-box {
     flex: 1;
-    min-width: 250px;
 }
 
 .search-box input {
@@ -855,6 +937,7 @@ export default {
     align-items: center;
     gap: 0.5rem;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .reset-btn:hover {
@@ -863,11 +946,9 @@ export default {
 
 /* Table Styles */
 .table-container {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: auto;
-    max-height: calc(100vh - 200px);
+    margin-top: 15px;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 table {
@@ -1270,6 +1351,10 @@ tbody tr:hover {
         width: 100%;
         min-width: 100%;
     }
+    .category-btn {
+        min-width: 100px;
+        max-width: 180px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1298,6 +1383,29 @@ tbody tr:hover {
         margin: 1rem;
         padding: 1rem;
     }
+    .period-btn {
+        flex: 1;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    .category-btn {
+        min-width: 90px;
+        max-width: 150px;
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+    }
+    .search-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .sort-controls {
+        width: 100%;
+    }
+    
+    .sort-select {
+        flex: 1;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1313,6 +1421,10 @@ tbody tr:hover {
     .reset-btn {
         width: 100%;
         justify-content: center;
+    }
+    .category-btn {
+        min-width: calc(50% - 0.5rem);
+        max-width: none;
     }
 }
 .product-choices-section {
@@ -1398,5 +1510,121 @@ tbody tr:hover {
 input:disabled {
     background-color: #f5f5f5;
     cursor: not-allowed;
+}
+.period-selector {
+    display: flex;
+    gap: 0.5rem;
+    background-color: #f1f5f9;
+    padding: 0.25rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.period-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #64748b;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.period-btn:hover {
+    color: #1e293b;
+    background-color: #e2e8f0;
+}
+
+.period-btn.active {
+    background-color: white;
+    color: #3b82f6;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.category-selector {
+    display: flex;
+    flex-wrap: wrap;
+    background-color: #f8fafc;
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.category-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.75rem 1rem;
+    border: none;
+    background: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #64748b;
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.category-btn:hover {
+    color: #1e293b;
+    background-color: #e2e8f0;
+}
+
+.category-btn.active {
+    background-color: #3b82f6;
+    color: white;
+    font-weight: 500;
+}
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sort-select {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #64748b;
+    background-color: white;
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.sort-direction-btn {
+    padding: 0.75rem;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.sort-direction-btn:hover {
+    background-color: #f8fafc;
+    color: #3b82f6;
+}
+
+.sort-direction-btn i {
+    font-size: 1.1rem;
 }
 </style>
