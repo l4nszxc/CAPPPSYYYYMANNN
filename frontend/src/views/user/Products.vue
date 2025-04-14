@@ -18,20 +18,19 @@
                     <input type="number" id="maxPrice" v-model="maxPrice" @input="fetchProducts" placeholder="Max" />
                 </div>
 
-                <div class="category-filter">
-                    <label for="category"><i class="fas fa-filter"></i> Category:</label>
-                    <select id="category" v-model="selectedCategory" @change="fetchProducts">
-                        <option value="">All Categories</option>
-                        <option value="Beverages">Beverages</option>
-                        <option value="Milk and Chocolate Drink">Milk and Chocolate Drink</option>
-                        <option value="Coffee and Creamer">Coffee and Creamer</option>
-                        <option value="Condiments">Condiments</option>
-                        <option value="Canned Goods">Canned Goods</option>
-                        <option value="Biscuits">Biscuits</option>
-                        <option value="Candies and Snacks">Candies and Snacks</option>
-                    </select>
-                </div>
                 <button @click="resetFilters" class="reset-filter-btn"><i class="fas fa-undo"></i> Reset Filters</button>
+            </div>
+            <div class="table-wrapper">
+                <div class="category-selector">
+                    <button 
+                        v-for="category in categories" 
+                        :key="category.value"
+                        :class="['category-btn', { active: selectedCategory === category.value }]"
+                        @click="selectedCategory = category.value; fetchProducts()"
+                    >
+                        {{ category.label }}
+                    </button>
+                </div>
             </div>
 
             <div v-if="loading" class="loading-message">
@@ -125,7 +124,17 @@ export default {
             maxPrice: null,
             cart: [],
             showModal: false,
-            selectedProduct: null
+            selectedProduct: null,
+                categories: [
+                { label: 'All', value: '' },
+                { label: 'Beverages', value: 'Beverages' },
+                { label: 'Milk & Chocolate', value: 'Milk and Chocolate Drink' },
+                { label: 'Coffee & Creamer', value: 'Coffee and Creamer' },
+                { label: 'Condiments', value: 'Condiments' },
+                { label: 'Canned Goods', value: 'Canned Goods' },
+                { label: 'Biscuits', value: 'Biscuits' },
+                { label: 'Candies & Snacks', value: 'Candies and Snacks' }
+            ],
         };
     },
     computed: {
@@ -693,7 +702,57 @@ export default {
     gap: 0.75rem;
     font-size: 1.1rem;
 }
+.table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
 
+
+.category-selector {
+    display: flex;
+    flex-wrap: wrap;
+    background-color: white;
+    padding: 1rem;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.category-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: 2px solid transparent;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 6px rgba(76, 175, 80, 0.2);
+    transition: all 0.3s ease;
+    min-width: 120px;
+    flex: 0 1 auto;
+}
+
+.category-btn:hover {
+    background-color: white;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+}
+
+.category-btn.active {
+    background-color: white;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
+    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+}
 /* Responsive adjustments */
 @media (max-width: 1024px) {
     .product-content {
@@ -707,6 +766,11 @@ export default {
 }
 
 @media (max-width: 768px) {
+    .category-btn {
+        min-width: 150px;
+        font-size: 0.9rem;
+        padding: 0.7rem 1rem;
+    }
     .product-content {
         padding: 1rem;
     }
@@ -730,6 +794,16 @@ export default {
 }
 
 @media (max-width: 480px) {
+    .category-selector {
+        padding: 0.75rem;
+        gap: 0.5rem;
+    }
+    
+    .category-btn {
+        min-width: calc(50% - 0.5rem);
+        font-size: 0.85rem;
+        padding: 0.6rem 0.75rem;
+    }
     .product-content h1 {
         font-size: 1.5rem;
         margin-bottom: 1.5rem;
