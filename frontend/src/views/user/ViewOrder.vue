@@ -187,13 +187,20 @@ export default {
             }
         },
         formatDate(date) {
-            return new Date(date).toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            if (!date) return 'Not available';
+            
+            try {
+                return new Date(date).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                console.error('Error formatting date:', error);
+                return 'Invalid date';
+            }
         },
         handleImageError(e) {
             e.target.src = '/img/placeholder.jpg';
@@ -245,7 +252,26 @@ export default {
                 });
 
                 if (response.ok) {
-                    this.orders = await response.json();
+                    const orders = await response.json();
+                    // Ensure each order has a valid estimatedPickupTime
+                    this.orders = orders.map(order => {
+                        if (order.status === 'preparing') {
+                            // Calculate estimated time if not provided
+                            const baseTime = 15; // Base preparation time in minutes
+                            const timePerItem = 5; // Additional time per item in minutes
+                            const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+                            const estimatedMinutes = baseTime + (timePerItem * totalQuantity);
+                            
+                            const estimatedTime = new Date(order.accepted_at);
+                            estimatedTime.setMinutes(estimatedTime.getMinutes() + estimatedMinutes);
+                            
+                            return {
+                                ...order,
+                                estimatedPickupTime: estimatedTime.toISOString()
+                            };
+                        }
+                        return order;
+                    });
                 }
             } catch (error) {
                 console.error('Error fetching orders:', error);
