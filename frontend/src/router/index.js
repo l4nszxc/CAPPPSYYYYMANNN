@@ -40,7 +40,7 @@ const routes = [
     name: 'ForgotPassword',
     component: ForgotPassword,
     meta: { requiresGuest: true }
- },
+  },
   {
     path: '/home',
     name: 'Home',
@@ -48,7 +48,7 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/products', // Add the products route
+    path: '/products',
     name: 'Products',
     component: Products,
     meta: { requiresAuth: true }
@@ -93,82 +93,73 @@ const routes = [
     path: '/shared-cart/:shareId',
     name: 'SharedCart',
     component: SharedCart,
-    meta: { requiresAuth: true }
-  },
-
-
-
-
-
-    //Admin Routes
-    {
-      path: '/admin',
-      name: 'AdminHome',
-      component: AdminHome,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/admin/recruit-staff',
-      name: 'RecruitStaff',
-      component: RecruitStaff,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/admin/users',
-      name: 'AllUsers',
-      component: () => import('../views/admin/UsersList.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/admin/insert-products',
-      name: 'InsertProducts',
-      component: InsertProducts,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/admin/products',
-      name: 'AllProducts',
-      component: () => import('../views/admin/AllProducts.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/admin/staff',
-      name: 'AllStaff',
-      component: () => import('../views/admin/AllStaff.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/admin/orders',
-      name: 'AllOrders',
-      component: () => import('../views/admin/AllOrders.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: '/admin/rewards',
-      name: 'RewardsManagement',
-      component: RewardsManagement,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-
-
-
-    //Staff Routes
-    {
-      path: '/staff',
-      name: 'StaffHome',
-      component: StaffHome,
-      meta: { requiresAuth: true, requiresStaff: true }
-    },
-    {
-      path: '/staff/accepted-orders',
-      name: 'AcceptedOrders',
-      component: () => import('../views/staff/AcceptedOrders.vue'),
-      meta: { requiresAuth: true, role: 'staff' }
+    meta: { 
+      requiresAuth: true,
+      redirectParams: true
     }
-    
-
-    
-
+  },
+  // Admin Routes
+  {
+    path: '/admin',
+    name: 'AdminHome',
+    component: AdminHome,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/recruit-staff',
+    name: 'RecruitStaff',
+    component: RecruitStaff,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/users',
+    name: 'AllUsers',
+    component: () => import('../views/admin/UsersList.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/insert-products',
+    name: 'InsertProducts',
+    component: InsertProducts,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/products',
+    name: 'AllProducts',
+    component: () => import('../views/admin/AllProducts.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/staff',
+    name: 'AllStaff',
+    component: () => import('../views/admin/AllStaff.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/orders',
+    name: 'AllOrders',
+    component: () => import('../views/admin/AllOrders.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/rewards',
+    name: 'RewardsManagement',
+    component: RewardsManagement,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  // Staff Routes
+  {
+    path: '/staff',
+    name: 'StaffHome',
+    component: StaffHome,
+    meta: { requiresAuth: true, requiresStaff: true }
+  },
+  {
+    path: '/staff/accepted-orders',
+    name: 'AcceptedOrders',
+    component: () => import('../views/staff/AcceptedOrders.vue'),
+    meta: { requiresAuth: true, role: 'staff' }
+  }
 ]
 
 const router = createRouter({
@@ -176,37 +167,39 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+// Combined navigation guard
+router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem('token');
   const isAuthenticated = !!token;
   const userRole = token ? JSON.parse(atob(token.split('.')[1])).role : null;
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
-      next('/login');
+  // Check token expiration
+  if (requiresAuth && !checkTokenExpiration()) {
+    localStorage.setItem('redirectPath', to.fullPath);
+    next('/login');
+    return;
+  }
+
+  // Handle authentication and role-based access
+  if (requiresAuth && !isAuthenticated) {
+    localStorage.setItem('redirectPath', to.fullPath);
+    next('/login');
   } else if (to.meta.requiresAdmin && userRole !== 'admin') {
-      next('/home');
+    next('/home');
   } else if (to.meta.requiresStaff && userRole !== 'staff') {
-      next('/home');
+    next('/home');
   } else if (to.meta.requiresGuest && isAuthenticated) {
-      if (userRole === 'admin') {
-          next('/admin');
-      } else if (userRole === 'staff') {
-          next('/staff');
-      } else {
-          next('/home');
-      }
+    if (userRole === 'admin') {
+      next('/admin');
+    } else if (userRole === 'staff') {
+      next('/staff');
+    } else {
+      next('/home');
+    }
   } else {
-      next();
+    next();
   }
-});
-router.beforeEach((to, from, next) => {
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-      if (!checkTokenExpiration()) {
-          next('/login');
-          return;
-      }
-  }
-  next();
 });
 
 export default router

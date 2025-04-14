@@ -91,7 +91,7 @@ export default {
     },
     methods: {
         
-    async handleLogin() {
+      async handleLogin() {
         try {
             const response = await fetch('http://localhost:7904/api/users/login', {
                 method: 'POST',
@@ -122,19 +122,30 @@ export default {
                 throw new Error(data.message || 'Login failed');
             }
 
+            // Store the token
             localStorage.setItem('token', data.token);
+            
+            // Check for stored redirect path
+            const redirectPath = localStorage.getItem('redirectPath');
             
             // Check user role and redirect accordingly
             const decodedToken = JSON.parse(atob(data.token.split('.')[1]));
-            switch(decodedToken.role) {
-                case 'admin':
-                    this.$router.push('/admin');
-                    break;
-                case 'staff':
-                    this.$router.push('/staff');
-                    break;
-                default:
-                    this.$router.push('/home');
+            
+            if (redirectPath) {
+                localStorage.removeItem('redirectPath'); // Clear stored path
+                this.$router.push(redirectPath);
+            } else {
+                // Default role-based routing
+                switch(decodedToken.role) {
+                    case 'admin':
+                        this.$router.push('/admin');
+                        break;
+                    case 'staff':
+                        this.$router.push('/staff');
+                        break;
+                    default:
+                        this.$router.push('/home');
+                }
             }
         } catch (err) {
             this.error = err.message;

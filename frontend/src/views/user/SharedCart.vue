@@ -108,8 +108,14 @@ export default {
         },
         async fetchSharedCart() {
             try {
+                this.loading = true;
+                this.error = null;
                 const token = localStorage.getItem('token');
                 const shareId = this.$route.params.shareId;
+                
+                if (!shareId) {
+                    throw new Error('Invalid share link');
+                }
                 
                 const response = await fetch(`http://localhost:7904/api/shared-cart/${shareId}`, {
                     headers: {
@@ -183,14 +189,28 @@ export default {
         }
     },
     async mounted() {
+        if (!localStorage.getItem('token')) {
+            return; // Don't try to fetch data if not authenticated
+        }
         await this.getUserData();
         await this.fetchSharedCart();
+    },
+    watch: {
+        '$route': {
+            immediate: true,
+            handler() {
+                if (localStorage.getItem('token')) {
+                    this.fetchSharedCart();
+                }
+            }
+        }
     }
 };
 </script>
 
 <style scoped>
 .shared-cart-container {
+    font-family: Arial, sans-serif;
     min-height: 100vh;
     background-color: #f5f5f5;
 }

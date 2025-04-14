@@ -59,10 +59,15 @@ export default {
 
                 if (response.ok) {
                     const data = await response.json();
-                    this.shareLink = `${window.location.origin}/shared-cart/${data.shareId}`;
+                    // Generate the absolute URL
+                    const baseUrl = window.location.origin;
+                    this.shareLink = `${baseUrl}/shared-cart/${data.shareId}`;
+                } else {
+                    throw new Error('Failed to generate share link');
                 }
             } catch (error) {
                 console.error('Error generating share link:', error);
+                alert('Failed to generate share link. Please try again.');
             }
         },
         copyLink() {
