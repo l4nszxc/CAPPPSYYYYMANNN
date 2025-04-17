@@ -1,6 +1,7 @@
 const db = require('../config/db');
 const Order = require('../models/orderModel.js');
 const Reward = require('../models/rewardModel.js');
+const SharedCart = require('../models/sharedCartModel'); 
 
 exports.createOrder = async (req, res) => {
     const connection = await db.getConnection();
@@ -40,6 +41,16 @@ exports.createOrder = async (req, res) => {
             await connection.execute(
                 'UPDATE available_discounts SET order_id = ?, used = TRUE WHERE id = ?',
                 [orderId, discountId]
+            );
+        }
+
+        // Check if user has an active shared cart and terminate it
+        const activeShare = await SharedCart.getActiveSharedCart(userId);
+        if (activeShare && activeShare.shareId) {
+            // Terminate the shared cart (set status to "expired")
+            await db.execute(
+                'UPDATE shared_carts SET status = "expired" WHERE share_id = ? AND status = "active"',
+                [activeShare.shareId]
             );
         }
 

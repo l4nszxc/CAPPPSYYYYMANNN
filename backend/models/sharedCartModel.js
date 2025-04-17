@@ -139,6 +139,19 @@ class SharedCart {
         
         return null;
     }
+    static async terminateSharing(shareId) {
+        try {
+            // Set status to "expired" to terminate sharing
+            const [result] = await db.execute(
+                'UPDATE shared_carts SET status = "expired" WHERE share_id = ? AND status = "active"',
+                [shareId]
+            );
+            return result;
+        } catch (error) {
+            console.error('Error terminating shared cart:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = SharedCart;

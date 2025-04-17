@@ -491,12 +491,19 @@ export default {
                 await this.fetchCart();
                 await this.fetchAvailableDiscounts();
 
+                // Check if cart was being shared and notify user
+                if (this.syncStatus) {
+                    this.showNotification('Your order has been placed. Cart sharing has been automatically ended.', 'info');
+                    this.syncStatus = null;
+                    this.partnerUsername = '';
+                }
+
                 this.showOrdersModal = false;
                 this.$router.push('/view-orders');
 
             } catch (error) {
                 console.error('Error placing order:', error);
-                alert('Failed to place order: ' + (error.message || 'Unknown error'));
+                this.showNotification('Failed to place order: ' + (error.message || 'Unknown error'), 'error');
             }
         },
         
