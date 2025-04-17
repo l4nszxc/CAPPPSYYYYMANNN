@@ -2,6 +2,10 @@
     <div v-if="show" class="modal-overlay">
         <div class="modal-content">
             <h3><i class="fas fa-share-alt"></i> Share Your Cart</h3>
+            <div class="sync-info">
+                <i class="fas fa-info-circle"></i>
+                <p>When you share your cart, any changes you make will be synchronized with the recipient in real-time, and vice versa.</p>
+            </div>
             
             <div v-if="shareLink" class="share-link-container">
                 <p>Share this link with others:</p>
@@ -157,5 +161,27 @@ export default {
     border: none;
     border-radius: 6px;
     cursor: pointer;
+}
+.sync-info {
+    background-color: #e3f2fd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.sync-info i {
+    color: #2196F3;
+    font-size: 18px;
+    margin-top: 2px;
+}
+
+.sync-info p {
+    margin: 0;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.4;
 }
 </style>

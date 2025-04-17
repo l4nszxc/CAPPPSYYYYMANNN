@@ -155,6 +155,7 @@ export default {
                     throw new Error('Failed to accept shared cart');
                 }
 
+                // Navigate to the cart to see the synced items
                 this.$router.push('/cart');
                 
             } catch (error) {

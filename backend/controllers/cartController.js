@@ -1,4 +1,5 @@
 const Cart = require('../models/cartModel');
+const SharedCart = require('../models/sharedCartModel');
 
 exports.getCart = async (req, res) => {
     try {
@@ -26,6 +27,17 @@ exports.addToCart = async (req, res) => {
         }
 
         await Cart.addToCart(req.user.id, productId, quantity, choiceId || null);
+        
+        // Check if user has an active shared cart
+        const activeShare = await SharedCart.getActiveSharedCart(req.user.id);
+        if (activeShare) {
+            const partnerId = activeShare.partnerId;
+            if (partnerId) {
+                // Sync the product to the partner's cart
+                await Cart.addToCart(partnerId, productId, quantity, choiceId || null);
+            }
+        }
+        
         res.status(201).json({ message: 'Product added to cart' });
     } catch (error) {
         console.error('Error adding to cart:', error);
@@ -46,7 +58,31 @@ exports.updateQuantity = async (req, res) => {
             return res.status(400).json({ message: 'Cart ID and quantity are required' });
         }
 
+        // Get product details before update
+        const userCartItems = await Cart.getCart(req.user.id);
+        const cartItem = userCartItems.find(item => item.id == cartId);
+        
+        if (!cartItem) {
+            return res.status(404).json({ message: 'Cart item not found' });
+        }
+        
         await Cart.updateQuantity(req.user.id, cartId, quantity);
+        
+        // Check if user has an active shared cart
+        const activeShare = await SharedCart.getActiveSharedCart(req.user.id);
+        if (activeShare && activeShare.partnerId) {
+            // Find the same product in partner's cart
+            const partnerCartItems = await Cart.getCart(activeShare.partnerId);
+            const partnerItem = partnerCartItems.find(item => 
+                item.product_id == cartItem.product_id && 
+                item.choice_id == cartItem.choice_id
+            );
+            
+            if (partnerItem) {
+                await Cart.updateQuantity(activeShare.partnerId, partnerItem.id, quantity);
+            }
+        }
+        
         res.json({ message: 'Cart updated successfully' });
     } catch (error) {
         console.error('Error updating cart:', error);
@@ -64,8 +100,32 @@ exports.removeFromCart = async (req, res) => {
         if (!cartId) {
             return res.status(400).json({ message: 'Cart ID is required' });
         }
+        
+        // Get product details before removal
+        const userCartItems = await Cart.getCart(req.user.id);
+        const cartItem = userCartItems.find(item => item.id == cartId);
+        
+        if (!cartItem) {
+            return res.status(404).json({ message: 'Cart item not found' });
+        }
 
         await Cart.removeFromCart(req.user.id, cartId);
+        
+        // Check if user has an active shared cart
+        const activeShare = await SharedCart.getActiveSharedCart(req.user.id);
+        if (activeShare && activeShare.partnerId) {
+            // Find the same product in partner's cart
+            const partnerCartItems = await Cart.getCart(activeShare.partnerId);
+            const partnerItem = partnerCartItems.find(item => 
+                item.product_id == cartItem.product_id && 
+                item.choice_id == cartItem.choice_id
+            );
+            
+            if (partnerItem) {
+                await Cart.removeFromCart(activeShare.partnerId, partnerItem.id);
+            }
+        }
+        
         res.json({ message: 'Product removed from cart' });
     } catch (error) {
         console.error('Error removing from cart:', error);

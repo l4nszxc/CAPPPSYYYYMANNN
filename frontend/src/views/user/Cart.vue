@@ -5,6 +5,27 @@
         <div class="cart-content">
             <div class="cart-header">
                 <h1><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
+                <!-- Add console debugging to check values -->
+                <div class="debug-info" style="display: none;">
+                    syncStatus: {{ JSON.stringify(syncStatus) }}, 
+                    partnerUsername: {{ partnerUsername }}
+                </div>
+                
+                <!-- Fix the cart sharing info display -->
+                <div v-if="syncStatus" class="cart-sharing-info">
+                    <div v-if="syncStatus.role === 'owner'" class="owner-sharing">
+                        <i class="fas fa-share-alt"></i> You are currently sharing your cart with: <strong>{{ partnerUsername || 'another user' }}</strong>
+                    </div>
+                    <div v-else class="receiver-sharing">
+                        <i class="fas fa-user-friends"></i> You are currently using: <strong>{{ partnerUsername || 'another user' }}'s</strong> cart
+                    </div>
+                </div>
+            </div>
+            <div v-if="syncStatus" class="sync-status">
+                <div class="sync-badge" :class="{'sync-owner': syncStatus.role === 'owner', 'sync-receiver': syncStatus.role === 'receiver'}">
+                    <i class="fas fa-sync-alt"></i> 
+                    {{ syncStatus.role === 'owner' ? 'Your cart is being shared' : 'Viewing a shared cart' }}
+                </div>
             </div>
             
             <div v-if="cartItems.length > 0" class="select-all-container">
@@ -144,7 +165,10 @@ export default {
             loading: false,
             error: null,
             availableDiscounts: [],
-            showShareModal: false
+            showShareModal: false,
+            syncStatus: null,
+            syncInterval: null,
+             partnerUsername: ''
         };
     },
     computed: {
@@ -167,6 +191,60 @@ export default {
         }
     },
     methods: {
+        async fetchPartnerUsername() {
+            if (!this.syncStatus || !this.syncStatus.partnerId) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:7904/api/users/getUsernameById/${this.syncStatus.partnerId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Partner username data:', data);
+                    this.partnerUsername = data.username || 'another user';
+                } else {
+                    console.error('Error response when fetching username:', await response.text());
+                    this.partnerUsername = 'another user';
+                }
+            } catch (error) {
+                console.error('Error fetching partner username:', error);
+                this.partnerUsername = 'another user';
+            }
+        },
+        async checkSyncStatus() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                
+                const response = await fetch('http://localhost:7904/api/shared-cart/active/status', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Sync status data:', data);
+                    
+                    if (data && data.shareId) {
+                        this.syncStatus = data;
+                        // Make sure we fetch the username immediately after setting sync status
+                        await this.fetchPartnerUsername();
+                    } else {
+                        this.syncStatus = null;
+                        this.partnerUsername = '';
+                    }
+                } else {
+                    console.error('Error response when checking sync status:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error checking sync status:', error);
+            }
+        },
         formatPrice(price) {
             return new Intl.NumberFormat('en-PH', {
                 style: 'currency',
@@ -400,6 +478,20 @@ export default {
         await this.getUserData();
         await this.fetchCart();
         await this.fetchAvailableDiscounts();
+        await this.checkSyncStatus();
+        
+        // Check for sync status periodically
+        this.syncInterval = setInterval(async () => {
+            await this.checkSyncStatus();
+            if (this.syncStatus) {
+                await this.fetchCart(); // Refresh cart to see changes
+            }
+        }, 1000); // Check every 5 seconds
+    },
+    beforeDestroy() {
+        if (this.syncInterval) {
+            clearInterval(this.syncInterval);
+        }
     }
 };
 </script>
@@ -770,4 +862,69 @@ export default {
     background-color: #ccc;
     cursor: not-allowed;
 }
+.sync-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.sync-badge {
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sync-owner {
+    background-color: #4CAF50;
+}
+
+.sync-receiver {
+    background-color: #3498db;
+}
+
+.sync-badge i {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.cart-sharing-info {
+    margin-top: 0.5rem;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.owner-sharing, .receiver-sharing {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.owner-sharing {
+    color: #4CAF50;
+}
+
+.owner-sharing i {
+    color: #4CAF50;
+}
+
+.receiver-sharing {
+    color: #3498db;
+}
+
+.receiver-sharing i {
+    color: #3498db;
+}
+
 </style>
