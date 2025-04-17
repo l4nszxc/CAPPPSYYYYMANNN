@@ -9,5 +9,7 @@ router.post('/share', sharedCartController.createShareLink);
 router.get('/:shareId', sharedCartController.getSharedCart);
 router.post('/:shareId/accept', sharedCartController.acceptSharedCart);
 router.get('/active/status', sharedCartController.getActiveShare);
+router.post('/stop-sharing', sharedCartController.stopSharing);
+router.post('/leave-sharing', sharedCartController.leaveSharing);
 
 module.exports = router;

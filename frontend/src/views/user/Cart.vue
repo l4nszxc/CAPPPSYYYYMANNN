@@ -10,14 +10,28 @@
                     syncStatus: {{ JSON.stringify(syncStatus) }}, 
                     partnerUsername: {{ partnerUsername }}
                 </div>
-                
-                <!-- Fix the cart sharing info display -->
+                <div v-if="notification.show" class="notification" :class="notification.type">
+                    <div class="notification-content">
+                        <i :class="notification.icon"></i>
+                        {{ notification.message }}
+                    </div>
+                    <button class="notification-close" @click="hideNotification">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <!-- Cart sharing info with action buttons -->
                 <div v-if="syncStatus" class="cart-sharing-info">
                     <div v-if="syncStatus.role === 'owner'" class="owner-sharing">
                         <i class="fas fa-share-alt"></i> You are currently sharing your cart with: <strong>{{ partnerUsername || 'another user' }}</strong>
+                        <button @click="stopSharing" class="stop-sharing-btn">
+                            <i class="fas fa-times-circle"></i> Stop Sharing
+                        </button>
                     </div>
                     <div v-else class="receiver-sharing">
                         <i class="fas fa-user-friends"></i> You are currently using: <strong>{{ partnerUsername || 'another user' }}'s</strong> cart
+                        <button @click="leaveSharing" class="leave-sharing-btn">
+                            <i class="fas fa-sign-out-alt"></i> Leave Cart
+                        </button>
                     </div>
                 </div>
             </div>
@@ -138,6 +152,30 @@
             @close="showOrdersModal = false"
             @place-order="handlePlaceOrder"
         />
+        <ConfirmationModal
+            :show="showStopSharingModal"
+            title="Stop Sharing Cart"
+            message="Are you sure you want to stop sharing your cart? This will end the sharing for both you and the other user."
+            icon="fas fa-times-circle"
+            confirmText="Stop Sharing"
+            confirmIcon="fas fa-ban"
+            confirmButtonClass="danger"
+            @confirm="confirmStopSharing"
+            @cancel="showStopSharingModal = false"
+        />
+        
+        <!-- Add leave sharing confirmation modal -->
+        <ConfirmationModal
+            :show="showLeaveSharingModal"
+            title="Leave Shared Cart"
+            message="Are you sure you want to leave this shared cart? This will end the sharing for both you and the cart owner."
+            icon="fas fa-sign-out-alt"
+            confirmText="Leave Cart"
+            confirmIcon="fas fa-sign-out-alt"
+            confirmButtonClass="secondary"
+            @confirm="confirmLeaveSharing"
+            @cancel="showLeaveSharingModal = false"
+        />
     </div>
 </template>
 
@@ -146,6 +184,7 @@ import Navbar from '../../components/Navbar.vue';
 import LogoutModal from '../../components/LogoutModal.vue';
 import ViewOrdersModal from '../../components/ViewOrdersModal.vue';
 import ShareCartModal from '../../components/ShareCartModal.vue'
+import ConfirmationModal from '../../components/ConfirmationModal.vue';
 
 export default {
     name: 'Cart',
@@ -153,7 +192,8 @@ export default {
         Navbar,
         LogoutModal,
         ViewOrdersModal,
-        ShareCartModal
+        ShareCartModal,
+        ConfirmationModal
     },
     data() {
         return {
@@ -168,7 +208,16 @@ export default {
             showShareModal: false,
             syncStatus: null,
             syncInterval: null,
-             partnerUsername: ''
+            partnerUsername: '',
+            showStopSharingModal: false, // Add this line
+            showLeaveSharingModal: false,
+            notification: {
+                show: false,
+                message: '',
+                type: 'success',
+                icon: 'fas fa-check-circle',
+                timeout: null
+            }
         };
     },
     computed: {
@@ -191,6 +240,102 @@ export default {
         }
     },
     methods: {
+        showNotification(message, type = 'success') {
+            // Clear any existing timeout
+            if (this.notification.timeout) {
+                clearTimeout(this.notification.timeout);
+            }
+            
+            // Set icon based on type
+            let icon = 'fas fa-check-circle';
+            if (type === 'error') {
+                icon = 'fas fa-exclamation-circle';
+            } else if (type === 'info') {
+                icon = 'fas fa-info-circle';
+            }
+            
+            // Show notification
+            this.notification = {
+                show: true,
+                message,
+                type,
+                icon,
+                timeout: setTimeout(() => {
+                    this.hideNotification();
+                }, 5000) // Auto-hide after 5 seconds
+            };
+        },
+        
+        hideNotification() {
+            this.notification.show = false;
+            if (this.notification.timeout) {
+                clearTimeout(this.notification.timeout);
+            }
+        },
+        stopSharing() {
+            this.showStopSharingModal = true;
+        },
+        
+        leaveSharing() {
+            this.showLeaveSharingModal = true;
+        },
+        async confirmStopSharing() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:7904/api/shared-cart/stop-sharing', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    this.syncStatus = null;
+                    this.partnerUsername = '';
+                    this.showNotification('You have stopped sharing your cart. The sharing has ended for both users.');
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to stop sharing');
+                }
+            } catch (error) {
+                console.error('Error stopping cart sharing:', error);
+                this.showNotification('Failed to stop sharing cart: ' + error.message, 'error');
+            } finally {
+                this.showStopSharingModal = false;
+            }
+        },
+        
+        // Update confirmLeaveSharing method
+        async confirmLeaveSharing() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:7904/api/shared-cart/leave-sharing', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    this.syncStatus = null;
+                    this.partnerUsername = '';
+                    this.showNotification('You have left the shared cart. The sharing has ended for both users.');
+                    
+                    // Refresh cart after leaving
+                    await this.fetchCart();
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.message || 'Failed to leave shared cart');
+                }
+            } catch (error) {
+                console.error('Error leaving shared cart:', error);
+                this.showNotification('Failed to leave shared cart: ' + error.message, 'error');
+            } finally {
+                this.showLeaveSharingModal = false;
+            }
+        },
         async fetchPartnerUsername() {
             if (!this.syncStatus || !this.syncStatus.partnerId) return;
             
@@ -909,6 +1054,7 @@ export default {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .owner-sharing {
@@ -926,5 +1072,90 @@ export default {
 .receiver-sharing i {
     color: #3498db;
 }
+.stop-sharing-btn, .leave-sharing-btn {
+    margin-left: 15px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
 
+.stop-sharing-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.stop-sharing-btn:hover {
+    background-color: #c82333;
+}
+
+.leave-sharing-btn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.leave-sharing-btn:hover {
+    background-color: #5a6268;
+}
+.notification {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    max-width: 400px;
+    z-index: 2000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slide-in 0.3s ease-out forwards;
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification.success {
+    background-color: #4CAF50;
+}
+
+.notification.error {
+    background-color: #f44336;
+}
+
+.notification.info {
+    background-color: #2196F3;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
 </style>

@@ -1,5 +1,6 @@
 const SharedCart = require('../models/sharedCartModel');
 const Cart = require('../models/cartModel');
+const db = require('../config/db'); // Add this import at the top
 
 exports.createShareLink = async (req, res) => {
     try {
@@ -60,5 +61,59 @@ exports.getActiveShare = async (req, res) => {
     } catch (error) {
         console.error('Error getting active share:', error);
         res.status(500).json({ message: 'Error checking active share status' });
+    }
+};
+
+exports.stopSharing = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        // Find active shares where the user is the owner
+        const [shares] = await db.execute(
+            'SELECT * FROM shared_carts WHERE owner_id = ? AND status = "active"',
+            [userId]
+        );
+        
+        if (shares.length === 0) {
+            return res.status(404).json({ message: 'No active shared cart found' });
+        }
+        
+        // Update the share status to expired instead of inactive
+        await db.execute(
+            'UPDATE shared_carts SET status = "expired" WHERE owner_id = ? AND status = "active"',
+            [userId]
+        );
+        
+        res.json({ message: 'Successfully stopped sharing cart' });
+    } catch (error) {
+        console.error('Error stopping cart sharing:', error);
+        res.status(500).json({ message: 'Failed to stop sharing cart' });
+    }
+};
+
+exports.leaveSharing = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        
+        // Find active shares where the user is the receiver
+        const [shares] = await db.execute(
+            'SELECT * FROM shared_carts WHERE shared_with = ? AND status = "active"',
+            [userId]
+        );
+        
+        if (shares.length === 0) {
+            return res.status(404).json({ message: 'No active shared cart found' });
+        }
+        
+        // Update to expired instead of inactive
+        await db.execute(
+            'UPDATE shared_carts SET status = "expired" WHERE shared_with = ? AND status = "active"',
+            [userId]
+        );
+        
+        res.json({ message: 'Successfully left shared cart' });
+    } catch (error) {
+        console.error('Error leaving shared cart:', error);
+        res.status(500).json({ message: 'Failed to leave shared cart' });
     }
 };
