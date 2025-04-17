@@ -20,6 +20,9 @@
                         <i class="fas fa-copy"></i>
                     </button>
                 </div>
+                <div v-if="copied" class="copy-success">
+                    <i class="fas fa-check-circle"></i> Link copied to clipboard!
+                </div>
                 <p class="expiry-note">Link expires in 24 hours</p>
             </div>
             <div v-else>
@@ -46,7 +49,8 @@ export default {
     },
     data() {
         return {
-            shareLink: null
+            shareLink: null,
+            copied: false
         }
     },
     methods: {
@@ -77,7 +81,12 @@ export default {
         copyLink() {
             this.$refs.linkInput.select();
             document.execCommand('copy');
-            alert('Link copied to clipboard!');
+            this.copied = true;
+            
+            // Hide the message after 3 seconds
+            setTimeout(() => {
+                this.copied = false;
+            }, 3000);
         }
     }
 }
@@ -130,6 +139,21 @@ export default {
     border: none;
     border-radius: 6px;
     cursor: pointer;
+}
+
+.copy-success {
+    color: #4CAF50;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .expiry-note {
