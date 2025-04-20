@@ -286,19 +286,26 @@ class Admin {
                 SELECT 
                     o.order_id,
                     u.username as customer_name,
+                    o.customer_name as physical_customer_name,
                     o.status,
                     o.total_amount,
                     o.created_at,
                     o.cancel_reason,
                     o.accepted_by,
                     o.accepted_at,
+                    o.is_physical_order,
                     s.username as staff_name
                 FROM orders o
-                JOIN users u ON o.user_id = u.id
+                LEFT JOIN users u ON o.user_id = u.id
                 LEFT JOIN users s ON o.accepted_by = s.id
                 ORDER BY o.created_at DESC
             `);
-            return rows;
+            
+            // Format customer names for physical orders
+            return rows.map(order => ({
+                ...order,
+                customer_name: order.is_physical_order ? order.physical_customer_name : order.customer_name
+            }));
         } catch (error) {
             throw error;
         }

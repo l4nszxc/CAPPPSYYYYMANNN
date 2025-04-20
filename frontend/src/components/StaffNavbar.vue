@@ -15,6 +15,11 @@
                 <i class="fas fa-tasks"></i>
                 <span>Accepted Orders</span>
             </router-link>
+
+            <router-link to="/staff/orders/create" class="menu-item" exact-active-class="active">
+                <i class="fas fa-cash-register"></i>
+                <span>Create Order</span>
+            </router-link>
         </div>
 
         <div class="sidebar-footer">

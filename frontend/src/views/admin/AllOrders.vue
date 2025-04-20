@@ -40,7 +40,16 @@
                     <tbody>
                         <tr v-for="order in filteredOrders" :key="order.order_id">
                             <td>{{ order.order_id }}</td>
-                            <td>{{ order.customer_name }}</td>
+                            <td>
+                                <template v-if="order.is_physical_order">
+                                    <span class="physical-order-badge">
+                                        <i class="fas fa-store"></i> {{ order.customer_name }}
+                                    </span>
+                                </template>
+                                <template v-else>
+                                    {{ order.customer_name }}
+                                </template>
+                            </td>
                             <td>
                                 <span :class="['status-badge', order.status.toLowerCase().replace(/ /g, '-')]">
                                     <template v-if="order.status === 'paid'">
@@ -1298,7 +1307,18 @@ tbody tr:hover {
     background-color: #9ca3af;
     cursor: not-allowed;
 }
-
+.physical-order-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #f0fdf4;
+    color: #166534;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    width: fit-content;
+    border: 1px solid #dcfce7;
+}
 /* Responsive Styles */
 @media (max-width: 1200px) {
     .admin-content {

@@ -17,6 +17,7 @@ import ViewOrder from '../views/user/ViewOrder.vue'
 import Rewards from '../views/user/Rewards.vue'
 import SharedCart from '../views/user/SharedCart.vue'
 import RewardsManagement from '../views/admin/RewardsManagement.vue'
+import CreateOrder from '../views/staff/CreateOrder.vue'
 
 const routes = [
   {
@@ -159,7 +160,13 @@ const routes = [
     name: 'AcceptedOrders',
     component: () => import('../views/staff/AcceptedOrders.vue'),
     meta: { requiresAuth: true, role: 'staff' }
-  }
+  },
+  {
+    path: '/staff/orders/create',
+    name: 'StaffCreateOrder',
+    component: CreateOrder,
+    meta: { requiresAuth: true, role: 'staff' }
+  },
 ]
 
 const router = createRouter({

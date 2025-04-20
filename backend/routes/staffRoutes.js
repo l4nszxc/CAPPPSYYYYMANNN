@@ -8,5 +8,7 @@ router.get('/orders', authenticate, staffController.getAllOrders);
 router.get('/orders/:orderId', authenticate, staffController.getOrderDetails);
 router.put('/orders/:orderId/status', authenticate, staffController.updateOrderStatus);
 router.post('/orders/:orderId/accept', authenticate, staffController.acceptOrder);
+router.post('/orders/create', authenticate, staffController.createPhysicalOrder);
+
 
 module.exports = router;

@@ -268,3 +268,83 @@ exports.getAcceptedOrders = async (req, res) => {
         res.status(500).json({ message: 'Error fetching accepted orders' });
     }
 };
+exports.createPhysicalOrder = async (req, res) => {
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+        
+        const { items, customerName, isPhysicalOrder } = req.body;
+        const staffId = req.user.id;
+        
+        // Generate a 7-character order ID format
+        const prefix = "PO"; // For Physical Order
+        
+        // Get the next available order number
+        const [latestOrder] = await connection.execute(
+            `SELECT order_id FROM orders 
+             WHERE order_id LIKE '${prefix}%' 
+             ORDER BY CAST(SUBSTRING(order_id, 3) AS UNSIGNED) DESC 
+             LIMIT 1`
+        );
+        
+        let orderNum = 1;
+        if (latestOrder && latestOrder.length > 0) {
+            const lastNum = parseInt(latestOrder[0].order_id.substring(2), 10);
+            if (!isNaN(lastNum)) {
+                orderNum = lastNum + 1;
+            }
+        }
+        
+        // Pad with zeros to make 5 digits
+        const paddedNum = orderNum.toString().padStart(5, '0');
+        const orderId = `${prefix}${paddedNum}`;
+        
+        // Create order record with 'ready for pickup' status
+        await connection.execute(
+            `INSERT INTO orders (order_id, user_id, status, total_amount, accepted_by, accepted_at, is_physical_order, customer_name) 
+             VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?)`,
+            [
+                orderId, 
+                staffId, 
+                'ready for pickup', // Changed from 'pending' to 'ready for pickup'
+                items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                staffId,
+                isPhysicalOrder ? 1 : 0,
+                customerName || 'Walk-in Customer'
+            ]
+        );
+        
+        // Insert order items
+        for (const item of items) {
+            await connection.execute(
+                'INSERT INTO order_items (order_id, product_id, quantity, price, choice_id) VALUES (?, ?, ?, ?, ?)',
+                [orderId, item.product_id, item.quantity, item.price, item.choice_id || null]
+            );
+            
+            // Update stock
+            if (item.choice_id) {
+                await connection.execute(
+                    'UPDATE product_choices SET stock = stock - ? WHERE choice_id = ?',
+                    [item.quantity, item.choice_id]
+                );
+            } else {
+                await connection.execute(
+                    'UPDATE products SET stock_quantity = stock_quantity - ? WHERE products_id = ?',
+                    [item.quantity, item.product_id]
+                );
+            }
+        }
+        
+        await connection.commit();
+        res.json({ 
+            message: 'Order created successfully',
+            orderId: orderId
+        });
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error creating physical order:', error);
+        res.status(500).json({ message: 'Error creating order' });
+    } finally {
+        connection.release();
+    }
+};

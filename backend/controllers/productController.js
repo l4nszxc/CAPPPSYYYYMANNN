@@ -2,6 +2,7 @@ const Product = require('../models/productModel');
 const Admin = require('../models/adminModel');
 const multer = require('multer');
 const { uploadToImgBB } = require('../services/imgbbService');
+const db = require('../config/db');
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -275,5 +276,23 @@ exports.deleteProductChoice = async (req, res) => {
     } catch (error) {
         console.error('Error deleting product choice:', error);
         res.status(500).json({ message: 'Error deleting product choice', error: error.message });
+    }
+};
+exports.hasChoices = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        
+        // Check if the product has any choices/variants
+        const [rows] = await db.query(
+            'SELECT COUNT(*) as choiceCount FROM product_choices WHERE product_id = ?',
+            [productId]
+        );
+        
+        const hasChoices = rows[0].choiceCount > 0;
+        
+        res.json({ hasChoices });
+    } catch (error) {
+        console.error('Error checking product choices:', error);
+        res.status(500).json({ message: 'Error checking product choices' });
     }
 };
